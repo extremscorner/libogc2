@@ -71,7 +71,7 @@ static u32 __ARInternalSize = 0;
 static u32 __ARExpansionSize = 0;
 static u32 __ARSize = 0;
 
-static void __ARHandler(u32 irq,void *ctx);
+static void __ARHandler(u32 irq,frame_context *ctx);
 static void __ARCheckSize(void);
 static void __ARClearArea(u32 aramaddr,u32 len);
 
@@ -110,7 +110,7 @@ u32 AR_Init(u32 *stack_idx_array,u32 num_entries)
 
 	__ARDmaCallback = NULL;
 
-	IRQ_Request(IRQ_DSP_ARAM,__ARHandler,NULL);
+	IRQ_Request(IRQ_DSP_ARAM,__ARHandler);
 	__UnmaskIrq(IRQMASK(IRQ_DSP_ARAM));
 
 	__ARStackPointer = aram_base;
@@ -396,7 +396,7 @@ end_check:
 	__ARSize = arsize;
 }
 
-static void __ARHandler(u32 irq,void *ctx)
+static void __ARHandler(u32 irq,frame_context *ctx)
 {
 #ifdef _AR_DEBUG
 	printf("__ARHandler()\n");

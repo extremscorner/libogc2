@@ -119,7 +119,7 @@ static void __AICallbackStackSwitch(AIDCallback handler)
 }
 
 #if defined(HW_DOL)
-static void __AISHandler(u32 nIrq,void *pCtx)
+static void __AISHandler(u32 nIrq,frame_context *pCtx)
 {
 	if(__AIS_Callback)
 		__AIS_Callback(_aiReg[AI_SAMPLE_COUNT]);
@@ -127,7 +127,7 @@ static void __AISHandler(u32 nIrq,void *pCtx)
 }
 #endif
 
-static void __AIDHandler(u32 nIrq,void *pCtx)
+static void __AIDHandler(u32 nIrq,frame_context *pCtx)
 {
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_DSPINT|DSPCR_ARINT))|DSPCR_AIINT;
 	if(__AID_Callback) {
@@ -269,12 +269,12 @@ void AUDIO_Init(u8 *stack)
 							// looks like 3.4 isn't picking up the use from the asm below
 		__CallbackStack = stack;
 
-		IRQ_Request(IRQ_DSP_AI,__AIDHandler,NULL);
+		IRQ_Request(IRQ_DSP_AI,__AIDHandler);
 		__UnmaskIrq(IRQMASK(IRQ_DSP_AI));
 #if defined(HW_DOL)
 		__AIS_Callback = NULL;
 
-		IRQ_Request(IRQ_AI,__AISHandler,NULL);
+		IRQ_Request(IRQ_AI,__AISHandler);
 		__UnmaskIrq(IRQMASK(IRQ_AI));
 #endif
 		__AIInitFlag = 1;

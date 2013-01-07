@@ -1326,7 +1326,7 @@ static void __dvd_statecoverclosed_spinupcb(s32 result)
 	__dvd_statecoverclosed_cmd(__dvd_executing);
 }
 
-static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
+static void __DVDInterruptHandler(u32 nIrq,frame_context *pCtx)
 {
 	s64 now;
 	u32 status,ir,irm,irmm,diff;
@@ -2890,7 +2890,7 @@ void DVD_Init(void)
 		__dvd_clearwaitingqueue();
 		__DVDInitWA();
 
-		IRQ_Request(IRQ_PI_DI,__DVDInterruptHandler,NULL);
+		IRQ_Request(IRQ_PI_DI,__DVDInterruptHandler);
 		__UnmaskIrq(IRQMASK(IRQ_PI_DI));
 
 		SYS_CreateAlarm(&__dvd_timeoutalarm);

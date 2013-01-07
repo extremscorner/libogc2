@@ -353,7 +353,7 @@ static void __si_transfernext(u32 chan)
 	}
 }
 
-static void __si_interrupthandler(u32 irq,void *ctx)
+static void __si_interrupthandler(u32 irq,frame_context *ctx)
 {
 	SICallback cb;
 	u32 chn,curr_line,line,ret;
@@ -828,7 +828,7 @@ void __si_init(void)
 
 	_siReg[15] &= ~0x80000000;		// permit exi clock to be set to 32MHz
 
-	IRQ_Request(IRQ_PI_SI,__si_interrupthandler,NULL);
+	IRQ_Request(IRQ_PI_SI,__si_interrupthandler);
 	__UnmaskIrq(IRQMASK(IRQ_PI_SI));
 
 	SI_GetType(0);

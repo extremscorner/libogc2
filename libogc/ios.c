@@ -226,7 +226,7 @@ s32 __IOS_LaunchNewIOS(int version)
 	u32 numviews;
 	s32 res;
 	u64 titleID = 0x100000000LL;
-	raw_irq_handler_t irq_handler;
+	irq_handler_t irq_handler;
 	u32 counter;
 
 	STACK_ALIGN(tikview,views,4,32);
@@ -309,7 +309,7 @@ s32 __IOS_LaunchNewIOS(int version)
 	printf("IPC started (%u)\n", counter);
 #endif
 
-	IRQ_Request(IRQ_PI_ACR, irq_handler, NULL);
+	IRQ_Request(IRQ_PI_ACR, irq_handler);
     __UnmaskIrq(IRQ_PI_ACR);
 
 	__IPC_Reinitialize();

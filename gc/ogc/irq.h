@@ -126,41 +126,40 @@ distribution.
 #endif /* __cplusplus */
 
 
-/*! \typedef void (*raw_irq_handler_t)(u32 irq,void *ctx)
+/*! \typedef void (*irq_handler_t)(u32 irq,frame_context *ctx)
 \brief function pointer typedef for the interrupt handler callback
 \param[in] irq interrupt number of triggered interrupt.
-\param[in] ctx pointer to the user data.
+\param[in] ctx pointer to the interrupt context.
 */
-typedef void (*raw_irq_handler_t)(u32 irq,void *ctx);
+typedef void (*irq_handler_t)(u32 irq,frame_context *ctx);
 
 
-/*! \fn raw_irq_handler_t IRQ_Request(u32 nIrq,raw_irq_handler_t pHndl,void *pCtx)
+/*! \fn irq_handler_t IRQ_Request(u32 nIrq,irq_handler_t pHndl)
 \brief Register an interrupt handler.
 \param[in] nIrq interrupt number to which to register the handler
 \param[in] pHndl pointer to the handler callback function which to call when interrupt has triggered
-\param[in] pCtx pointer to user data to pass with, when handler is called
 
 \return Old interrupt handler, else NULL
 */
-raw_irq_handler_t IRQ_Request(u32 nIrq,raw_irq_handler_t pHndl,void *pCtx);
+irq_handler_t IRQ_Request(u32 nIrq,irq_handler_t pHndl);
 
 
-/*! \fn raw_irq_handler_t IRQ_Free(u32 nIrq)
+/*! \fn irq_handler_t IRQ_Free(u32 nIrq)
 \brief Free an interrupt handler.
 \param[in] nIrq interrupt number for which to free the handler
 
 \return Old interrupt handler, else NULL
 */
-raw_irq_handler_t IRQ_Free(u32 nIrq);
+irq_handler_t IRQ_Free(u32 nIrq);
 
 
-/*! \fn raw_irq_handler_t IRQ_GetHandler(u32 nIrq)
+/*! \fn irq_handler_t IRQ_GetHandler(u32 nIrq)
 \brief Get the handler from interrupt number
 \param[in] nIrq interrupt number for which to retrieve the handler
 
 \return interrupt handler, else NULL
 */
-raw_irq_handler_t IRQ_GetHandler(u32 nIrq);
+irq_handler_t IRQ_GetHandler(u32 nIrq);
 
 
 /*! \fn u32 IRQ_Disable()

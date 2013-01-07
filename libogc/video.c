@@ -2450,7 +2450,7 @@ static inline void __VIGetCurrentPosition(s32 *px,s32 *py)
 	__VIDisplayPositionToXY(xpos,ypos,px,py);
 }
 
-static void __VIRetraceHandler(u32 nIrq,void *pCtx)
+static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 {
 #if defined(HW_RVL)
 	u8 dtv, tv;
@@ -2605,7 +2605,7 @@ void VIDEO_Init(void)
 
 	LWP_InitQueue(&video_queue);
 
-	IRQ_Request(IRQ_PI_VI,__VIRetraceHandler,NULL);
+	IRQ_Request(IRQ_PI_VI,__VIRetraceHandler);
 	__UnmaskIrq(IRQMASK(IRQ_PI_VI));
 #if defined(HW_RVL)
 	__VISetupEncoder();

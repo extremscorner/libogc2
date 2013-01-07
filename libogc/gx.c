@@ -412,7 +412,7 @@ static void __GXUnderflowHandler(void)
 	}
 }
 
-static void __GXCPInterruptHandler(u32 irq,void *ctx)
+static void __GXCPInterruptHandler(u32 irq,frame_context *ctx)
 {
 	__gx->cpSRreg = _cpReg[0];
 
@@ -430,7 +430,7 @@ static void __GXCPInterruptHandler(u32 irq,void *ctx)
 	}
 }
 
-static void __GXTokenInterruptHandler(u32 irq,void *ctx)
+static void __GXTokenInterruptHandler(u32 irq,frame_context *ctx)
 {
 	u16 token = _peReg[7];
 
@@ -440,7 +440,7 @@ static void __GXTokenInterruptHandler(u32 irq,void *ctx)
 	_peReg[5] = (_peReg[5]&~0x04)|0x04;
 }
 
-static void __GXFinishInterruptHandler(u32 irq,void *ctx)
+static void __GXFinishInterruptHandler(u32 irq,frame_context *ctx)
 {
 #ifdef _GP_DEBUG
 	printf("__GXFinishInterruptHandler()\n");
@@ -456,10 +456,10 @@ static void __GXFinishInterruptHandler(u32 irq,void *ctx)
 
 static void __GX_PEInit(void)
 {
-	IRQ_Request(IRQ_PI_PETOKEN,__GXTokenInterruptHandler,NULL);
+	IRQ_Request(IRQ_PI_PETOKEN,__GXTokenInterruptHandler);
 	__UnmaskIrq(IRQMASK(IRQ_PI_PETOKEN));
 
-	IRQ_Request(IRQ_PI_PEFINISH,__GXFinishInterruptHandler,NULL);
+	IRQ_Request(IRQ_PI_PEFINISH,__GXFinishInterruptHandler);
 	__UnmaskIrq(IRQMASK(IRQ_PI_PEFINISH));
 
 	_peReg[5] = 0x0F;
@@ -467,7 +467,7 @@ static void __GX_PEInit(void)
 
 static void __GX_FifoInit(void)
 {
-	IRQ_Request(IRQ_PI_CP,__GXCPInterruptHandler,NULL);
+	IRQ_Request(IRQ_PI_CP,__GXCPInterruptHandler);
 	__UnmaskIrq(IRQMASK(IRQ_PI_CP));
 
 	memset(&_cpufifo,0,sizeof(GXFifoObj));

@@ -431,7 +431,7 @@ static void __ipc_ackhandler(void)
 
 }
 
-static void __ipc_interrupthandler(u32 irq,void *ctx)
+static void __ipc_interrupthandler(u32 irq,frame_context *ctx)
 {
 	u32 ipc_int;
 #ifdef DEBUG_IPC
@@ -813,7 +813,7 @@ u32 __IPC_ClntInit(void)
 		__IPC_Init();
 
 		_ipc_hid = iosCreateHeap(IPC_HEAP_SIZE);
-		IRQ_Request(IRQ_PI_ACR,__ipc_interrupthandler,NULL);
+		IRQ_Request(IRQ_PI_ACR,__ipc_interrupthandler);
 		__UnmaskIrq(IM_PI_ACR);
 		IPC_WriteReg(1,56);
 	}

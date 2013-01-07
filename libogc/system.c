@@ -417,7 +417,7 @@ static void __doreboot(u32 resetcode,s32 force_menu)
 }
 #endif
 
-static void __MEMInterruptHandler(u32 irq,void *ctx)
+static void __MEMInterruptHandler(u32 irq,frame_context *ctx)
 {
 	_memReg[16] = 0;
 }
@@ -434,7 +434,7 @@ static void __POWDefaultHandler(void)
 #endif
 
 #if defined(HW_DOL)
-static void __RSWHandler(u32 irq,void *ctx)
+static void __RSWHandler(u32 irq,frame_context *ctx)
 {
 	s64 now;
 	static s64 hold_down = 0;
@@ -553,11 +553,11 @@ static void __memprotect_init(void)
 	_memReg[16] = 0;
 	_memReg[8] = 255;
 
-	IRQ_Request(IRQ_MEM0,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEM1,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEM2,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEM3,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEMADDRESS,__MEMInterruptHandler,NULL);
+	IRQ_Request(IRQ_MEM0,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEM1,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEM2,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEM3,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEMADDRESS,__MEMInterruptHandler);
 
 	SYS_RegisterResetFunc(&mem_resetinfo);
 	__UnmaskIrq(IM_MEMADDRESS);		//only enable memaddress irq atm
@@ -1158,7 +1158,7 @@ void SYS_Init(void)
 #if defined(HW_RVL)
 	__IPC_ClntInit();
 #elif defined(HW_DOL)
-	IRQ_Request(IRQ_PI_RSW,__RSWHandler,NULL);
+	IRQ_Request(IRQ_PI_RSW,__RSWHandler);
 	__MaskIrq(IRQMASK(IRQ_PI_RSW));
 #endif
 	__libc_init(1);

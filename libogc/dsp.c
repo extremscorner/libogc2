@@ -329,7 +329,7 @@ static void __dsp_def_taskcb(void)
 
 }
 
-static void __dsp_inthandler(u32 nIrq,void *pCtx)
+static void __dsp_inthandler(u32 nIrq,frame_context *pCtx)
 {
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT))|DSPCR_DSPINT;
 	if(__dsp_intcb) __dsp_intcb();
@@ -345,7 +345,7 @@ void DSP_Init(void)
 	if(__dsp_inited==FALSE) {
 		__dsp_intcb= __dsp_def_taskcb;
 
-		IRQ_Request(IRQ_DSP_DSP,__dsp_inthandler,NULL);
+		IRQ_Request(IRQ_DSP_DSP,__dsp_inthandler);
 		__UnmaskIrq(IRQMASK(IRQ_DSP_DSP));
 
 		_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
