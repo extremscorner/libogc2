@@ -425,11 +425,14 @@ s32 ASND_SetVoice(s32 voice, s32 format, s32 pitch,s32 delay, void *snd, s32 siz
 
 	DCFlushRange(snd, size_snd);
 
-	if(pitch<1) pitch=1;
+	if(pitch<MIN_PITCH) pitch=MIN_PITCH;
 	if(pitch>MAX_PITCH) pitch=MAX_PITCH;
 
-	volume_l &=255;
-	volume_r &=255;
+	if(volume_l<MIN_VOLUME) volume_l=MIN_VOLUME;
+	if(volume_l>MAX_VOLUME) volume_l=MAX_VOLUME;
+
+	if(volume_r<MIN_VOLUME) volume_r=MIN_VOLUME;
+	if(volume_r>MAX_VOLUME) volume_r=MAX_VOLUME;
 
 	delay=(u32) (48000LL*((u64) delay)/1000LL);
 
@@ -492,11 +495,14 @@ s32 ASND_SetInfiniteVoice(s32 voice, s32 format, s32 pitch,s32 delay, void *snd,
 
 	DCFlushRange(snd, size_snd);
 
-	if(pitch<1) pitch=1;
+	if(pitch<MIN_PITCH) pitch=MIN_PITCH;
 	if(pitch>MAX_PITCH) pitch=MAX_PITCH;
 
-	volume_l &=255;
-	volume_r &=255;
+	if(volume_l<MIN_VOLUME) volume_l=MIN_VOLUME;
+	if(volume_l>MAX_VOLUME) volume_l=MAX_VOLUME;
+
+	if(volume_r<MIN_VOLUME) volume_r=MIN_VOLUME;
+	if(volume_r>MAX_VOLUME) volume_r=MAX_VOLUME;
 
 	delay=(u32) (48000LL*((u64) delay)/1000LL);
 
@@ -662,8 +668,11 @@ s32 ASND_ChangeVolumeVoice(s32 voice, s32 volume_l, s32 volume_r)
 
 	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
 
-	volume_l &=255;
-	volume_r &=255;
+	if(volume_l<MIN_VOLUME) volume_l=MIN_VOLUME;
+	if(volume_l>MAX_VOLUME) volume_l=MAX_VOLUME;
+
+	if(volume_r<MIN_VOLUME) volume_r=MIN_VOLUME;
+	if(volume_r>MAX_VOLUME) volume_r=MAX_VOLUME;
 
 	_CPU_ISR_Disable(level);
 	sound_data[voice].flags |=VOICE_VOLUPDATE;
@@ -773,8 +782,8 @@ s32 ASND_ChangePitchVoice(s32 voice, s32 pitch)
 
 	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
 
-	if(pitch<1) pitch=1;
-	if(pitch>144000) pitch=144000;
+	if(pitch<MIN_PITCH) pitch=MIN_PITCH;
+	if(pitch>MAX_PITCH) pitch=MAX_PITCH;
 
 	_CPU_ISR_Disable(level);
 	sound_data[voice].freq= pitch;
