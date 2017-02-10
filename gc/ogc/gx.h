@@ -945,10 +945,11 @@
 
 
 /*! \addtogroup copymode EFB copy mode
- * \brief Controls whether all lines, only even lines, or only odd lines are copied from the EFB.
+ * \brief Controls whether all lines, no lines, only even lines, or only odd lines are copied from the EFB.
  * @{
  */
 #define GX_COPY_PROGRESSIVE				0
+#define GX_COPY_NONE					1
 #define GX_COPY_INTLC_EVEN				2
 #define GX_COPY_INTLC_ODD				3
 /*! @} */
