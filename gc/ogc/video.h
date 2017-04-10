@@ -87,6 +87,16 @@ void VIDEO_Flush(void);
  */
 void VIDEO_SetBlack(bool black);
 
+void VIDEO_Set3D(bool threeD);
+
+/*! 
+ * \fn u32 VIDEO_GetRetraceCount(void)
+ * \brief Get current retrace count
+ *
+ * \return retracecount
+ */
+u32 VIDEO_GetRetraceCount(void);
+
 
 /*! 
  * \fn u32 VIDEO_GetNextField(void)

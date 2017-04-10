@@ -2788,6 +2788,23 @@ void VIDEO_SetBlack(bool black)
 	_CPU_ISR_Restore(level);
 }
 
+void VIDEO_Set3D(bool threeD)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	HorVer.threeD = threeD;
+	regs[1] = (regs[1]&~0x0008)|(_SHIFTL(threeD,3,1));
+	changed |= VI_REGCHANGE(1);
+	__setScalingRegs(HorVer.panSizeX,HorVer.dispSizeX,HorVer.threeD);
+	_CPU_ISR_Restore(level);
+}
+
+u32 VIDEO_GetRetraceCount(void)
+{
+	return retraceCount;
+}
+
 u32 VIDEO_GetNextField(void)
 {
 	u32 level,nextfield;
