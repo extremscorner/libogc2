@@ -3986,7 +3986,43 @@ void GX_PeekZ(u16 x,u16 y,u32 *z);
 void GX_PokeZMode(u8 comp_enable,u8 func,u8 update_enable);
 
 /*!
- * \fn u32 GX_GetTexObjFmt(GXTexObj *obj)
+ * \fn void* GX_GetTexObjData(GXTexObj *obj)
+ * \brief Used to get a pointer to texture data from the \ref GXTexObj structure.
+ *
+ * \note The returned pointer is a physical address.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return Physical pointer to texture data.
+ */
+void* GX_GetTexObjData(GXTexObj *obj);
+
+/*!
+ * \fn u16 GX_GetTexObjWidth(GXTexObj *obj)
+ * \brief Returns the texture width described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture width.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return texture width
+ */
+u16 GX_GetTexObjWidth(GXTexObj *obj);
+
+/*!
+ * \fn u16 GX_GetTexObjHeight(GXTexObj *obj)
+ * \brief Returns the texture height described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture height.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return texture height
+ */
+u16 GX_GetTexObjHeight(GXTexObj *obj);
+
+/*!
+ * \fn u8 GX_GetTexObjFmt(GXTexObj *obj)
  * \brief Returns the texture format described by texture object \a obj.
  *
  * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture format.
@@ -3995,10 +4031,34 @@ void GX_PokeZMode(u8 comp_enable,u8 func,u8 update_enable);
  *
  * \return texture format of the given texture object
  */
-u32 GX_GetTexObjFmt(GXTexObj *obj);
+u8 GX_GetTexObjFmt(GXTexObj *obj);
 
 /*!
- * \fn u32 GX_GetTexObjMipMap(GXTexObj *obj)
+ * \fn u8 GX_GetTexObjWrapS(GXTexObj *obj)
+ * \brief Returns the texture wrap s mode described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap s mode.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return wrap s mode
+ */
+u8 GX_GetTexObjWrapS(GXTexObj *obj);
+
+/*!
+ * \fn u8 GX_GetTexObjWrapT(GXTexObj *obj)
+ * \brief Returns the texture wrap t mode described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap t mode.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return wrap t mode
+ */
+u8 GX_GetTexObjWrapT(GXTexObj *obj);
+
+/*!
+ * \fn u8 GX_GetTexObjMipMap(GXTexObj *obj)
  * \brief Returns the texture mipmap enable described by texture object \a obj.
  * 
  * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture mipmap enable.
@@ -4007,7 +4067,7 @@ u32 GX_GetTexObjFmt(GXTexObj *obj);
  *
  * \return mipmap enable flag
  */
-u32 GX_GetTexObjMipMap(GXTexObj *obj);
+u8 GX_GetTexObjMipMap(GXTexObj *obj);
 
 /*!
  * \fn void* GX_GetTexObjUserData(GXTexObj *obj)
@@ -4021,80 +4081,22 @@ u32 GX_GetTexObjMipMap(GXTexObj *obj);
  */
 void* GX_GetTexObjUserData(GXTexObj *obj);
 
-/*!
- * \fn void* GX_GetTexObjData(GXTexObj *obj)
- * \brief Used to get a pointer to texture data from the \ref GXTexObj structure.
- *
- * \note The returned pointer is a physical address.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return Physical pointer to texture data.
- */
-void* GX_GetTexObjData(GXTexObj *obj);
+u32 GX_GetTexObjTlut(GXTexObj *obj);
 
 /*!
- * \fn u8 GX_GetTexObjWrapS(GXTexObj* obj)
- * \brief Returns the texture wrap s mode described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap s mode.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return wrap s mode
- */
-u8 GX_GetTexObjWrapS(GXTexObj* obj);
-
-/*!
- * \fn u8 GX_GetTexObjWrapT(GXTexObj* obj)
- * \brief Returns the texture wrap t mode described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap t mode.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return wrap t mode
- */
-u8 GX_GetTexObjWrapT(GXTexObj* obj);
-
-/*!
- * \fn u16 GX_GetTexObjHeight(GXTexObj* obj)
- * \brief Returns the texture height described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture height.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return texture height
- */
-u16 GX_GetTexObjHeight(GXTexObj* obj);
-
-/*!
- * \fn u16 GX_GetTexObjWidth(GXTexObj* obj)
- * \brief Returns the texture width described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture width.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return texture width
- */
-u16 GX_GetTexObjWidth(GXTexObj* obj);
-
-/*!
- * \fn void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height, u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap);
+ * \fn void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap);
  * \brief Returns the parameters described by a texture object. Texture objects are used to describe all the parameters associated with a texture, including size, format, wrap modes, filter modes, etc. Texture objects are initialized using either GX_InitTexObj() or, for color index format textures, GX_InitTexObjCI().
  *
  * \param[in] obj ptr to a texture object
- * \param[out] image_ptr Returns a physical pointer to the image data for a texture.
- * \param[out] width Returns the width of the texture or LOD 0 for mipmaps
- * \param[out] height Returns the height of the texture or LOD 0 for mipmaps
- * \param[out] format Returns the texel format
+ * \param[out] img_ptr Returns a physical pointer to the image data for a texture.
+ * \param[out] wd Returns the width of the texture or LOD 0 for mipmaps
+ * \param[out] ht Returns the height of the texture or LOD 0 for mipmaps
+ * \param[out] fmt Returns the texel format
  * \param[out] mipmap Returns the mipmap enable flag.
  *
  * \return none
  */
-void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height, u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap);
+void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap);
 
 /*!
  * \fn u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)

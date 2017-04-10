@@ -2996,53 +2996,66 @@ static void __GetTexTileShift(u32 fmt,u32 *xshift,u32 *yshift)
 }
 #endif
 
-u32 GX_GetTexObjFmt(GXTexObj *obj)
-{
-	return ((struct __gx_texobj*)obj)->tex_fmt;
-}
-
-u32 GX_GetTexObjMipMap(GXTexObj *obj)
-{
-	return (((struct __gx_texobj*)obj)->tex_flag&0x01);
-}
-void* GX_GetTexObjData(GXTexObj *obj)
-{
-	return (void*)(_SHIFTL(((struct __gx_texobj*)obj)->tex_maddr & 0x00ffffff,5,24));
-}
-
-u8 GX_GetTexObjWrapS(GXTexObj* obj)
-{
-	return ((struct __gx_texobj*)obj)->tex_filt & 0x03;
-}
-
-u8 GX_GetTexObjWrapT(GXTexObj* obj)
-{
-	return _SHIFTR(((struct __gx_texobj*)obj)->tex_filt & 0x0c, 2, 2);
-}
-
-u16 GX_GetTexObjHeight(GXTexObj* obj)
-{
-	return _SHIFTR(((struct __gx_texobj*)obj)->tex_size & 0xffc00, 10, 10) + 1;
-}
-
-u16 GX_GetTexObjWidth(GXTexObj* obj)
-{
-	return (((struct __gx_texobj*)obj)->tex_size & 0x3ff) + 1;
-}
-
-
-void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height,
-                     u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap)
+void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap)
 {
 	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
-	*image_ptr = (void*)(_SHIFTL(ptr->tex_maddr & 0x00ffffff,5,24));
-	*width = (ptr->tex_size & 0x3ff) + 1;
-	*height = _SHIFTR(ptr->tex_size & 0xffc00, 10, 10) + 1;
-	*format = ptr->tex_fmt;
-	*wrap_s = ptr->tex_filt & 0x03;
-	*wrap_t = _SHIFTR(ptr->tex_filt & 0x0c, 2, 2);
-	*mipmap = ptr->tex_flag & 0x01;
+	*img_ptr = (void*)_SHIFTL(ptr->tex_maddr,5,24);
+	*wd = (ptr->tex_size&0x3ff)+1;
+	*ht = _SHIFTR(ptr->tex_size,10,10)+1;
+	*fmt = ptr->tex_fmt;
+	*wrap_s = ptr->tex_filt&0x03;
+	*wrap_t = _SHIFTR(ptr->tex_filt,2,2);
+	*mipmap = ptr->tex_flag&0x01;
 }
+
+void* GX_GetTexObjData(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (void*)_SHIFTL(ptr->tex_maddr,5,24);
+}
+
+u16 GX_GetTexObjWidth(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (ptr->tex_size&0x3ff)+1;
+}
+
+u16 GX_GetTexObjHeight(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_size,10,10)+1;
+}
+
+u8 GX_GetTexObjFmt(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_fmt;
+}
+
+u8 GX_GetTexObjWrapS(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_filt&0x03;
+}
+
+u8 GX_GetTexObjWrapT(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,2,2);
+}
+
+u8 GX_GetTexObjMipMap(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_flag&0x01;
+}
+
+u32 GX_GetTexObjTlut(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_tlut;
+}
+
 u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)
 {
 	u32 xshift,yshift,xtiles,ytiles,bitsize,size;
