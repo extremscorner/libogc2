@@ -45,7 +45,13 @@ enum {
 	WPAD_BALANCE_BOARD,
 	WPAD_MAX_WIIMOTES,
 };
-											
+
+#define WPAD_LED_NONE							0x00
+#define WPAD_LED_1								0x01
+#define WPAD_LED_2								0x02
+#define WPAD_LED_3								0x04
+#define WPAD_LED_4								0x08
+
 #define WPAD_BUTTON_2							0x0001
 #define WPAD_BUTTON_1							0x0002
 #define WPAD_BUTTON_B							0x0004
@@ -168,6 +174,7 @@ typedef void (*WPADDataCallback)(s32 chan, const WPADData *data);
 typedef void (*WPADShutdownCallback)(s32 chan);
 
 s32 WPAD_Init(void);
+s32 WPAD_ControlLed(s32 chan,s32 leds);
 s32 WPAD_ControlSpeaker(s32 chan,s32 enable);
 s32 WPAD_ReadEvent(s32 chan, WPADData *data);
 s32 WPAD_DroppedEvents(s32 chan);

@@ -1212,6 +1212,34 @@ s32 WPAD_SetIdleThresholds(s32 chan, s32 btns, s32 ir, s32 accel, s32 js, s32 wb
 	return WPAD_ERR_NONE;
 }
 
+s32 WPAD_ControlLed(s32 chan,s32 leds)
+{
+	int i;
+	s32 ret;
+	u32 level;
+
+	if(chan == WPAD_CHAN_ALL) {
+		for(i=WPAD_CHAN_0; i<WPAD_MAX_WIIMOTES; i++)
+			if((ret = WPAD_ControlLed(i,leds)) < WPAD_ERR_NONE)
+				return ret;
+		return WPAD_ERR_NONE;
+	}
+
+	if(chan<WPAD_CHAN_0 || chan>=WPAD_MAX_WIIMOTES) return WPAD_ERR_BAD_CHANNEL;
+
+	_CPU_ISR_Disable(level);
+	if(__wpads_inited==WPAD_STATE_DISABLED) {
+		_CPU_ISR_Restore(level);
+		return WPAD_ERR_NOT_READY;
+	}
+
+	if(__wpads[chan]!=NULL)
+		wiiuse_set_leds(__wpads[chan],(leds<<4)&0xf0,NULL);
+
+	_CPU_ISR_Restore(level);
+	return WPAD_ERR_NONE;
+}
+
 s32 WPAD_ControlSpeaker(s32 chan,s32 enable)
 {
 	int i;
