@@ -268,6 +268,7 @@ void SYS_StartPMC(u32 mcr0val,u32 mcr1val);
 void SYS_DumpPMC(void);
 void SYS_StopPMC(void);
 void SYS_ResetPMC(void);
+f32 SYS_GetCoreMultiplier(void);
 
 
 /*! \fn s32 SYS_CreateAlarm(syswd_t *thealarm)
