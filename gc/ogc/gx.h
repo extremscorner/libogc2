@@ -3562,6 +3562,17 @@ void GX_SetFieldMask(u8 even_mask,u8 odd_mask);
 void GX_SetFieldMode(u8 field_mode,u8 half_aspect_ratio);
 
 /*!
+ * \fn u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale)
+ * \brief Calculates the number of lines copied to the XFB, based on given EFB height and Y scale.
+ *
+ * \param[in] efbHeight Height of embedded framebuffer. Range from 2 to 528. Should be a multiple of 2.
+ * \param[in] yscale Vertical scale value. Range from 1.0 to 256.0.
+ *
+ * \return Number of lines that will be copied.
+ */
+u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale);
+
+/*!
  * \fn f32 GX_GetYScaleFactor(u16 efbHeight,u16 xfbHeight)
  * \brief Calculates an appropriate Y scale factor value for GX_SetDispCopyYScale() based on the height of the EFB and
  *        the height of the XFB.

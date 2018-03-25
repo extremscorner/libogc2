@@ -1988,7 +1988,7 @@ u32 GX_SetDispCopyYScale(f32 yscale)
 	GX_LOAD_BP_REG(0x4e000000|yScale);
 
 	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~0x400)|(_SHIFTL(((256-yScale)>0),10,1));
-	ht = _SHIFTR(__gx->dispCopyWH,12,10)+1;
+	ht = _SHIFTR(__gx->dispCopyWH,10,10)+1;
 	return __GX_GetNumXfbLines(ht,yScale);
 }
 
@@ -5142,6 +5142,14 @@ void GX_AdjustForOverscan(GXRModeObj *rmin,GXRModeObj *rmout,u16 hor,u16 ver)
 
 	rmout->viXOrigin += hor;
 	rmout->viYOrigin += ver;
+}
+
+u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale)
+{
+	u32 yScale;
+
+	yScale = ((u32)(256.0f/yscale))&0x1ff;
+	return __GX_GetNumXfbLines(efbHeight,yScale);
 }
 
 f32 GX_GetYScaleFactor(u16 efbHeight,u16 xfbHeight)
