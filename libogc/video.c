@@ -2353,7 +2353,7 @@ static inline u32 __VISetRegs(void)
 	u64 mask;
 
 	if(shdw_changeMode==1){
-		if(!__getCurrentFieldEvenOdd()) return 0;
+		if(__getCurrentHalfLine()) return 0;
 	}
 
 	while(shdw_changed) {
