@@ -135,6 +135,8 @@ u32 VIDEO_GetCurrentTvMode(void);
  */
 void VIDEO_Configure(GXRModeObj *rmode);
 
+void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height);
+
 u32 VIDEO_GetFrameBufferSize(GXRModeObj *rmode);
 
 /*! 
