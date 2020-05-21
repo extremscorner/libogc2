@@ -34,9 +34,6 @@
 
 #include <string.h>
 
-#undef BYTE_ORDER
-
-#define BYTE_ORDER						BIG_ENDIAN
 #define NO_SYS							1
 #define LWIP_CALLBACK_API				1
 #undef  LWIP_EVENT_API
