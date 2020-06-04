@@ -1690,6 +1690,31 @@ void SYS_SetDisplayOffsetH(s8 offset)
 	__SYS_UnlockSram(write);
 }
 
+u8 SYS_GetBootMode(void)
+{
+	u8 mode;
+	syssram *sram;
+
+	sram = __SYS_LockSram();
+	mode = (sram->ntd&0x80);
+	__SYS_UnlockSram(0);
+	return mode;
+}
+
+void SYS_SetBootMode(u8 mode)
+{
+	u32 write;
+	syssram *sram;
+
+	write = 0;
+	sram = __SYS_LockSram();
+	if((sram->ntd&0x80)!=mode) {
+		sram->ntd = (sram->ntd&~0x80)|(mode&0x80);
+		write = 1;
+	}
+	__SYS_UnlockSram(write);
+}
+
 u8 SYS_GetEuRGB60(void)
 {
 	u8 enable;

@@ -324,6 +324,8 @@ u32 SYS_GetCounterBias(void);
 void SYS_SetCounterBias(u32 bias);
 s8 SYS_GetDisplayOffsetH(void);
 void SYS_SetDisplayOffsetH(s8 offset);
+u8 SYS_GetBootMode(void);
+void SYS_SetBootMode(u8 mode);
 u8 SYS_GetEuRGB60(void);
 void SYS_SetEuRGB60(u8 enable);
 u8 SYS_GetLanguage(void);
