@@ -55,7 +55,8 @@ distribution.
 #define  DVD_STATE_COVER_OPEN			5 
 #define  DVD_STATE_WRONG_DISK			6 
 #define  DVD_STATE_MOTOR_STOPPED		7 
-#define  DVD_STATE_IGNORED				8 
+#define  DVD_STATE_PAUSING				8 
+#define  DVD_STATE_IGNORED				9 
 #define  DVD_STATE_CANCELED				10 
 #define  DVD_STATE_RETRY				11 
 
