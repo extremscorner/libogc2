@@ -339,6 +339,8 @@ s32 DVD_SetGCMOffset(dvdcmdblk *block,s64 offset);
  */
 s32 DVD_SetGCMOffsetAsync(dvdcmdblk *block,s64 offset,dvdcbcallback cb);
 
+s32 DVD_GcodeRead(dvdcmdblk *block,void *buf,u32 len,u32 offset);
+s32 DVD_GcodeReadAsync(dvdcmdblk *block,void *buf,u32 len,u32 offset,dvdcbcallback cb);
 s32 DVD_GetCmdBlockStatus(dvdcmdblk *block);
 s32 DVD_SpinUpDrive(dvdcmdblk *block);
 s32 DVD_SpinUpDriveAsync(dvdcmdblk *block,dvdcbcallback cb);
@@ -363,7 +365,9 @@ dvddrvinfo* DVD_GetDriveInfo(void);
 #define DVD_GetUserData(block)       ((block)->usrdata)
 
 #define DEVICE_TYPE_GAMECUBE_DVD		(('G'<<24)|('D'<<16)|('V'<<8)|'D')
+
 extern const DISC_INTERFACE __io_gcdvd;
+extern const DISC_INTERFACE __io_gcode;
 
 #ifdef __cplusplus
    }
