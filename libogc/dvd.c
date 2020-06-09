@@ -380,6 +380,7 @@ static s32 DVD_LowRequestError(dvdcallbacklow cb);
 static s32 DVD_LowStopMotor(dvdcallbacklow cb);
 static s32 DVD_LowInquiry(dvddrvinfo *info,dvdcallbacklow cb);
 static s32 DVD_LowWaitCoverClose(dvdcallbacklow cb);
+static s32 DVD_LowGetCoverStatus(void);
 static s32 DVD_LowAudioStream(u32 subcmd,u32 len,s64 offset,dvdcallbacklow cb);
 static s32 DVD_LowAudioBufferConfig(s32 enable,u32 size,dvdcallbacklow cb);
 static s32 DVD_LowRequestAudioStatus(u32 subcmd,dvdcallbacklow cb);
@@ -1322,7 +1323,7 @@ static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
 
 	now = gettime();
 	diff = diff_msec(__dvd_lastresetend,now);
-	if(__dvd_resetoccured && diff>200) {
+	if(__dvd_resetoccured && diff<200) {
 		status = _diReg[1];
 		irm = status&DVD_CVR_MSK;
 		ir = (status&DVD_CVR_INT)&(irm<<1);
@@ -2081,6 +2082,18 @@ static s32 DVD_LowWaitCoverClose(dvdcallbacklow cb)
 	__dvd_stopnextint = 0;
 	_diReg[1] = DVD_CVR_MSK;
 	return 1;
+}
+
+static s32 DVD_LowGetCoverStatus(void)
+{
+	s64 now;
+	u32 diff;
+
+	now = gettime();
+	diff = diff_msec(__dvd_lastresetend,now);
+	if(diff<100) return 0;
+	else if(_diReg[1]&DVD_CVR_STATE) return 1;
+	else return 2;
 }
 
 static void DVD_LowReset(u32 reset_mode)
