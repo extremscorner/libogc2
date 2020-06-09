@@ -66,14 +66,13 @@ distribution.
 
 #define DVD_DISKIDSIZE					0x20
 #define DVD_DRVINFSIZE					0x20
-#define DVD_MAXCOMMANDS					0x13
 
-#define DVD_DVDINQUIRY					0x12000000
+#define DVD_INQUIRY						0x12000000
 #define DVD_FWSETOFFSET					0x32000000
 #define DVD_FWENABLEEXT					0x55000000
-#define DVD_READSECTOR					0xA8000000
+#define DVD_READ						0xA8000000
 #define DVD_READDISKID					0xA8000040
-#define DVD_SEEKSECTOR					0xAB000000
+#define DVD_SEEK						0xAB000000
 #define DVD_REQUESTERROR				0xE0000000
 #define DVD_AUDIOSTREAM					0xE1000000
 #define DVD_AUDIOSTATUS					0xE2000000
@@ -345,7 +344,7 @@ static const u8 __dvd_patchcodeQ08[] =
 static vu32* const _piReg = (u32*)0xCC003000;
 
 #if defined(HW_RVL)
-	static vu32* const _diReg = (u32*)0xCD006000;
+	static vu32* const _diReg = (u32*)0xCD806000;
 #elif defined(HW_DOL)
 	static vu32* const _diReg = (u32*)0xCC006000;
 #endif
@@ -375,7 +374,7 @@ static s32 __issuecommand(s32 prio,dvdcmdblk *block);
 static void DVD_LowReset(u32 reset_mode);
 static s32 DVD_LowSeek(s64 offset,dvdcallbacklow cb);
 static s32 DVD_LowRead(void *buf,u32 len,s64 offset,dvdcallbacklow cb);
-static s32 DVD_LowReadId(dvddiskid *diskID,dvdcallbacklow cb);
+static s32 DVD_LowReadDiskID(dvddiskid *diskID,dvdcallbacklow cb);
 static s32 DVD_LowRequestError(dvdcallbacklow cb);
 static s32 DVD_LowStopMotor(dvdcallbacklow cb);
 static s32 DVD_LowInquiry(dvddrvinfo *info,dvdcallbacklow cb);
@@ -559,7 +558,6 @@ static void __SetupTimeoutAlarm(const struct timespec *tp)
 
 static void __Read(void *buffer,u32 len,s64 offset,dvdcallbacklow cb)
 {
-	u32 val;
 	struct timespec tb;
 #ifdef _DVD_DEBUG
 	printf("__Read(%p,%d,%d)\n",buffer,len,offset);
@@ -568,7 +566,7 @@ static void __Read(void *buffer,u32 len,s64 offset,dvdcallbacklow cb)
 	__dvd_stopnextint = 0;
 	__dvd_lastcmdwasread = 1;
 
-	_diReg[2] = DVD_READSECTOR;
+	_diReg[2] = DVD_READ;
 	_diReg[3] = (u32)(offset>>2);
 	_diReg[4] = len;
 	_diReg[5] = (u32)buffer;
@@ -577,8 +575,8 @@ static void __Read(void *buffer,u32 len,s64 offset,dvdcallbacklow cb)
 	__dvd_lastlen = len;
 
 	_diReg[7] = (DVD_DI_DMA|DVD_DI_START);
-	val = _diReg[7];
-	if(val>0x00a00000) {
+
+	if(len>0x00a00000) {
 		tb.tv_sec = 20;
 		tb.tv_nsec = 0;
 		__SetupTimeoutAlarm(&tb);
@@ -1201,7 +1199,7 @@ static void __dvd_checkaddonscb(s32 result)
 		if(txdsize!=DVD_DISKIDSIZE) {
 			_diReg[1] = _diReg[1];
 			DCInvalidateRange(&__dvd_tmpid0,DVD_DISKIDSIZE);
-			DVD_LowReadId(&__dvd_tmpid0,__dvd_checkaddonscb);
+			DVD_LowReadDiskID(&__dvd_tmpid0,__dvd_checkaddonscb);
 			return;
 		}
 		__dvd_drivestate |= DVD_CHIPPRESENT;
@@ -1222,7 +1220,7 @@ static void __dvd_checkaddons(dvdcallbacklow cb)
 	// try to read disc ID.
 	_diReg[1] = _diReg[1];
 	DCInvalidateRange(&__dvd_tmpid0,DVD_DISKIDSIZE);
-	DVD_LowReadId(&__dvd_tmpid0,__dvd_checkaddonscb);
+	DVD_LowReadDiskID(&__dvd_tmpid0,__dvd_checkaddonscb);
 	return;
 }
 
@@ -1455,7 +1453,6 @@ static void __dvd_statebusy(dvdcmdblk *block)
 	printf("__dvd_statebusy(%p)\n",block);
 #endif
 	__dvd_laststate = __dvd_statebusy;
-	if(block->cmd>DVD_MAXCOMMANDS) return;
 
 	switch(block->cmd) {
 		case 1:					//Read(Sector)
@@ -1485,7 +1482,7 @@ static void __dvd_statebusy(dvdcmdblk *block)
 		case 5:					//ReadDiskID
 			_diReg[1] = _diReg[1];
 			block->currtxsize = DVD_DISKIDSIZE;
-			DVD_LowReadId(block->buf,__dvd_statebusycb);
+			DVD_LowReadDiskID(block->buf,__dvd_statebusycb);
 			return;
 		case 6:
 			_diReg[1] = _diReg[1];
@@ -1645,7 +1642,7 @@ static void __dvd_statecoverclosed_cmd(dvdcmdblk *block)
 #ifdef _DVD_DEBUG
 	printf("__dvd_statecoverclosed_cmd(%d)\n",__dvd_currcmd);
 #endif
-	DVD_LowReadId(&__dvd_tmpid0,__dvd_statecoverclosedcb);
+	DVD_LowReadDiskID(&__dvd_tmpid0,__dvd_statecoverclosedcb);
 }
 
 static void __dvd_statemotorstopped(void)
@@ -1777,7 +1774,6 @@ static s32 DVD_LowPatchDriveCode(dvdcallbacklow cb)
 	if(__dvd_driveinfo.rel_date==DVD_MODEL04) {
 		__dvdpatchcode = __dvd_patchcode04;
 		__dvdpatchcode_size = __dvd_patchcode04_size;
-	} else if((__dvd_driveinfo.rel_date&0x0000ff00)==0x00000500) {		// for wii: since i don't know the real date i have to mask & compare.
 	} else if(__dvd_driveinfo.rel_date==DVD_MODEL06) {
 		__dvdpatchcode = __dvd_patchcode06;
 		__dvdpatchcode_size = __dvd_patchcode06_size;
@@ -1787,7 +1783,6 @@ static s32 DVD_LowPatchDriveCode(dvdcallbacklow cb)
 	} else if(__dvd_driveinfo.rel_date==DVD_MODEL08Q) {
 		__dvdpatchcode = __dvd_patchcodeQ08;
 		__dvdpatchcode_size = __dvd_patchcodeQ08_size;
-	} else if((__dvd_driveinfo.rel_date&0x0000ff00)==0x00000900) {		// for wii: since i don't know the real date i have to mask & compare.
 	} else {
 		__dvdpatchcode = NULL;
 		__dvdpatchcode_size = 0;
@@ -1974,7 +1969,7 @@ static s32 DVD_LowSeek(s64 offset,dvdcallbacklow cb)
 	__dvd_callback = cb;
 	__dvd_stopnextint = 0;
 
-	_diReg[2] = DVD_SEEKSECTOR;
+	_diReg[2] = DVD_SEEK;
 	_diReg[3] = (u32)(offset>>2);
 	_diReg[7] = DVD_DI_START;
 
@@ -1985,10 +1980,10 @@ static s32 DVD_LowSeek(s64 offset,dvdcallbacklow cb)
 	return 1;
 }
 
-static s32 DVD_LowReadId(dvddiskid *diskID,dvdcallbacklow cb)
+static s32 DVD_LowReadDiskID(dvddiskid *diskID,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
-	printf("DVD_LowReadId(%p)\n",diskID);
+	printf("DVD_LowReadDiskID(%p)\n",diskID);
 #endif
 	struct timespec tb;
 
@@ -2059,7 +2054,7 @@ static s32 DVD_LowInquiry(dvddrvinfo *info,dvdcallbacklow cb)
 	__dvd_callback = cb;
 	__dvd_stopnextint = 0;
 
-	_diReg[2] = DVD_DVDINQUIRY;
+	_diReg[2] = DVD_INQUIRY;
 	_diReg[4] = DVD_DRVINFSIZE;
 	_diReg[5] = (u32)info;
 	_diReg[6] = DVD_DRVINFSIZE;
@@ -2669,7 +2664,7 @@ u32 DVD_SetAutoInvalidation(u32 auto_inv)
 	return ret;
 }
 
-static bool dvdio_Startup(void)
+static bool __gcdvd_Startup(void)
 {
 	DVD_Init();
 
@@ -2685,7 +2680,7 @@ static bool dvdio_Startup(void)
 	return true;
 }
 
-static bool dvdio_IsInserted(void)
+static bool __gcdvd_IsInserted(void)
 {
 	u32 status = 0;
 	DVD_LowGetStatus(&status, NULL);
@@ -2696,7 +2691,7 @@ static bool dvdio_IsInserted(void)
 	return false;
 }
 
-static bool dvdio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
+static bool __gcdvd_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
@@ -2706,17 +2701,17 @@ static bool dvdio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 	return true;
 }
 
-static bool dvdio_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
+static bool __gcdvd_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
+{
+	return false;
+}
+
+static bool __gcdvd_ClearStatus(void)
 {
 	return true;
 }
 
-static bool dvdio_ClearStatus(void)
-{
-	return true;
-}
-
-static bool dvdio_Shutdown(void)
+static bool __gcdvd_Shutdown(void)
 {
 	dvdcmdblk blk;
 	DVD_StopMotor(&blk);
@@ -2726,10 +2721,10 @@ static bool dvdio_Shutdown(void)
 const DISC_INTERFACE __io_gcdvd = {
 	DEVICE_TYPE_GAMECUBE_DVD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_GAMECUBE_DVD,
-	dvdio_Startup,
-	dvdio_IsInserted,
-	dvdio_ReadSectors,
-	dvdio_WriteSectors,
-	dvdio_ClearStatus,
-	dvdio_Shutdown
+	__gcdvd_Startup,
+	__gcdvd_IsInserted,
+	__gcdvd_ReadSectors,
+	__gcdvd_WriteSectors,
+	__gcdvd_ClearStatus,
+	__gcdvd_Shutdown
 };
