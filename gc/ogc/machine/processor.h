@@ -73,6 +73,13 @@
 #define mfhid4()		mfspr(HID4)
 #define mthid4(_val)	mtspr(HID4,_val)
 
+#define mfthrm1()		mfspr(THRM1)
+#define mtthrm1(_val)	mtspr(THRM1,_val)
+#define mfthrm2()		mfspr(THRM2)
+#define mtthrm2(_val)	mtspr(THRM2,_val)
+#define mfthrm3()		mfspr(THRM3)
+#define mtthrm3(_val)	mtspr(THRM3,_val)
+
 #define __lhbrx(base,index)			\
 ({	register u16 res;				\
 	__asm__ volatile ("lhbrx	%0,%1,%2" : "=r"(res) : "b%"(index), "r"(base) : "memory"); \

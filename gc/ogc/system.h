@@ -269,6 +269,7 @@ void SYS_DumpPMC(void);
 void SYS_StopPMC(void);
 void SYS_ResetPMC(void);
 f32 SYS_GetCoreMultiplier(void);
+s8 SYS_GetCoreTemperature(void);
 
 
 /*! \fn s32 SYS_CreateAlarm(syswd_t *thealarm)

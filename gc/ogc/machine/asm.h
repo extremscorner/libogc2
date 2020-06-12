@@ -135,6 +135,9 @@
 #define MMCR0	952
 #define MMCR1	956
 
+#define THRM1	1020
+#define THRM2	1021
+#define THRM3	1022
 
 #define LINK_REGISTER_CALLEE_UPDATE_ROOM 4
 #define EXCEPTION_NUMBER 8
