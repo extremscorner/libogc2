@@ -110,6 +110,7 @@
 
 #define _CPU_ISR_Enable() \
 	{ register u32 _val = 0; \
+	  __asm__ __volatile__ ("" ::: "memory"); \
 	  __asm__ __volatile__ ( \
 		"mfmsr %0\n" \
 		"ori %0,%0,0x8000\n" \
@@ -121,6 +122,7 @@
 #define _CPU_ISR_Disable( _isr_cookie ) \
   { register u32 _disable_mask = 0; \
 	_isr_cookie = 0; \
+    __asm__ __volatile__ ("" ::: "memory"); \
     __asm__ __volatile__ ( \
 	  "mfmsr %0\n" \
 	  "rlwinm %1,%0,0,17,15\n" \
@@ -133,6 +135,7 @@
 
 #define _CPU_ISR_Restore( _isr_cookie )  \
   { register u32 _enable_mask = 0; \
+	__asm__ __volatile__ ("" ::: "memory"); \
 	__asm__ __volatile__ ( \
     "    cmpwi %0,0\n" \
 	"    beq 1f\n" \
@@ -147,6 +150,7 @@
 
 #define _CPU_ISR_Flash( _isr_cookie ) \
   { register u32 _flash_mask = 0; \
+    __asm__ __volatile__ ("" ::: "memory"); \
     __asm__ __volatile__ ( \
     "   cmpwi %0,0\n" \
 	"   beq 1f\n" \
