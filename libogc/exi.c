@@ -132,8 +132,8 @@ static __inline__ void __exi_setinterrupts(s32 nChn,exibus_priv *exi)
 		__MaskIrq(IRQMASK(IRQ_EXI1_EXI));
 		if(!(exi->flags&EXI_FLAG_LOCKED) && exi->CallbackEXI) __UnmaskIrq(IRQMASK(IRQ_EXI1_EXI));
 	} else if(nChn==EXI_CHANNEL_2) {				//explicitly use of channel 2 only if debugger is attached.
-		__MaskIrq(IRQMASK(IRQ_EXI0_EXI));
-		if(!(exi->flags&EXI_FLAG_LOCKED) && IRQ_GetHandler(IRQ_PI_DEBUG)) __UnmaskIrq(IRQMASK(IRQ_EXI2_EXI));
+		__MaskIrq(IRQMASK(IRQ_PI_DEBUG));
+		if(!(exi->flags&EXI_FLAG_LOCKED) && IRQ_GetHandler(IRQ_PI_DEBUG)) __UnmaskIrq(IRQMASK(IRQ_PI_DEBUG));
 	}
 }
 
