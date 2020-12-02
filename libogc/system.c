@@ -735,7 +735,8 @@ static u32 __unlocksram(u32 write,u32 loc)
 
 	if(write) {
 		if(!loc) {
-			if((sram->flags&0x03)>0x02) sram->flags = (sram->flags&~0x03);
+			if(sram->lang>SYS_LANG_DUTCH) sram->lang = SYS_LANG_ENGLISH;
+			if((sram->flags&0x03)>SYS_VIDEO_MPAL) sram->flags = (sram->flags&~0x03)|(SYS_VIDEO_NTSC&0x03);
 			__buildchecksum((u16*)sramcntrl.srambuf,&sram->checksum,&sram->checksum_inv);
 		}
 		if(loc<sramcntrl.offset) sramcntrl.offset = loc;

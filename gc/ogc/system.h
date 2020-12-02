@@ -104,6 +104,7 @@ distribution.
 #define SYS_LANG_SPANISH				3
 #define SYS_LANG_ITALIAN				4
 #define SYS_LANG_DUTCH					5
+#define SYS_LANG_JAPANESE				6
 
 #define SYS_SOUND_MONO					0
 #define SYS_SOUND_STEREO				1
