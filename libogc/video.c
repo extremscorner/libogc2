@@ -2951,3 +2951,32 @@ u32 VIDEO_HaveComponentCable(void)
 {
 	return (_viReg[55]&0x01);
 }
+
+void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	*hor = displayOffsetH;
+	*ver = displayOffsetV;
+	_CPU_ISR_Restore(level);
+}
+
+void VIDEO_SetAdjustingValues(s16 hor,s16 ver)
+{
+	u32 level;
+	const struct _timing *curtiming;
+
+	_CPU_ISR_Disable(level);
+	displayOffsetH = hor;
+	displayOffsetV = ver;
+
+	curtiming = HorVer.timing;
+	__adjustPosition(curtiming->acv);
+	__setHorizontalRegs(curtiming,HorVer.adjustedDispPosX,HorVer.dispSizeX);
+
+	if(fbSet) __setFbbRegs(&HorVer,&HorVer.tfbb,&HorVer.bfbb,&HorVer.rtfbb,&HorVer.rbfbb);
+
+	__setVerticalRegs(HorVer.adjustedDispPosY,HorVer.adjustedDispSizeY,curtiming->equ,curtiming->acv,curtiming->prbOdd,curtiming->prbEven,curtiming->psbOdd,curtiming->psbEven,HorVer.black);
+	_CPU_ISR_Restore(level);
+}

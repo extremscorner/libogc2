@@ -199,6 +199,9 @@ u32 VIDEO_HaveComponentCable(void);
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode);
 
+void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver);
+void VIDEO_SetAdjustingValues(s16 hor,s16 ver);
+
 #ifdef __cplusplus
    }
 #endif /* __cplusplus */
