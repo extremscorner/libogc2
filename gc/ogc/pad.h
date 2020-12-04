@@ -9,6 +9,11 @@
 #define PAD_CHAN3					3
 #define PAD_CHANMAX					4
 
+#define PAD_CHAN0_BIT				0x80000000
+#define PAD_CHAN1_BIT				0x40000000
+#define PAD_CHAN2_BIT				0x20000000
+#define PAD_CHAN3_BIT				0x10000000
+
 #define PAD_MOTOR_STOP				0
 #define PAD_MOTOR_RUMBLE			1
 #define PAD_MOTOR_STOP_HARD			2
@@ -31,11 +36,6 @@
 #define PAD_BUTTON_Y				0x0800
 #define PAD_BUTTON_MENU				0x1000
 #define PAD_BUTTON_START			0x1000
-
-#define PAD_CHAN0_BIT				0x80000000
-#define PAD_CHAN1_BIT				0x40000000
-#define PAD_CHAN2_BIT				0x20000000
-#define PAD_CHAN3_BIT				0x10000000
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
@@ -67,24 +67,32 @@ u32 PAD_Read(PADStatus *status);
 u32 PAD_Reset(u32 mask);
 u32 PAD_Recalibrate(u32 mask);
 void PAD_Clamp(PADStatus *status);
+void PAD_ControlAllMotors(const u32 *cmds);
 void PAD_ControlMotor(s32 chan,u32 cmd);
+void PAD_SetAnalogMode(u32 mode);
+void PAD_SetSamplingRate(u32 samplingrate);
 void PAD_SetSpec(u32 spec);
+u32 PAD_GetSpec(void);
+u32 PAD_GetType(s32 chan,u32 *type);
+u32 PAD_IsBarrel(s32 chan);
 
 u32 PAD_ScanPads(void);
 
-u16 PAD_ButtonsUp(int pad);
-u16 PAD_ButtonsDown(int pad);
-u16 PAD_ButtonsHeld(int pad);
+u16 PAD_ButtonsUp(s32 chan);
+u16 PAD_ButtonsDown(s32 chan);
+u16 PAD_ButtonsHeld(s32 chan);
 
-s8 PAD_SubStickX(int pad);
-s8 PAD_SubStickY(int pad);
+s8 PAD_SubStickX(s32 chan);
+s8 PAD_SubStickY(s32 chan);
 
-s8 PAD_StickX(int pad);
-s8 PAD_StickY(int pad);
+s8 PAD_StickX(s32 chan);
+s8 PAD_StickY(s32 chan);
 
-u8 PAD_TriggerL(int pad);
-u8 PAD_TriggerR(int pad);
+u8 PAD_TriggerL(s32 chan);
+u8 PAD_TriggerR(s32 chan);
 
+u8 PAD_AnalogA(s32 chan);
+u8 PAD_AnalogB(s32 chan);
 
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb);
 
