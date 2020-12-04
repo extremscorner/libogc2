@@ -938,6 +938,17 @@ u32 __SYS_SyncSram(void)
 	return __sram_sync();
 }
 
+u32 __SYS_CheckSram(void)
+{
+	u16 checksum,checksum_inv;
+	syssram *sram = (syssram*)sramcntrl.srambuf;
+
+	__buildchecksum((u16*)sramcntrl.srambuf,&checksum,&checksum_inv);
+
+	if(sram->checksum!=checksum || sram->checksum_inv!=checksum_inv) return 0;
+	return 1;
+}
+
 void __SYS_ReadROM(void *buf,u32 len,u32 offset)
 {
 	u32 cpy_cnt;
