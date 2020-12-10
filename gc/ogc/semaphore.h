@@ -89,6 +89,16 @@ s32 LWP_SemWait(sem_t sem);
 */
 s32 LWP_SemPost(sem_t sem);
 
+
+/*! \fn s32 LWP_SemGetValue(sem_t sem,u32 *value)
+\brief Get the semaphore counter.
+\param[in] sem handle to the sem_t structure.
+\param[out] value pointer to receive the current count of the semaphore
+
+\return 0 on success, <0 on error
+*/
+s32 LWP_SemGetValue(sem_t sem,u32 *value);
+
 #ifdef __cplusplus
 	}
 #endif

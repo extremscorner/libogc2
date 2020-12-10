@@ -12,9 +12,9 @@ endif
 
 export PATH	:=	$(DEVKITPPC)/bin:$(PATH)
 
-export LIBOGC_MAJOR	:= 1
-export LIBOGC_MINOR	:= 8
-export LIBOGC_PATCH	:= 21
+export LIBOGC_MAJOR	:= 2
+export LIBOGC_MINOR	:= 1
+export LIBOGC_PATCH	:= 0
 
 include	$(DEVKITPPC)/base_rules
 
@@ -88,10 +88,12 @@ MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffun
 
 
 ifeq ($(PLATFORM),wii)
+INCLUDES	+=	-I$(BASEDIR)/wii
 MACHDEP		+=	-DHW_RVL
 endif
 
 ifeq ($(PLATFORM),cube)
+INCLUDES	+=	-I$(BASEDIR)/cube
 MACHDEP		+=	-DHW_DOL
 endif
 
@@ -176,7 +178,7 @@ TINYSMBOBJ	:=	des.o md4.o ntlm.o smb.o smb_devoptab.o
 ASNDLIBOBJ	:=	asndlib.o
 
 #---------------------------------------------------------------------------------
-AESNDLIBOBJ	:=	aesndlib.o
+AESNDLIBOBJ	:=	aesndlib.o aesnddspmixer.bin.o
 
 #---------------------------------------------------------------------------------
 ISOLIBOBJ	:=	iso9660.o
@@ -223,6 +225,22 @@ gc/ogc/libversion.h : Makefile
 	@echo '#define _V_STRING "libOGC Release '$(LIBOGC_MAJOR).$(LIBOGC_MINOR).$(LIBOGC_PATCH)'"' >> $@
 	@echo >> $@
 	@echo "#endif // __LIBVERSION_H__" >> $@
+
+#---------------------------------------------------------------------------------
+aesndlib.o: aesnddspmixer.bin.o aesnddspmixer_bin.h
+#---------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------------
+aesnddspmixer.bin.o aesnddspmixer_bin.h: aesnddspmixer.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+aesnddspmixer.bin: $(LIBAESNDDIR)/dspcode/dspmixer.s
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@gcdsptool -c $< -o $@
 
 #---------------------------------------------------------------------------------
 $(BBALIB).a: $(LWIPOBJ)

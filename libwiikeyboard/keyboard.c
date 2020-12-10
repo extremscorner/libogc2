@@ -103,8 +103,8 @@ typedef struct {
 
 static keyPressCallback _readKey_cb = NULL;
 
-static u8 *_kbd_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
-static u8 *_kbd_buf_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+static u8 _kbd_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+static u8 _kbd_buf_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
 
 static kbd_t _get_keymap_by_name(const char *identifier) {
 	char name[64];

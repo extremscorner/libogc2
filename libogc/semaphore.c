@@ -141,6 +141,20 @@ s32 LWP_SemPost(sem_t sem)
 	return 0;
 }
 
+s32 LWP_SemGetValue(sem_t sem,u32 *value)
+{
+	sema_st *lwp_sem;
+
+	if(!value) return -1;
+
+	lwp_sem = __lwp_sema_open(sem);
+	if(!lwp_sem) return -1;
+
+	*value = lwp_sem->sema.count;
+
+	return 0;
+}
+
 s32 LWP_SemDestroy(sem_t sem)
 {
 	sema_st *lwp_sem;

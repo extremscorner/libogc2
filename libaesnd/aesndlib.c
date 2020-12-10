@@ -7,7 +7,7 @@
 #include <ogc/machine/processor.h>
 
 #include "aesndlib.h"
-#include "dspmixer.h"
+#include "aesnddspmixer_bin.h"
 
 #define PB_STRUCT_SIZE			64
 #define DSP_DRAMSIZE			8192
@@ -455,7 +455,7 @@ void AESND_Init(void)
 		for(i=0;i<MAX_VOICES;i++)
 			snd_set0w((int*)&__aesndvoicepb[i],sizeof(struct aesndpb_t)>>2);
 
-		__aesndloaddsptask(&__aesnddsptask,dspmixer,dspmixer_size,__dspdram,DSP_DRAMSIZE);
+		__aesndloaddsptask(&__aesnddsptask,aesnddspmixer_bin,aesnddspmixer_bin_size,__dspdram,DSP_DRAMSIZE);
 	}
 
 	AUDIO_RegisterDMACallback(__audio_dma_callback);
