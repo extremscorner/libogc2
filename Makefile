@@ -175,7 +175,7 @@ WIIUSEOBJ	:=	classic.o dynamics.o events.o guitar_hero_3.o io.o io_wii.o ir.o \
 TINYSMBOBJ	:=	des.o md4.o ntlm.o smb.o smb_devoptab.o
 
 #---------------------------------------------------------------------------------
-ASNDLIBOBJ	:=	asndlib.o
+ASNDLIBOBJ	:=	asndlib.o asnd_dsp_mixer.bin.o
 
 #---------------------------------------------------------------------------------
 AESNDLIBOBJ	:=	aesndlib.o aesnddspmixer.bin.o
@@ -227,14 +227,28 @@ gc/ogc/libversion.h : Makefile
 	@echo "#endif // __LIBVERSION_H__" >> $@
 
 #---------------------------------------------------------------------------------
+asndlib.o: asnd_dsp_mixer.bin.o asnd_dsp_mixer_bin.h
+#---------------------------------------------------------------------------------
 aesndlib.o: aesnddspmixer.bin.o aesnddspmixer_bin.h
 #---------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------------
+asnd_dsp_mixer.bin.o asnd_dsp_mixer_bin.h: asnd_dsp_mixer.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
 
 #---------------------------------------------------------------------------------
 aesnddspmixer.bin.o aesnddspmixer_bin.h: aesnddspmixer.bin
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+asnd_dsp_mixer.bin: $(LIBASNDDIR)/dsp_mixer/dsp_mixer.s
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@gcdsptool -c $< -o $@
 
 #---------------------------------------------------------------------------------
 aesnddspmixer.bin: $(LIBAESNDDIR)/dspcode/dspmixer.s

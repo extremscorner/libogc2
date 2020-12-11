@@ -864,7 +864,7 @@ mono_8bits_unsigned:
 	andf $ACM1, #0x1
 
 	iflz // obtain sample0-sample1 from 8bits packet
-	lsr  $ACL0, #8
+	lsr  $ACC0, #8
 	lsl  $ACC0, #24
 	xori $ACM0, #0x8000 // convert unsigned->signed
 
