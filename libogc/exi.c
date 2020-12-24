@@ -610,13 +610,13 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 
 	if(ret) {
 		if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==1) {
-			reg = 0;
+			reg = 0x0000<<16;
 			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
 			EXI_Sync(nChn);
 			*nId = 0xffffffff;
 			EXI_Imm(nChn,nId,4,EXI_READWRITE,NULL);
 			EXI_Sync(nChn);
-			reg = 0xffff;
+			reg = 0xffff<<16;
 			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
 			EXI_Sync(nChn);
 			EXI_Deselect(nChn);
