@@ -616,6 +616,9 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 			*nId = 0xffffffff;
 			EXI_Imm(nChn,nId,4,EXI_READWRITE,NULL);
 			EXI_Sync(nChn);
+			reg = 0xffff;
+			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
+			EXI_Sync(nChn);
 			EXI_Deselect(nChn);
 			EXI_Unlock(nChn);
 		}
