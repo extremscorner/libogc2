@@ -102,11 +102,11 @@ static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 {
 	status->button = 0;
 
-	if(data[0]&0x00080000) status->button |= 0x0100;
-	if(data[0]&0x00200000) status->button |= 0x0200;
-	if(data[0]&0x01000000) status->button |= 0x0400;
-	if(data[0]&0x00010000) status->button |= 0x0800;
-	if(data[0]&0x00100000) status->button |= 0x1000;
+	if(data[0]&0x00080000) status->button |= PAD_BUTTON_A;
+	if(data[0]&0x00200000) status->button |= PAD_BUTTON_B;
+	if(data[0]&0x01000000) status->button |= PAD_BUTTON_X;
+	if(data[0]&0x00010000) status->button |= PAD_BUTTON_Y;
+	if(data[0]&0x00100000) status->button |= PAD_BUTTON_MENU;
 
 	status->stickX = (s8)(data[1]>>16);
 	status->stickY = (s8)(data[1]>>24);
@@ -117,8 +117,8 @@ static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	status->analogA = 0;
 	status->analogB = 0;
 
-	if(status->triggerL>=0xaa) status->button |= 0x40;
-	if(status->triggerR>=0xaa) status->button |= 0x20;
+	if(status->triggerL>=0xaa) status->button |= PAD_TRIGGER_L;
+	if(status->triggerR>=0xaa) status->button |= PAD_TRIGGER_R;
 
 	status->stickX -= 128;
 	status->stickY -= 128;
@@ -130,11 +130,11 @@ static void SPEC1_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 {
 	status->button = 0;
 
-	if(data[0]&0x00800000) status->button |= 0x0100;
-	if(data[0]&0x01000000) status->button |= 0x0200;
-	if(data[0]&0x00200000) status->button |= 0x0400;
-	if(data[0]&0x00100000) status->button |= 0x0800;
-	if(data[0]&0x02000000) status->button |= 0x1000;
+	if(data[0]&0x00800000) status->button |= PAD_BUTTON_A;
+	if(data[0]&0x01000000) status->button |= PAD_BUTTON_B;
+	if(data[0]&0x00200000) status->button |= PAD_BUTTON_X;
+	if(data[0]&0x00100000) status->button |= PAD_BUTTON_Y;
+	if(data[0]&0x02000000) status->button |= PAD_BUTTON_MENU;
 
 	status->stickX = (s8)(data[1]>>16);
 	status->stickY = (s8)(data[1]>>24);
@@ -145,8 +145,8 @@ static void SPEC1_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	status->analogA = 0;
 	status->analogB = 0;
 
-	if(status->triggerL>=0xaa) status->button |= 0x40;
-	if(status->triggerR>=0xaa) status->button |= 0x20;
+	if(status->triggerL>=0xaa) status->button |= PAD_TRIGGER_L;
+	if(status->triggerR>=0xaa) status->button |= PAD_TRIGGER_R;
 
 	status->stickX -= 128;
 	status->stickY -= 128;
@@ -477,22 +477,45 @@ static void __pad_samplinghandler(u32 irq,void *ctx)
 		__pad_samplingcallback();
 }
 
-u32 __PADDisableRecalibration(s32 disable)
+u32 __PADDisableRecalibration(u32 disable)
 {
 	u32 level,ret;
-	u8 *ram_recaldis = (u8*)0x800030e3;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 
-	ret = 0;
-	if(ram_recaldis[0]&0x40) ret = 1;
+	if(*flags&0x40) ret = 1;
+	else ret = 0;
 
-	ram_recaldis[0] &= 0xbf;
-	if(disable) ram_recaldis[0] |= 0x40;
+	*flags &= ~0x40;
+	if(disable) *flags |= 0x40;
 
 	_CPU_ISR_Restore(level);
 
 	return ret;
+}
+
+u32 __PADDisableRumble(u32 disable)
+{
+	u32 level,ret;
+	u8 *flags = (u8*)0x800030e3;
+
+	_CPU_ISR_Disable(level);
+
+	if(*flags&0x20) ret = 1;
+	else ret = 0;
+
+	*flags &= ~0x20;
+	if(disable) *flags |= 0x20;
+
+	_CPU_ISR_Restore(level);
+
+	return ret;
+}
+
+void __PADDisableXPatch(void)
+{
+	__pad_xpatchbits = 0;
 }
 
 u32 PAD_Init(void)
@@ -646,6 +669,7 @@ u32 PAD_Recalibrate(u32 mask)
 {
 	u32 level;
 	u32 pend_bits,en_bits;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 	pend_bits = (__pad_pendingbits|mask);
@@ -658,7 +682,7 @@ u32 PAD_Recalibrate(u32 mask)
 	__pad_enabledbits &= ~pend_bits;
 	__pad_barrelbits &= ~pend_bits;
 
-	__pad_recalibratebits |= pend_bits;
+	if(!(*flags&0x40)) __pad_recalibratebits |= pend_bits;
 
 	SI_DisablePolling(en_bits);
 	if(__pad_resettingchan==32) __pad_doreset();
@@ -694,6 +718,8 @@ void PAD_SetAnalogMode(u32 mode)
 
 void PAD_SetSpec(u32 spec)
 {
+	if(__pad_initialized) return;
+
 	__pad_spec = 0;
 	if(spec==0) __pad_makestatus = SPEC0_MakeStatus;
 	else if(spec==1) __pad_makestatus = SPEC1_MakeStatus;
@@ -731,6 +757,7 @@ void PAD_ControlAllMotors(const u32 *cmds)
 	u32 level;
 	u32 chan,cmd,ret;
 	u32 mask,type;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 	chan = 0;
@@ -741,7 +768,7 @@ void PAD_ControlAllMotors(const u32 *cmds)
 			type = SI_GetType(chan);
 			if(!(type&SI_GC_NOMOTOR)) {
 				cmd = cmds[chan];
-				if(__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) cmd = 0;
+				if((__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) || *flags&0x20) cmd = PAD_MOTOR_STOP;
 
 				cmd = 0x00400000|__pad_analogmode|(cmd&0x03);
 				SI_SetCommand(chan,cmd);
@@ -758,6 +785,7 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 {
 	u32 level;
 	u32 mask,type;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 
@@ -765,7 +793,7 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 	if(__pad_enabledbits&mask) {
 		type = SI_GetType(chan);
 		if(!(type&SI_GC_NOMOTOR)) {
-			if(__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) cmd = 0;
+			if((__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) || *flags&0x20) cmd = PAD_MOTOR_STOP;
 
 			cmd = 0x00400000|__pad_analogmode|(cmd&0x03);
 			SI_SetCommand(chan,cmd);
