@@ -680,7 +680,7 @@ u32 SI_DecodeType(u32 type)
 			break;
 		case SI_TYPE_GC:
 			if(type==SI_GC_STEERING) return SI_GC_STEERING;
-			if(type==SI_GC_KEYBOARD) return SI_GC_KEYBOARD;
+			if((type&~0x001f0000)==SI_GC_KEYBOARD) return SI_GC_KEYBOARD;
 			if((type&SI_GC_WIRELESS) && !(type&SI_WIRELESS_IR)) {
 				if((type&SI_GC_WAVEBIRD)==SI_GC_WAVEBIRD) return SI_GC_WAVEBIRD;
 				else if(!(type&SI_WIRELESS_STATE)) return SI_GC_RECEIVER;
@@ -697,6 +697,40 @@ u32 SI_Probe(s32 chan)
 	type = SI_GetType(chan);
 	type = SI_DecodeType(type);
 	return type;
+}
+
+char *SI_GetTypeString(u32 type)
+{
+	switch(SI_DecodeType(type)) {
+		case SI_ERROR_BUSY:
+			return "Busy";
+		case SI_ERROR_UNKNOWN:
+			return "Unknown";
+		case SI_ERROR_NO_RESPONSE:
+			return "No response";
+		case SI_N64_CONTROLLER:
+			return "N64 controller";
+		case SI_N64_MIC:
+			return "N64 microphone";
+		case SI_N64_KEYBOARD:
+			return "N64 keyboard";
+		case SI_N64_MOUSE:
+			return "N64 mouse";
+		case SI_GBA:
+			return "GameBoy Advance";
+		case SI_GC_CONTROLLER:
+			return "Standard controller";
+		case SI_GC_RECEIVER:
+			return "Wireless receiver";
+		case SI_GC_WAVEBIRD:
+			return "WaveBird controller";
+		case SI_GC_KEYBOARD:
+			return "Keyboard";
+		case SI_GC_STEERING:
+			return "Steering";
+		default:
+			return "Unknown";
+	}
 }
 
 void SI_TransferCommands(void)

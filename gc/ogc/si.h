@@ -86,6 +86,7 @@ u32 SI_DecodeType(u32 type);
 u32 SI_GetTypeAsync(s32 chan,SICallback cb);
 u32 SI_GetType(s32 chan);
 u32 SI_Probe(s32 chan);
+char *SI_GetTypeString(u32 type);
 u32 SI_GetCommand(s32 chan);
 void SI_TransferCommands(void);
 u32 SI_RegisterPollingHandler(RDSTHandler handler);
