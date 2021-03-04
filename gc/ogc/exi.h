@@ -281,6 +281,9 @@ s32 EXI_GetState(s32 nChn);
 */
 s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId);
 
+s32 EXI_GetType(s32 nChn,s32 nDev,u32 *nType);
+
+char *EXI_GetTypeString(u32 nType);
 
 /*! \fn s32 EXI_Attach(s32 nChn,EXICallback ext_cb)
 \brief Attach the device on the given channel

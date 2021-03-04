@@ -348,8 +348,7 @@ s32 EXI_Select(s32 nChn,s32 nDev,s32 nFrq)
 
 s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 {
-	u32 val,id;
-	s32 ret;
+	u32 val;
 	u32 level;
 	exibus_priv *exi = &eximap[nChn];
 #ifdef _EXI_DEBUG
@@ -367,10 +366,7 @@ s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 
 	if(nChn!=EXI_CHANNEL_2) {
 		if(nDev==EXI_DEVICE_0 && !(exi->flags&EXI_FLAG_ATTACH)) {
-			if((ret=__exi_probe(nChn))==1) {
-				if(!exi->exi_idtime) ret = EXI_GetID(nChn,EXI_DEVICE_0,&id);
-			}
-			if(ret==0) {
+			if(EXI_Probe(nChn)==0) {
 				_CPU_ISR_Restore(level);
 				return 0;
 			}
@@ -642,6 +638,95 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 	return ret;
 }
 
+s32 EXI_GetType(s32 nChn,s32 nDev,u32 *nType)
+{
+	u32 nId;
+	s32 ret;
+
+	if((ret=EXI_GetID(nChn,nDev,&nId))==0) return ret;
+
+	switch(nId&~0xff) {
+		case 0x04020100:
+		case 0x04020200:
+		case 0x04020300:
+		case 0x04060000:
+			*nType = nId&~0xff;
+			return ret;
+	}
+	switch(nId&~0xffff) {
+		case 0:
+			if(nId&0x3803) break;
+			switch(nId&0xfc) {
+				case EXI_MEMCARD59:
+				case EXI_MEMCARD123:
+				case EXI_MEMCARD251:
+				case EXI_MEMCARD507:
+				case EXI_MEMCARD1019:
+				case EXI_MEMCARD2043:
+					*nType = nId&0xfc;
+					return ret;
+			}
+			break;
+		case 0x05070000:
+			*nType = nId&~0xffff;
+			return ret;
+	}
+	*nType = nId;
+	return ret;
+}
+
+char *EXI_GetTypeString(u32 nType)
+{
+	switch(nType) {
+		case EXI_MEMCARD59:
+			return "Memory Card 59";
+		case EXI_MEMCARD123:
+			return "Memory Card 123";
+		case EXI_MEMCARD251:
+			return "Memory Card 251";
+		case EXI_MEMCARD507:
+			return "Memory Card 507";
+		case EXI_MEMCARD1019:
+			return "Memory Card 1019";
+		case EXI_MEMCARD2043:
+			return "Memory Card 2043";
+		case 0x01010000:
+			return "USB Adapter";
+		case 0x01020000:
+			return "GDEV";
+		case 0x02020000:
+			return "Modem";
+		case 0x03010000:
+			return "Marlin";
+		case 0x04120000:
+			return "AD16";
+		case 0x04040404:
+			return "RS232C";
+		case 0x80000004:
+		case 0x80000008:
+		case 0x80000010:
+		case 0x80000020:
+		case 0x80000040:
+		case 0x80000080:
+			return "Net Card";
+		case 0x04220001:
+			return "Artist Ether";
+		case 0x04220000:
+		case 0x04020100:
+		case 0x04020200:
+		case 0x04020300:
+			return "Broadband Adapter";
+		case 0x04060000:
+			return "Mic";
+		case 0x04130000:
+			return "Stream Hanger";
+		case 0x05070000:
+			return "IS-DOL-VIEWER";
+		default:
+			return "Unknown";
+	}
+}
+
 s32 EXI_Attach(s32 nChn,EXICallback ext_cb)
 {
 	s32 ret;
@@ -898,7 +983,7 @@ void __SYS_EnableBarnacle(s32 chn,u32 dev)
 	if(id==0x01020000 || id==0x0004 || id==0x80000010 || id==0x80000008
 		|| id==0x80000004 || id==0xffffffff || id==0x80000020 || id==0x0020
 		|| id==0x0010 || id==0x0008 || id==0x01010000 || id==0x04040404
-		|| id==0x04021000 || id==0x03010000 || id==0x02020000
+		|| id==0x04020100 || id==0x03010000 || id==0x02020000
 		|| id==0x04020300 || id==0x04020200 || id==0x04130000
 		|| id==0x04120000 || id==0x04060000 || id==0x04220000) return;
 
