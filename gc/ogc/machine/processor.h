@@ -11,6 +11,7 @@
 													type *name = (type*)(((u32)(_al__##name)) + ((alignment) - (((u32)(_al__##name))&((alignment)-1))))
 
 #define _sync() asm volatile("sync")
+#define _isync() asm volatile("isync")
 #define _nop() asm volatile("nop")
 #define ppcsync() asm volatile("sc")
 #define ppchalt() ({					\

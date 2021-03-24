@@ -13,13 +13,13 @@ __realmode:
 	// after a talk with dhewg we came to that point that it's good to wipe+setup BATS correctly
 	.globl __configBATS
 __configBATS:
-	// HID0 = 00110c64:
-	// bus checkstops off, sleep modes off,
+	// HID0 = 00910c64:
+	// bus checkstops off, doze mode on,
 	// caches off, caches invalidate,
 	// store gathering off, enable data cache
 	// flush assist, enable branch target cache,
 	// enable branch history table
-	lis		r3,0x0011
+	lis		r3,0x0091
 	ori		r3,r3,0x0c64
 	mtspr	HID0,r3
 	isync

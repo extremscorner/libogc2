@@ -125,7 +125,12 @@ static __inline__ void __lwp_tqueue_free(tqueue_st *tq)
 
 static void* idle_func(void *arg)
 {
-	while(1);
+	u32 msr = mfmsr()|MSR_POW;
+	while(1) {
+		_sync();
+		mtmsr(msr);
+		_isync();
+	}
 	return 0;
 }
 
