@@ -985,6 +985,29 @@ u32 __SYS_GetRTC(u32 *gctime)
 	return 0;
 }
 
+u32 __SYS_SetRTC(u32 gctime)
+{
+	u32 cmd,ret;
+
+	if(EXI_Lock(EXI_CHANNEL_0,EXI_DEVICE_1,NULL)==0) return 0;
+	if(EXI_Select(EXI_CHANNEL_0,EXI_DEVICE_1,EXI_SPEED8MHZ)==0) {
+		EXI_Unlock(EXI_CHANNEL_0);
+		return 0;
+	}
+
+	ret = 0;
+	cmd = 0xa0000000;
+	if(EXI_Imm(EXI_CHANNEL_0,&cmd,4,EXI_WRITE,NULL)==0) ret |= 0x01;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
+	if(EXI_Imm(EXI_CHANNEL_0,&gctime,4,EXI_WRITE,NULL)==0) ret |= 0x04;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
+	EXI_Unlock(EXI_CHANNEL_0);
+
+	if(ret) return 0;
+	return 1;
+}
+
 void __SYS_SetBootTime(void)
 {
 	settime(SYS_Time());
