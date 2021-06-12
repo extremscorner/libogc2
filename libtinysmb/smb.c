@@ -50,7 +50,6 @@
 #include <fcntl.h>
 #include <smb.h>
 
-#define IOS_O_NONBLOCK				0x04
 #define RECV_TIMEOUT				3000  // in ms
 #define CONN_TIMEOUT				6000
 
@@ -993,7 +992,9 @@ static s32 do_netconnect(SMBHANDLE *handle)
 	u32 set = 1;
 	s32 ret;
 	s32 sock;
+#ifdef HW_RVL
 	u64 t1,t2;
+#endif
 
 	handle->sck_server = INVALID_SOCKET;
 	/*** Create the global net_socket ***/
@@ -1005,12 +1006,13 @@ static s32 do_netconnect(SMBHANDLE *handle)
 
 	// create non blocking socket
 	ret = net_ioctl(sock, FIONBIO, &set);
-	if (ret < 0)
+	if(ret<0)
 	{
 		net_close(sock);
-		return ret;
+		return -1;
 	}
 
+#ifdef HW_RVL
 	t1=ticks_to_millisecs(gettime());
 	while(1)
 	{
@@ -1020,8 +1022,11 @@ static s32 do_netconnect(SMBHANDLE *handle)
 		usleep(1000);
 		if((t2-t1) > CONN_TIMEOUT) break; // usually not more than 90ms
 	}
-
 	if(ret!=-EISCONN)
+#else
+	ret = net_connect(sock,(struct sockaddr*)&handle->server_addr,sizeof(handle->server_addr));
+	if(ret<0)
+#endif
 	{
 		net_close(sock);
 		return -1;
