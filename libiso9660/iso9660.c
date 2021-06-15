@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 #include <sys/dir.h>
 #include <sys/iosupport.h>
 
@@ -922,7 +923,7 @@ static MOUNT_DESCR *_ISO9660_mdescr_constructor(const DISC_INTERFACE *disc_inter
 {
 	MOUNT_DESCR *mdescr = NULL;
 
-	mdescr = malloc(sizeof(MOUNT_DESCR));
+	mdescr = memalign(32, sizeof(MOUNT_DESCR));
 	if (!mdescr)
 		return NULL;
 
