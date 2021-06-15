@@ -546,7 +546,7 @@ s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 	exi->imm_len = 0;
 	exi->flags |= EXI_FLAG_DMA;
 
-	_exiReg[nChn*5+1] = (u32)pData&0x03FFFFE0;
+	_exiReg[nChn*5+1] = (u32)pData&0x1FFFFFE0;
 	_exiReg[nChn*5+2] = nLen;
 	_exiReg[nChn*5+3] = ((nMode&0x03)<<2)|0x03;
 
