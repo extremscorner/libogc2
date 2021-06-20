@@ -170,6 +170,7 @@ s32 TPL_OpenTPLFromMemory(TPLFile* tdf, void *memory,u32 len)
 
 		pos = (u32)imghead->data;
 		imghead->data = (char*)(p + pos);
+		imghead->unpacked = TRUE;
 
 		pos = (u32)deschead[c].palhead;
 		if(pos) {
@@ -177,6 +178,7 @@ s32 TPL_OpenTPLFromMemory(TPLFile* tdf, void *memory,u32 len)
 
 			pos = (u32)palhead->data;
 			palhead->data = (char*)(p + pos);
+			palhead->unpacked = TRUE;
 		}
 		deschead[c].imghead = imghead;
 		deschead[c].palhead = palhead;
@@ -232,6 +234,7 @@ s32 TPL_GetTexture(TPLFile *tdf,s32 id,GXTexObj *texObj)
 		f = (FILE*)tdf->tpl_file;
 		pos = (s32)imghead->data;
 		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
+		imghead->unpacked = TRUE;
 		if(!imghead->data) return -1;
 
 		fseek(f,pos,SEEK_SET);
@@ -279,6 +282,7 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 		f = (FILE*)tdf->tpl_file;
 		pos = (s32)imghead->data;
 		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
+		imghead->unpacked = TRUE;
 		if(!imghead->data) return -1;
 
 		fseek(f,pos,SEEK_SET);
@@ -286,6 +290,7 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 
 		pos = (s32)palhead->data;
 		palhead->data = memalign(PPC_CACHE_ALIGNMENT,(palhead->nitems*sizeof(u16)));
+		palhead->unpacked = TRUE;
 		if(!palhead->data) {
 			free(imghead->data);
 			return -1;
@@ -329,11 +334,11 @@ void TPL_CloseTPLFile(TPLFile *tdf)
 			imghead = deschead[i].imghead;
 			palhead = deschead[i].palhead;
 			if(imghead) {
-				if(imghead->data) free(imghead->data);
+				if(imghead->unpacked) free(imghead->data);
 				free(imghead);
 			}
 			if(palhead) {
-				if(palhead->data) free(palhead->data);
+				if(palhead->unpacked) free(palhead->data);
 				free(palhead);
 			}
 		}
