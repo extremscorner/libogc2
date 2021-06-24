@@ -33,16 +33,16 @@
 #include <stdint.h>
 #include <gctypes.h>
 
-
 #define FEATURE_MEDIUM_CANREAD      0x00000001
 #define FEATURE_MEDIUM_CANWRITE     0x00000002
 #define FEATURE_GAMECUBE_SLOTA      0x00000010
 #define FEATURE_GAMECUBE_SLOTB      0x00000020
-#define FEATURE_GAMECUBE_DVD        0x00000040
-#define FEATURE_GAMECUBE_PORT2      0x00000080
-#define FEATURE_WII_SD              0x00000100
-#define FEATURE_WII_USB             0x00000200
-#define FEATURE_WII_DVD             0x00000400
+#define FEATURE_GAMECUBE_PORT2      0x00000040
+#define FEATURE_GAMECUBE_PORT1      0x00000080
+#define FEATURE_GAMECUBE_DVD        0x00000100
+#define FEATURE_WII_SD              0x00000200
+#define FEATURE_WII_USB             0x00000400
+#define FEATURE_WII_DVD             0x00000800
 
 typedef uint32_t sec_t;
 
