@@ -64,6 +64,11 @@ distribution.
 #define	SCSI_READ_CAPACITY			0x25
 #define	SCSI_READ_10				0x28
 #define	SCSI_WRITE_10				0x2A
+#define	SCSI_READ_16				0x88
+#define	SCSI_WRITE_16				0x8A
+#define	SCSI_SERVICE_ACTION_IN_16	0x9E
+
+#define	SCSI_SAI_READ_CAPACITY_16	0x10
 
 #define	SCSI_SENSE_REPLY_SIZE		18
 #define	SCSI_SENSE_NOT_READY		0x02
@@ -363,7 +368,6 @@ static s32 __usbstorage_clearerrors(usbstorage_handle *dev, u8 lun)
 	if (status)
 	{
 		cmd[0] = SCSI_REQUEST_SENSE;
-		cmd[1] = lun << 5;
 		cmd[4] = SCSI_SENSE_REPLY_SIZE;
 		memset(sense, 0, SCSI_SENSE_REPLY_SIZE);
 		retval = __cycle(dev, lun, sense, SCSI_SENSE_REPLY_SIZE, cmd, 6, 0, NULL, NULL);
@@ -512,6 +516,12 @@ found:
 		goto free_and_return;
 	}
 
+	dev->n_sectors = (u64 *) calloc(dev->max_lun, sizeof(u64));
+	if(!dev->n_sectors) {
+		retval = IPC_ENOMEM;
+		goto free_and_return;
+	}
+
 	/* taken from linux usbstorage module (drivers/usb/storage/transport.c)
 	 *
 	 * Some devices (i.e. Iomega Zip100) need this -- apparently
@@ -560,8 +570,8 @@ s32 USBStorage_Close(usbstorage_handle *dev)
 	LWP_MutexDestroy(dev->lock);
 	SYS_RemoveAlarm(dev->alarm);
 
-	if(dev->sector_size)
-		free(dev->sector_size);
+	free(dev->sector_size);
+	free(dev->n_sectors);
 
 	if (dev->buffer)
 		__lwp_heap_free(&__heap, dev->buffer);
@@ -590,7 +600,6 @@ s32 USBStorage_GetMaxLUN(usbstorage_handle *dev)
 s32 USBStorage_MountLUN(usbstorage_handle *dev, u8 lun)
 {
 	s32 retval;
-	u32 n_sectors;
 
 	if(lun >= dev->max_lun)
 		return IPC_EINVAL;
@@ -605,8 +614,8 @@ s32 USBStorage_MountLUN(usbstorage_handle *dev, u8 lun)
 	
 	retval = USBStorage_Inquiry(dev,  lun);
 	
-	retval = USBStorage_ReadCapacity(dev, lun, &dev->sector_size[lun], &n_sectors);
-	if(retval >= 0 && (dev->sector_size[lun]<512 || n_sectors==0))
+	retval = USBStorage_ReadCapacity(dev, lun, &dev->sector_size[lun], &dev->n_sectors[lun]);
+	if(retval >= 0 && (dev->sector_size[lun]<512 || dev->n_sectors[lun]==0))
 		return INVALID_LUN;
 
 	return retval;
@@ -616,14 +625,18 @@ s32 USBStorage_Inquiry(usbstorage_handle *dev, u8 lun)
 {
 	int n;
 	s32 retval;
-	u8 cmd[] = {SCSI_INQUIRY, lun << 5,0,0,36,0};
+	u8 cmd[6];
 	u8 response[36];
-	
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = SCSI_INQUIRY;
+	cmd[4] = sizeof(response);
+
 	for(n=0;n<2;n++)
 	{
-		memset(response,0,36);
-	
-		retval = __cycle(dev, lun, response, 36, cmd, 6, 0, NULL, NULL);
+		memset(response, 0, sizeof(response));
+
+		retval = __cycle(dev, lun, response, sizeof(response), cmd, sizeof(cmd), 0, NULL, NULL);
 		if(retval>=0) break;
 	}
 
@@ -647,20 +660,40 @@ s32 USBStorage_Inquiry(usbstorage_handle *dev, u8 lun)
 	return retval;
 }
 
-s32 USBStorage_ReadCapacity(usbstorage_handle *dev, u8 lun, u32 *sector_size, u32 *n_sectors)
+s32 USBStorage_ReadCapacity(usbstorage_handle *dev, u8 lun, u32 *sector_size, u64 *n_sectors)
 {
 	s32 retval;
-	u8 cmd[10] = {SCSI_READ_CAPACITY, lun<<5};
+	u8 cmd[10];
 	u8 response[8];
 
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = SCSI_READ_CAPACITY;
+
 	retval = __cycle(dev, lun, response, sizeof(response), cmd, sizeof(cmd), 0, NULL, NULL);
-	if(retval >= 0)
+	if(retval < 0) return retval;
+
+	if(n_sectors != NULL)
+		*n_sectors = *(u32 *)(response + 0) + 1LL;
+	if(sector_size != NULL)
+		*sector_size = *(u32 *)(response + 4);
+
+	if(n_sectors != NULL && *n_sectors == 0x100000000)
 	{
+		u8 cmd[16];
+		u8 response[32];
+
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = SCSI_SERVICE_ACTION_IN_16;
+		cmd[1] = SCSI_SAI_READ_CAPACITY_16;
+		cmd[13] = sizeof(response);
+
+		retval = __cycle(dev, lun, response, sizeof(response), cmd, sizeof(cmd), 0, NULL, NULL);
+		if(retval < 0) return retval;
+
 		if(n_sectors != NULL)
-			memcpy(n_sectors, response, 4);
+			*n_sectors = *(u64 *)(response + 0) + 1LL;
 		if(sector_size != NULL)
-			memcpy(sector_size, response + 4, 4);
-		retval = USBSTORAGE_OK;
+			*sector_size = *(u32 *)(response + 8);
 	}
 
 	return retval;
@@ -668,12 +701,12 @@ s32 USBStorage_ReadCapacity(usbstorage_handle *dev, u8 lun, u32 *sector_size, u3
 
 s32 USBStorage_IsDVD(void)
 {
-	u32 sectorsize, numSectors;
+	u32 sectorsize;
 
 	if(!__mounted || __usbfd.sector_size[__lun] != 2048)
 		return 0;
 
-	if(USBStorage_ReadCapacity(&__usbfd, __lun, &sectorsize, &numSectors) < 0)
+	if(USBStorage_ReadCapacity(&__usbfd, __lun, &sectorsize, NULL) < 0)
 		return 0;
 
 	if(sectorsize == 2048)
@@ -692,7 +725,7 @@ s32 USBStorage_StartStop(usbstorage_handle *dev, u8 lun, u8 lo_ej, u8 start, u8 
 	s32 retval = USBSTORAGE_OK;
 	u8 cmd[] = {
 		SCSI_START_STOP,
-		(lun << 5) | (imm&1),
+		(imm&1),
 		0,
 		0,
 		((lo_ej&1)<<1) | (start&1),
@@ -718,22 +751,10 @@ s32 USBStorage_StartStop(usbstorage_handle *dev, u8 lun, u8 lo_ej, u8 start, u8 
 	return retval;
 }
 
-s32 USBStorage_Read(usbstorage_handle *dev, u8 lun, u32 sector, u16 n_sectors, u8 *buffer)
+s32 USBStorage_Read(usbstorage_handle *dev, u8 lun, u64 sector, u32 n_sectors, u8 *buffer)
 {
 	u8 status = 0;
 	s32 retval;
-	u8 cmd[] = {
-		SCSI_READ_10,
-		lun << 5,
-		sector >> 24,
-		sector >> 16,
-		sector >>  8,
-		sector,
-		0,
-		n_sectors >> 8,
-		n_sectors,
-		0
-	};
 
 	if(lun >= dev->max_lun || dev->sector_size[lun] == 0)
 		return IPC_EINVAL;
@@ -745,7 +766,29 @@ s32 USBStorage_Read(usbstorage_handle *dev, u8 lun, u32 sector, u16 n_sectors, u
 		USBStorage_MountLUN(dev, lun);
 	}
 
-	retval = __cycle(dev, lun, buffer, n_sectors * dev->sector_size[lun], cmd, sizeof(cmd), 0, &status, NULL);
+	if(dev->n_sectors[lun] >= 0x100000000)
+	{
+		u8 cmd[16];
+
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = SCSI_READ_16;
+		*(u64 *)(cmd +  2) = sector;
+		*(u32 *)(cmd + 10) = n_sectors;
+
+		retval = __cycle(dev, lun, buffer, n_sectors * dev->sector_size[lun], cmd, sizeof(cmd), 0, &status, NULL);
+	}
+	else
+	{
+		u8 cmd[10];
+
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = SCSI_READ_10;
+		*(u32 *)(cmd + 2) = sector;
+		*(u16 *)(cmd + 7) = n_sectors;
+
+		retval = __cycle(dev, lun, buffer, n_sectors * dev->sector_size[lun], cmd, sizeof(cmd), 0, &status, NULL);
+	}
+
 	if(retval > 0 && status != 0)
 		retval = USBSTORAGE_ESTATUS;
 
@@ -755,22 +798,10 @@ s32 USBStorage_Read(usbstorage_handle *dev, u8 lun, u32 sector, u16 n_sectors, u
 	return retval;
 }
 
-s32 USBStorage_Write(usbstorage_handle *dev, u8 lun, u32 sector, u16 n_sectors, const u8 *buffer)
+s32 USBStorage_Write(usbstorage_handle *dev, u8 lun, u64 sector, u32 n_sectors, const u8 *buffer)
 {
 	u8 status = 0;
 	s32 retval;
-	u8 cmd[] = {
-		SCSI_WRITE_10,
-		lun << 5,
-		sector >> 24,
-		sector >> 16,
-		sector >> 8,
-		sector,
-		0,
-		n_sectors >> 8,
-		n_sectors,
-		0
-	};
 
 	if(lun >= dev->max_lun || dev->sector_size[lun] == 0)
 		return IPC_EINVAL;
@@ -782,7 +813,29 @@ s32 USBStorage_Write(usbstorage_handle *dev, u8 lun, u32 sector, u16 n_sectors, 
 		USBStorage_MountLUN(dev, lun);
 	}
 
-	retval = __cycle(dev, lun, (u8 *)buffer, n_sectors * dev->sector_size[lun], cmd, sizeof(cmd), 1, &status, NULL);
+	if(dev->n_sectors[lun] >= 0x100000000)
+	{
+		u8 cmd[16];
+
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = SCSI_WRITE_16;
+		*(u64 *)(cmd +  2) = sector;
+		*(u32 *)(cmd + 10) = n_sectors;
+
+		retval = __cycle(dev, lun, (u8 *)buffer, n_sectors * dev->sector_size[lun], cmd, sizeof(cmd), 1, &status, NULL);
+	}
+	else
+	{
+		u8 cmd[10];
+
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = SCSI_WRITE_10;
+		*(u32 *)(cmd + 2) = sector;
+		*(u16 *)(cmd + 7) = n_sectors;
+
+		retval = __cycle(dev, lun, (u8 *)buffer, n_sectors * dev->sector_size[lun], cmd, sizeof(cmd), 1, &status, NULL);
+	}
+
 	if(retval > 0 && status != 0)
 		retval = USBSTORAGE_ESTATUS;
 
@@ -824,7 +877,6 @@ static bool __usbstorage_IsInserted(void)
 	u16 vid, pid;
 	s32 maxLun;
 	s32 retval;
-	u32 sectorsize, numSectors;
 
 	if(__mounted)
 	{
@@ -833,7 +885,7 @@ static bool __usbstorage_IsInserted(void)
 			return true;
 
 		// check if DVD is inserted
-		if (USBStorage_ReadCapacity(&__usbfd, __lun, &sectorsize, &numSectors) < 0)
+		if (USBStorage_ReadCapacity(&__usbfd, __lun, NULL, NULL) < 0)
 			return false;
 		else
 			return true;

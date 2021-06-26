@@ -2888,8 +2888,9 @@ static bool __gcdvd_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
-	if((u32)buffer & 0x1f)
-		return false;
+	if(sector & ~0x7fffff) return false;
+	if(numSectors & ~0x1fffff) return false;
+	if((u32)buffer & 0x1f) return false;
 
 	if(DVD_ReadPrio(&blk, buffer, numSectors << 11, sector << 11, 2) < 0)
 		return false;
@@ -2944,8 +2945,9 @@ static bool __gcode_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
-	if((u32)buffer & 0x1f)
-		return false;
+	if((u32)sector != sector) return false;
+	if(numSectors & ~0x7fffff) return false;
+	if((u32)buffer & 0x1f) return false;
 
 	if(DVD_GcodeRead(&blk, buffer, numSectors << 9, sector) < 0)
 		return false;
@@ -2957,8 +2959,9 @@ static bool __gcode_WriteSectors(sec_t sector,sec_t numSectors,const void *buffe
 {
 	dvdcmdblk blk;
 
-	if((u32)buffer & 0x1f)
-		return false;
+	if((u32)sector != sector) return false;
+	if((u32)numSectors != numSectors) return false;
+	if((u32)buffer & 0x1f) return false;
 
 	if(DVD_GcodeWrite(&blk, buffer, numSectors, sector) < 0)
 		return false;

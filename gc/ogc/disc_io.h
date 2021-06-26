@@ -44,7 +44,7 @@
 #define FEATURE_WII_USB             0x00000400
 #define FEATURE_WII_DVD             0x00000800
 
-typedef uint32_t sec_t;
+typedef uint64_t sec_t;
 
 typedef bool (* FN_MEDIUM_STARTUP)(void) ;
 typedef bool (* FN_MEDIUM_ISINSERTED)(void) ;

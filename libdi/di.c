@@ -953,6 +953,12 @@ static bool diio_IsInserted(void)
 
 static bool diio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 {
+	if((uint32_t)sector != sector)
+		return false;
+
+	if((uint32_t)numSectors != numSectors)
+		return false;
+
 	if(DI_ReadDVD(buffer, numSectors, sector) == 0)
 		return true;
 	return false;

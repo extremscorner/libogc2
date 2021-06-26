@@ -551,16 +551,17 @@ static bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 {
 	s32 ret;
 	u8 *ptr;
-	sec_t blk_off;
- 
-	if(buffer==NULL) return false;
- 
+	u32 blk_off;
+
+	if((u32)sector != sector) return false;
+	if((u32)numSectors != numSectors) return false;
+
 	ret = __sd0_select();
 	if(ret<0) return false;
 
 	if((u32)buffer & 0x1F) {
 		ptr = (u8*)buffer;
-		int secs_to_read;
+		u32 secs_to_read;
 		while(numSectors>0) {
 			if(__sd0_sdhc == 0) blk_off = (sector*PAGE_SIZE512);
 			else blk_off = sector;
@@ -590,15 +591,16 @@ static bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 	s32 ret;
 	u8 *ptr;
 	u32 blk_off;
- 
-	if(buffer==NULL) return false;
- 
+
+	if((u32)sector != sector) return false;
+	if((u32)numSectors != numSectors) return false;
+
 	ret = __sd0_select();
 	if(ret<0) return false;
 
 	if((u32)buffer & 0x1F) {
 		ptr = (u8*)buffer;
-		int secs_to_write;
+		u32 secs_to_write;
 		while(numSectors>0) {
 			if(__sd0_sdhc == 0) blk_off = (sector*PAGE_SIZE512);
 			else blk_off = sector;
