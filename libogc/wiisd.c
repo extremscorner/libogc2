@@ -46,8 +46,6 @@
 #include <asm.h>
 #include <processor.h>
 
-#define SDIO_HEAPSIZE				(5*1024)
- 
 #define PAGE_SIZE512				512
 
 #define	SDIOHCR_RESPONSE			0x10
@@ -117,8 +115,6 @@
 #define READ_BL_LEN					((u8)(__sd0_csd[5]&0x0f))
 #define WRITE_BL_LEN				((u8)(((__sd0_csd[12]&0x03)<<2)|((__sd0_csd[13]>>6)&0x03)))
 
-static u8 *rw_buffer = NULL;
-
 struct _sdiorequest
 {
 	u32 cmd;
@@ -137,8 +133,6 @@ struct _sdioresponse
 	u32 rsp_fields[3];
 	u32 acmd12_response;
 };
- 
-static s32 hId = -1;
  
 static s32 __sd0_fd = -1;
 static u16 __sd0_rca = 0;
@@ -513,22 +507,14 @@ static bool sdio_Deinitialize(void)
 static bool sdio_Startup(void)
 {
 	if(__sdio_initialized==1) return true;
- 
-	if(hId<0) {
-		hId = iosCreateHeap(SDIO_HEAPSIZE);
-		if(hId<0) return false;
-	}
 
-	if(rw_buffer == NULL) rw_buffer = iosAlloc(hId,(4*1024));
-	if(rw_buffer == NULL) return false;
- 
 	__sd0_fd = IOS_Open(_sd0_fs,1);
 
 	if(__sd0_fd<0) {
 		sdio_Deinitialize();
 		return false;
 	}
- 
+
 	if(__sd0_initio()==false) {
 		sdio_Deinitialize();
 		return false;
@@ -550,78 +536,38 @@ static bool sdio_Shutdown(void)
 static bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 {
 	s32 ret;
-	u8 *ptr;
-	u32 blk_off;
 
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
+	if((u32)buffer & 0x1f) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
 
-	if((u32)buffer & 0x1F) {
-		ptr = (u8*)buffer;
-		u32 secs_to_read;
-		while(numSectors>0) {
-			if(__sd0_sdhc == 0) blk_off = (sector*PAGE_SIZE512);
-			else blk_off = sector;
-			if(numSectors > 8)secs_to_read = 8;
-			else secs_to_read = numSectors;
-			ret = __sdio_sendcommand(SDIO_CMD_READMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,blk_off,secs_to_read,PAGE_SIZE512,rw_buffer,NULL,0);
-			if(ret>=0) {
-				memcpy(ptr,rw_buffer,PAGE_SIZE512*secs_to_read);
-				ptr += PAGE_SIZE512*secs_to_read;
-				sector+=secs_to_read;
-				numSectors-=secs_to_read;
-			} else
-				break;
-		}
-	} else {
-		if(__sd0_sdhc == 0) sector *= PAGE_SIZE512;
-		ret = __sdio_sendcommand(SDIO_CMD_READMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sector,numSectors,PAGE_SIZE512,buffer,NULL,0);
-	}
+	if(__sd0_sdhc == 0) sector *= PAGE_SIZE512;
+	ret = __sdio_sendcommand(SDIO_CMD_READMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sector,numSectors,PAGE_SIZE512,buffer,NULL,0);
 
 	__sd0_deselect();
- 
+
 	return (ret>=0);
 }
 
 static bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 {
 	s32 ret;
-	u8 *ptr;
-	u32 blk_off;
 
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
+	if((u32)buffer & 0x1f) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
 
-	if((u32)buffer & 0x1F) {
-		ptr = (u8*)buffer;
-		u32 secs_to_write;
-		while(numSectors>0) {
-			if(__sd0_sdhc == 0) blk_off = (sector*PAGE_SIZE512);
-			else blk_off = sector;
-			if(numSectors > 8)secs_to_write = 8;
-			else secs_to_write = numSectors;
-			memcpy(rw_buffer,ptr,PAGE_SIZE512*secs_to_write);
-			ret = __sdio_sendcommand(SDIO_CMD_WRITEMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,blk_off,secs_to_write,PAGE_SIZE512,rw_buffer,NULL,0);
-			if(ret>=0) {
-				ptr += PAGE_SIZE512*secs_to_write;
-				sector+=secs_to_write;
-				numSectors-=secs_to_write;
-			} else
-				break;
-		}
-	} else {
-		if(__sd0_sdhc == 0) sector *= PAGE_SIZE512;
-		ret = __sdio_sendcommand(SDIO_CMD_WRITEMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sector,numSectors,PAGE_SIZE512,(char *)buffer,NULL,0);
-	}
+	if(__sd0_sdhc == 0) sector *= PAGE_SIZE512;
+	ret = __sdio_sendcommand(SDIO_CMD_WRITEMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sector,numSectors,PAGE_SIZE512,(void*)buffer,NULL,0);
 
 	__sd0_deselect();
- 
+
 	return (ret>=0);
 }
 
