@@ -1863,6 +1863,7 @@ static void __GetImageTileCount(u32 fmt,u16 wd,u16 ht,u32 *xtiles,u32 *ytiles,u3
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
 		case GX_TF_RGBA8:
+		case GX_CTF_YUVA8:
 			xshift = 2;
 			yshift = 2;
 			break;
@@ -1884,7 +1885,7 @@ static void __GetImageTileCount(u32 fmt,u16 wd,u16 ht,u32 *xtiles,u32 *ytiles,u3
 	*ytiles = tile;
 
 	*zplanes = 1;
-	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8) *zplanes = 2;
+	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8 || fmt==GX_CTF_YUVA8) *zplanes = 2;
 }
 
 void GX_SetCopyClear(GXColor color,u32 zvalue)
@@ -3062,46 +3063,50 @@ u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)
 
 	switch(fmt) {
 		case GX_TF_I4:
+		case GX_TF_CI4:
 		case GX_TF_CMPR:
 		case GX_CTF_R4:
-		case GX_CTF_RA4:
 		case GX_CTF_Z4:
 			xshift = 3;
 			yshift = 3;
 			break;
-		case GX_TF_Z8:
 		case GX_TF_I8:
 		case GX_TF_IA4:
+		case GX_TF_CI8:
+		case GX_TF_Z8:
+		case GX_CTF_RA4:
 		case GX_CTF_A8:
 		case GX_CTF_R8:
 		case GX_CTF_G8:
 		case GX_CTF_B8:
-		case GX_CTF_RG8:
-		case GX_CTF_GB8:
 		case GX_CTF_Z8M:
 		case GX_CTF_Z8L:
 			xshift = 3;
 			yshift = 2;
 			break;
 		case GX_TF_IA8:
-		case GX_TF_Z16:
-		case GX_TF_Z24X8:
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
 		case GX_TF_RGBA8:
-		case GX_CTF_Z16L:
+		case GX_TF_CI14:
+		case GX_TF_Z16:
+		case GX_TF_Z24X8:
 		case GX_CTF_RA8:
+		case GX_CTF_YUVA8:
+		case GX_CTF_RG8:
+		case GX_CTF_GB8:
+		case GX_CTF_Z16L:
 			xshift = 2;
 			yshift = 2;
 			break;
 		default:
-			xshift = 2;
-			yshift = 2;
+			xshift = 0;
+			yshift = 0;
 			break;
 	}
 
 	bitsize = 32;
-	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8) bitsize = 64;
+	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8 || fmt==GX_CTF_YUVA8) bitsize = 64;
 
 	size = 0;
 	if(mipmap) {
@@ -3259,12 +3264,12 @@ void GX_InitTexObj(GXTexObj *obj,void *img_ptr,u16 wd,u16 ht,u8 fmt,u8 wrap_s,u8
 		case GX_TF_IA8:
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
-		case GX_TF_RGBA8:
+		case GX_TF_CI14:
 			xshift = 2;
 			yshift = 2;
 			ptr->tex_tile_type = 2;
 			break;
-		case GX_TF_CI14:
+		case GX_TF_RGBA8:
 			xshift = 2;
 			yshift = 2;
 			ptr->tex_tile_type = 3;
@@ -3548,20 +3553,21 @@ void GX_PreloadEntireTexture(GXTexObj *obj,GXTexRegion *region)
 			h = wd>>(i+1);
 			switch(ptr->tex_fmt) {
 				case GX_TF_I4:
-				case GX_TF_IA4:
 				case GX_TF_CI4:
 				case GX_TF_CMPR:
 					xshift = 3;
 					yshift = 3;
 					break;
 				case GX_TF_I8:
+				case GX_TF_IA4:
 				case GX_TF_CI8:
 					xshift = 3;
 					yshift = 2;
 					break;
 				case GX_TF_IA8:
-				case GX_TF_RGB5A3:
 				case GX_TF_RGB565:
+				case GX_TF_RGB5A3:
+				case GX_TF_RGBA8:
 				case GX_TF_CI14:
 					xshift = 2;
 					yshift = 2;
