@@ -3964,6 +3964,19 @@ void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
 	GX_LOAD_BP_REG(__gx->sciBRcorner);
 }
 
+void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
+{
+	u32 xo = _SHIFTR(__gx->sciTLcorner,12,11);
+	u32 yo = _SHIFTL(__gx->sciTLcorner,0,11);
+	u32 nwd = _SHIFTR(__gx->sciBRcorner,12,11);
+	u32 nht = _SHIFTL(__gx->sciBRcorner,0,11);
+
+	*xOrigin = xo-0x156;
+	*yOrigin = yo-0x156;
+	*wd = (nwd+1)-xo;
+	*ht = (nht+1)-yo;
+}
+
 void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
 {
 	s32 xoff = _SHIFTR((xoffset+0x156),1,24);

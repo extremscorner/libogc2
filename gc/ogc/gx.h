@@ -2968,6 +2968,19 @@ void GX_SetClipMode(u8 mode);
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht);
 
 /*!
+ * \fn void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
+ * \brief This function returns the scissor box in the current screen coordinates.
+ *
+ * \param[out] xOrigin Returns the left-most coordinate of the scissor box in screen coordinates
+ * \param[out] yOrigin Returns the top-most coordinate of the scissor box in screen coordinates
+ * \param[out] wd Returns the width of the scissor box width in screen coordinates
+ * \param[out] ht Returns the height of the scissor box in screen coordinates
+ *
+ * \return none
+ */
+void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht);
+
+/*!
  * \fn void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
  * \brief Repositions the scissorbox rectangle within the Embedded Frame Buffer (EFB) memory space.
  *
