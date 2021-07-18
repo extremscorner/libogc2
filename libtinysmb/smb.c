@@ -1810,8 +1810,8 @@ s32 SMB_DiskInformation(struct statvfs *buf, SMBCONN smbhndl)
 
         buf->f_bsize = (unsigned long) BlockSize;		    // File system block size.
         buf->f_frsize = (unsigned long) BlockSize;	        // Fundamental file system block size.
-        buf->f_blocks = (fsblkcnt_t) (TotalUnits*BlocksPerUnit);   // Total number of blocks on file system in units of f_frsize.
-        buf->f_bfree = (fsblkcnt_t) (FreeUnits*BlocksPerUnit);	    // Total number of free blocks.
+        buf->f_blocks = (fsblkcnt_t) ((u32)TotalUnits*(u32)BlocksPerUnit);  // Total number of blocks on file system in units of f_frsize.
+        buf->f_bfree = (fsblkcnt_t) ((u32)FreeUnits*(u32)BlocksPerUnit);    // Total number of free blocks.
         buf->f_bavail	= 0;	// Number of free blocks available to non-privileged process.
         buf->f_files = 0;	// Total number of file serial numbers.
         buf->f_ffree = 0;	// Total number of free file serial numbers.
