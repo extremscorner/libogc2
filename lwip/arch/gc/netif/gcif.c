@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include "asm.h"
 #include "processor.h"
 #include "spinlock.h"
@@ -188,7 +189,6 @@ struct bba_priv {
 	u8 revid;
 	u16 devid;
 	u8 acstart;
-	u8 linkstate;
 	lwpq_t tq_xmit;
 	err_t state;
 	struct eth_addr *ethaddr;
@@ -469,35 +469,28 @@ static __inline__ void __bba_tx_wake(struct bba_priv *priv)
 	_CPU_ISR_Restore(level);
 }
 
-static __inline__ u8 __linkstate(struct bba_priv *priv)
+static __inline__ u32 __linkstate()
 {
 	u8 nways = 0;
 
 	nways = bba_in8(BBA_NWAYS);
-	priv->linkstate = nways;
-	if(nways&BBA_NWAYS_LS10 || nways&BBA_NWAYS_LS100) return nways;
+	if(nways&BBA_NWAYS_LS10 || nways&BBA_NWAYS_LS100) return 1;
 	return 0;
 }
 
-static bool __bba_get_linkstateasync(struct bba_priv *priv)
+static u32 __bba_get_linkstate()
 {
-	u32 ret,cnt,sec;
+	u32 ret;
+	u64 start,end;
 
-	for(cnt=0;cnt<10000;cnt++) {
-		udelay(500);
-		ret = __linkstate(priv);
-
-		if(ret&0xf0 && ret&0x08) break;
+	start = gettime();
+	while((ret=__linkstate())==0) {
+		end = gettime();
+		if(diff_sec(start,end)>=5) break;
+		LWP_YieldThread();
 	}
-
-	// only sleep for additional 2 seconds if linkstate is ok
-	if(cnt<10000) {
-		sec = 1;
-		if(!(ret&0x04)) sec = 2;
-		udelay(sec*TB_USPERSEC);
-	}
-
-	return (cnt<10000);
+	if(ret) sleep(5);
+	return ret;
 }
 
 static u32 __bba_read_cid()
@@ -655,7 +648,7 @@ static err_t __bba_link_tx(struct netif *dev,struct pbuf *p)
 		return ERR_PKTSIZE;
 	}
 
-	if(!__linkstate(priv)) {
+	if(!__linkstate()) {
 		LWIP_ERROR(("__bba_link_tx(error link state)\n"));
 		__bba_tx_wake(priv);
 		__bba_exi_wake(priv);
@@ -994,7 +987,7 @@ err_t bba_init(struct netif *dev)
 		return ret;
 	}
 
-	ret = __bba_get_linkstateasync(priv);
+	ret = __bba_get_linkstate();
 	if(ret) {
 		dev->flags |= NETIF_FLAG_LINK_UP;
 		ret = ERR_OK;

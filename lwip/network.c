@@ -1532,8 +1532,8 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 
 	if ( ret == 0 && g_hNetIF.dhcp != NULL ) {
 		// wait for dhcp to bind
-		while ( g_hNetIF.ip_addr.addr == 0 && g_hNetIF.dhcp->tries <= 5 )
-			usleep(500000);
+		while ( g_hNetIF.ip_addr.addr == 0 && g_hNetIF.dhcp->tries <= 4 )
+			LWP_YieldThread();
 
 		if ( g_hNetIF.ip_addr.addr != 0 ) {
 			//copy back network addresses
