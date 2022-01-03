@@ -3950,7 +3950,7 @@ void GX_EnableTexOffsets(u8 coord,u8 line_enable,u8 point_enable)
 
 void GX_SetClipMode(u8 mode)
 {
-	GX_LOAD_XF_REG(0x1005,(mode&1));
+	GX_LOAD_XF_REG(0x1005,(mode&0x7));
 }
 
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)

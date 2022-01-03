@@ -604,7 +604,7 @@ u32 PAD_Read(PADStatus *status)
 #ifdef _PAD_DEBUG
 					printf("PAD_Read(%08x)\n",type);
 #endif
-					if(!(type&SI_WIRELESS_STATE)) ret |= mask;
+					if(!(type&SI_GC_NOMOTOR)) ret |= mask;
 					if(!SI_GetResponse(chan,buf)
 						|| buf[0]&0x80000000) {
 #ifdef _PAD_DEBUG
