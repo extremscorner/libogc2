@@ -440,14 +440,12 @@ static void __RSWHandler(u32 irq, void* ctx)
 	static s64 hold_down = 0;
 
 	hold_down = gettime();
-	do  {
+	do {
 		now = gettime();
 		if(diff_usec(hold_down,now)>=100) break;
 	} while(!(_piReg[0]&0x10000));
 
-	if(_piReg[0]&0x10000) {
-		__MaskIrq(IRQMASK(IRQ_PI_RSW));
-
+	if(!(_piReg[0]&0x10000)) {
 		if(__RSWCallback) {
 			__RSWCallback(irq, ctx);
 		}
