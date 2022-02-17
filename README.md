@@ -1,9 +1,9 @@
-## Libogc2
+## libogc2
 
 ### Build status
 
-|Continuous integration: 	| [![Build Status][Build]][Actions] 
+|Continuous integration: 	| [![Build status][Build]][Actions] 
 |-------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 
 [Actions]: https://github.com/extremscorner/libogc2/actions
-[Build]: https://github.com/extremscorner/libogc2/workflows/Libogc2%20Build/badge.svg
+[Build]: https://github.com/extremscorner/libogc2/workflows/libogc2%20build/badge.svg
