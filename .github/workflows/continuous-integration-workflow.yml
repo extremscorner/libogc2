@@ -1,0 +1,18 @@
+name: Libogc2 build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build libogc2
+    runs-on: ubuntu-20.04
+    container: devkitpro/devkitppc:latest
+ 
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+
+    - name: Build libogc2
+      run: |
+        make -j2
