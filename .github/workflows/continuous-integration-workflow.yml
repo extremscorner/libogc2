@@ -1,4 +1,4 @@
-name: Libogc2 build
+name: libogc2 build
 
 on: [push, pull_request]
 
