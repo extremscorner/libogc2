@@ -1,8 +1,8 @@
 ## libogc2
 
-### Build status
+### Nightly builds
 
-|Continuous integration: 	| [![Build status][Build]][Actions] 
+|Download nightly builds from continuous integration: 	| [![Build Status][Build]][Actions]
 |-------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 
 [Actions]: https://github.com/extremscorner/libogc2/actions

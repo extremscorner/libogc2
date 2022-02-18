@@ -13,6 +13,13 @@ jobs:
       with:
         submodules: true
 
-    - name: Build libogc2
+    - name: Build libogc2 artifacts
       run: |
-        make -j2
+        make install -j2
+         
+    - name: Upload libogc2 artifacts
+      uses: actions/upload-artifact@v2
+      with: 
+        name: libogc2
+        path: |
+         /opt/devkitpro/libogc2/
