@@ -5,21 +5,18 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build libogc2
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container: devkitpro/devkitppc:latest
- 
+
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
+    - name: Checkout libogc2
+      uses: actions/checkout@v2
 
     - name: Build libogc2 artifacts
-      run: |
-        make install -j2
-         
+      run: make install
+
     - name: Upload libogc2 artifacts
       uses: actions/upload-artifact@v2
-      with: 
+      with:
         name: libogc2
-        path: |
-         /opt/devkitpro/libogc2/
+        path: /opt/devkitpro/libogc2
