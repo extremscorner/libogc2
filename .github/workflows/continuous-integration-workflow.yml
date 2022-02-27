@@ -12,10 +12,20 @@ jobs:
     - name: Checkout libogc2
       uses: actions/checkout@v2
 
-    - name: Build libogc2 artifacts
+    - name: Checkout libfat
+      uses: actions/checkout@v2
+      with:
+        repository: extremscorner/libfat
+        path: libfat
+
+    - name: Build libogc2
       run: make install
 
-    - name: Upload libogc2 artifacts
+    - name: Build libfat
+      run: make ogc-install
+      working-directory: libfat
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: libogc2
