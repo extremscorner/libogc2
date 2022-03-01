@@ -3179,8 +3179,8 @@ s32 CARD_SetStatusAsync(s32 chn,s32 fileno,card_stat *stats,cardcallback callbac
 
 	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD; 
 	if(fileno<0 || fileno>=CARD_MAXFILES) return CARD_ERROR_FATAL_ERROR;
-	if(stats->icon_addr!=-1 && stats->icon_addr>CARD_READSIZE) return CARD_ERROR_FATAL_ERROR;
-	if(stats->comment_addr!=-1 && stats->comment_addr>8128) return CARD_ERROR_FATAL_ERROR;
+	if(stats->icon_addr!=-1 && stats->icon_addr>=CARD_READSIZE) return CARD_ERROR_FATAL_ERROR;
+	if(stats->comment_addr!=-1 && (stats->comment_addr%8192)>8128) return CARD_ERROR_FATAL_ERROR;
 	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
 	
 	ret = CARD_ERROR_BROKEN;
@@ -3194,7 +3194,7 @@ s32 CARD_SetStatusAsync(s32 chn,s32 fileno,card_stat *stats,cardcallback callbac
 		entry->commentaddr = stats->comment_addr;
 		__card_updateiconoffsets(entry,stats);
 		
-		if(entry->iconaddr==-1) entry->iconfmt = ((entry->iconfmt&~CARD_ICON_MASK)|CARD_ICON_CI);
+		if(entry->iconaddr==-1) entry->iconspeed = ((entry->iconspeed&~CARD_SPEED_MASK)|CARD_SPEED_FAST);
 
 		entry->lastmodified = time(NULL);
 		if((ret=__card_updatedir(chn,callback))>=0) return ret;
