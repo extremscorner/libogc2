@@ -4106,6 +4106,18 @@ u8 GX_GetTexObjMipMap(GXTexObj *obj);
  */
 void* GX_GetTexObjUserData(GXTexObj *obj);
 
+/*!
+ * \fn u32 GX_GetTexObjTlut(GXTexObj *obj)
+ * \brief Returns the TLUT name associated with texture object \a obj.
+ *
+ * \note Use GX_InitTexObjCI() to initialize a texture object with the desired TLUT name.
+ *
+ * \note Use GX_InitTexObjTlut() to modify the TLUT associated with an existing texture object.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return TLUT name associated with this texture object
+ */
 u32 GX_GetTexObjTlut(GXTexObj *obj);
 
 /*!
@@ -4117,11 +4129,40 @@ u32 GX_GetTexObjTlut(GXTexObj *obj);
  * \param[out] wd Returns the width of the texture or LOD 0 for mipmaps
  * \param[out] ht Returns the height of the texture or LOD 0 for mipmaps
  * \param[out] fmt Returns the texel format
+ * \param[out] wrap_s Returns the mode which describes how texture coordinates will be wrapped in the S direction
+ * \param[out] wrap_t Returns the mode which describes how texture coordinates will be wrapped in the T direction
  * \param[out] mipmap Returns the mipmap enable flag.
  *
  * \return none
  */
 void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap);
+
+/*!
+ * \fn void GX_GetTexObjLODAll(GXTexObj *obj,u8 *minfilt,u8 *magfilt,f32 *minlod,f32 *maxlod,f32 *lodbias,u8 *biasclamp,u8 *edgelod,u8 *maxaniso)
+ * \brief Returns the LOD-related parameters described by a texture object. Texture objects are used to describe all the parameters associated with a texture, including size, format, wrap modes, filter modes, etc. Texture objects are initialized using either GX_InitTexObj() or, for color index format textures, GXInitTexObjCI(). The LOD-related parameters are set using GX_InitTexObjLOD().
+ *
+ * \param[in] obj ptr to a texture object
+ * \param[out] minfilt Returns the minification filter from the texture object
+ * \param[out] magfilt Returns the magnification filter
+ * \param[out] minlod Returns the minimum LOD bound
+ * \param[out] maxlod Returns the maximum LOD bound
+ * \param[out] lodbias Returns the LOD bias control
+ * \param[out] biasclamp Returns the LOD bias clamping parameter
+ * \param[out] edgelod Returns whether or not edge LOD has been enabled
+ * \param[out] maxaniso Returns the anisotropic filtering setting
+ *
+ * \return none
+ */
+void GX_GetTexObjLODAll(GXTexObj *obj,u8 *minfilt,u8 *magfilt,f32 *minlod,f32 *maxlod,f32 *lodbias,u8 *biasclamp,u8 *edgelod,u8 *maxaniso);
+
+u8 GX_GetTexObjMinFilt(GXTexObj *obj);
+u8 GX_GetTexObjMagFilt(GXTexObj *obj);
+f32 GX_GetTexObjMinLOD(GXTexObj *obj);
+f32 GX_GetTexObjMaxLOD(GXTexObj *obj);
+f32 GX_GetTexObjLODBias(GXTexObj *obj);
+u8 GX_GetTexObjBiasClamp(GXTexObj *obj);
+u8 GX_GetTexObjEdgeLOD(GXTexObj *obj);
+u8 GX_GetTexObjMaxAniso(GXTexObj *obj);
 
 /*!
  * \fn u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)

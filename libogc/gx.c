@@ -3051,6 +3051,71 @@ u8 GX_GetTexObjMipMap(GXTexObj *obj)
 	return ptr->tex_flag&0x01;
 }
 
+void GX_GetTexObjLODAll(GXTexObj *obj,u8 *minfilt,u8 *magfilt,f32 *minlod,f32 *maxlod,f32 *lodbias,u8 *biasclamp,u8 *edgelod,u8 *maxaniso)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	static const u8 HW2GXFiltConv[] = {0x00,0x02,0x04,0x00,0x01,0x03,0x05,0x00};
+
+	*minfilt = HW2GXFiltConv[_SHIFTR(ptr->tex_filt,5,3)];
+	*magfilt = _SHIFTR(ptr->tex_filt,4,1);
+	*minlod = (ptr->tex_lod&0xff)/16.0f;
+	*maxlod = _SHIFTR(ptr->tex_lod,8,8)/16.0f;
+	*lodbias = (s8)_SHIFTR(ptr->tex_filt,9,8)/32.0f;
+	*biasclamp = _SHIFTR(ptr->tex_filt,21,1);
+	*edgelod = !_SHIFTR(ptr->tex_filt,8,1);
+	*maxaniso = _SHIFTR(ptr->tex_filt,19,2);
+}
+
+u8 GX_GetTexObjMinFilt(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	static const u8 HW2GXFiltConv[] = {0x00,0x02,0x04,0x00,0x01,0x03,0x05,0x00};
+
+	return HW2GXFiltConv[_SHIFTR(ptr->tex_filt,5,3)];
+}
+
+u8 GX_GetTexObjMagFilt(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,4,1);
+}
+
+f32 GX_GetTexObjMinLOD(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (ptr->tex_lod&0xff)/16.0f;
+}
+
+f32 GX_GetTexObjMaxLOD(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_lod,8,8)/16.0f;
+}
+
+f32 GX_GetTexObjLODBias(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (s8)_SHIFTR(ptr->tex_filt,9,8)/32.0f;
+}
+
+u8 GX_GetTexObjBiasClamp(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,21,1);
+}
+
+u8 GX_GetTexObjEdgeLOD(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return !_SHIFTR(ptr->tex_filt,8,1);
+}
+
+u8 GX_GetTexObjMaxAniso(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,19,2);
+}
+
 u32 GX_GetTexObjTlut(GXTexObj *obj)
 {
 	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
@@ -3306,7 +3371,6 @@ void GX_InitTexObjLOD(GXTexObj *obj,u8 minfilt,u8 magfilt,f32 minlod,f32 maxlod,
 {
 	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
 	static const u8 GX2HWFiltConv[] = {0x00,0x04,0x01,0x05,0x02,0x06,0x00,0x00};
-	//static const u8 HW2GXFiltConv[] = {0x00,0x02,0x04,0x00,0x01,0x03,0x05,0x00};
 
 	if(lodbias<-4.0f) lodbias = -4.0f;
 	else if(lodbias==4.0f) lodbias = 3.99f;
