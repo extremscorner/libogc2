@@ -317,8 +317,13 @@ static void __GX_SaveFifo(void)
 
 	if(_gxcpufifoready) {
 		val = _piReg[0x05];
+#if defined(HW_DOL)
+		cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0((val&0x03FFFFE0));
+		cpufifo->fifo_wrap = ((val&0x04000000)==0x04000000);
+#else
 		cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0((val&0x1FFFFFE0));
 		cpufifo->fifo_wrap = ((val&0x20000000)==0x20000000);
+#endif
 	}
 
 	if(_gxgpfifoready) {
@@ -330,6 +335,7 @@ static void __GX_SaveFifo(void)
 		cpufifo->rd_ptr = gpfifo->rd_ptr;
 		cpufifo->rdwt_dst = gpfifo->rdwt_dst;
 		gpfifo->wt_ptr = cpufifo->wt_ptr;
+		gpfifo->fifo_wrap = cpufifo->fifo_wrap;
 	} else if(_gxcpufifoready) {
 		rdwt_dst = (cpufifo->wt_ptr - cpufifo->rd_ptr);
 		if(rdwt_dst<0) cpufifo->rdwt_dst = (cpufifo->rdwt_dst + cpufifo->size);
