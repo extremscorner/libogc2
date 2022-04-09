@@ -5248,11 +5248,11 @@ void GX_AdjustForOverscan(GXRModeObj *rmin,GXRModeObj *rmout,u16 hor,u16 ver)
 
 	rmout->fbWidth = rmin->fbWidth-(hor<<1);
 	rmout->efbHeight = rmin->efbHeight-((rmin->efbHeight*(ver<<1))/rmin->xfbHeight);
-	if(rmin->xfbMode==VI_XFBMODE_SF && !(rmin->viTVMode&VI_PROGRESSIVE)) rmout->xfbHeight = rmin->xfbHeight-ver;
+	if(rmin->xfbMode==VI_XFBMODE_SF && (rmin->viTVMode&0x3)==VI_INTERLACE) rmout->xfbHeight = rmin->xfbHeight-ver;
 	else rmout->xfbHeight = rmin->xfbHeight-(ver<<1);
 
 	rmout->viWidth = rmin->viWidth-(hor<<1);
-	if(rmin->viTVMode&VI_PROGRESSIVE) rmout->viHeight = rmin->viHeight-(ver<<2);
+	if((rmin->viTVMode&0x3)==VI_NON_INTERLACE) rmout->viHeight = rmin->viHeight-(ver<<2);
 	else rmout->viHeight = rmin->viHeight-(ver<<1);
 
 	rmout->viXOrigin += hor;
