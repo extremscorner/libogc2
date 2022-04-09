@@ -3498,6 +3498,32 @@ void GX_InitTlutObj(GXTlutObj *obj,void *lut,u8 fmt,u16 entries)
 	ptr->tlut_nentries = entries;
 }
 
+void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	*lut = (void*)_SHIFTL(ptr->tlut_maddr,5,24);
+	*fmt = _SHIFTR(ptr->tlut_fmt,10,2);
+	*entries = ptr->tlut_nentries;
+}
+
+void* GX_GetTlutObjData(GXTlutObj *obj)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	return (void*)_SHIFTL(ptr->tlut_maddr,5,24);
+}
+
+u8 GX_GetTlutObjFmt(GXTlutObj *obj)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	return _SHIFTR(ptr->tlut_fmt,10,2);
+}
+
+u16 GX_GetTlutObjNumEntries(GXTlutObj *obj)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	return ptr->tlut_nentries;
+}
+
 void GX_LoadTexObj(GXTexObj *obj,u8 mapid)
 {
 	GXTexRegion *region = NULL;

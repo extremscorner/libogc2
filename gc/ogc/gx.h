@@ -4164,6 +4164,25 @@ u8 GX_GetTexObjBiasClamp(GXTexObj *obj);
 u8 GX_GetTexObjEdgeLOD(GXTexObj *obj);
 u8 GX_GetTexObjMaxAniso(GXTexObj *obj);
 
+void* GX_GetTlutObjData(GXTlutObj *obj);
+u8 GX_GetTlutObjFmt(GXTlutObj *obj);
+u16 GX_GetTlutObjNumEntries(GXTlutObj *obj);
+
+/*!
+ * \fn void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries)
+ * \brief Returns all the parameters describing a Texture Look-Up Table (TLUT) object.
+ *
+ * \details The TLUT object describes the location of the TLUT in main memory, its format and the number of entries.
+ *
+ * \param[in] obj ptr to a TLUT object
+ * \param[out] lut Returns a physical pointer to the look-up table data
+ * \param[out] fmt Returns the format of the entries in the TLUT
+ * \param[out] entries Returns the number of entries in the TLUT
+ *
+ * \return none
+ */
+void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries);
+
 /*!
  * \fn u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)
  * \brief Returns the amount of memory in bytes needed to store a texture of the given size and \a fmt.
