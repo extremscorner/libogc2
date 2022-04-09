@@ -85,20 +85,23 @@ static u32 TPL_GetTextureSize(u32 width,u32 height,u32 fmt)
 
 s32 TPL_OpenTPLFromFile(TPLFile* tdf, const char* file_name)
 {
+	if(!file_name) return 0;
+	return TPL_OpenTPLFromHandle(tdf,fopen(file_name,"rb"));
+}
+
+s32 TPL_OpenTPLFromHandle(TPLFile* tdf, FILE *handle)
+{
 	u32 c;
 	u32 version;
-	FILE *f = NULL;
+	FILE *f = handle;
 	TPLDescHeader *deschead = NULL;
 	TPLImgHeader *imghead = NULL;
 	TPLPalHeader *palhead = NULL;
 
-	if(!file_name) return 0;
-
-	f = fopen(file_name,"rb");
-	if(!f) return -1;
+	if(!handle) return -1;
 
 	tdf->type = TPL_FILE_TYPE_DISC;
-	tdf->tpl_file = (FHANDLE)f;
+	tdf->tpl_file = f;
 
 	fread(&version,sizeof(u32),1,f);
 	fread(&tdf->ntextures,sizeof(u32),1,f);
@@ -155,7 +158,7 @@ s32 TPL_OpenTPLFromMemory(TPLFile* tdf, void *memory,u32 len)
 	if(!memory || !len) return -1;		//TPL_ERR_INVALID
 
 	tdf->type = TPL_FILE_TYPE_MEM;
-	tdf->tpl_file = (FHANDLE)NULL;
+	tdf->tpl_file = NULL;
 
 	//version = *(u32*)(p + TPL_HDR_VERSION_FIELD);
 	tdf->ntextures = *(u32*)(p + TPL_HDR_NTEXTURE_FIELD);
@@ -231,7 +234,8 @@ s32 TPL_GetTexture(TPLFile *tdf,s32 id,GXTexObj *texObj)
 
 	size = TPL_GetTextureSize(imghead->width,imghead->height,imghead->fmt);
 	if(tdf->type==TPL_FILE_TYPE_DISC) {
-		f = (FILE*)tdf->tpl_file;
+		f = tdf->tpl_file;
+
 		pos = (s32)imghead->data;
 		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
 		imghead->unpacked = TRUE;
@@ -279,7 +283,8 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 
 	size = TPL_GetTextureSize(imghead->width,imghead->height,imghead->fmt);
 	if(tdf->type==TPL_FILE_TYPE_DISC) {
-		f = (FILE*)tdf->tpl_file;
+		f = tdf->tpl_file;
+
 		pos = (s32)imghead->data;
 		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
 		imghead->unpacked = TRUE;
@@ -324,7 +329,7 @@ void TPL_CloseTPLFile(TPLFile *tdf)
 	if(!tdf) return;
 
 	if(tdf->type==TPL_FILE_TYPE_DISC) {
-		f = (FILE*)tdf->tpl_file;
+		f = tdf->tpl_file;
 		if(f) fclose(f);
 
 		deschead = (TPLDescHeader*)tdf->texdesc;
