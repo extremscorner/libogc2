@@ -305,8 +305,8 @@ static void __exi_wait(s32 drv_no)
 
 static s32 __card_exthandler(s32 chn,s32 dev)
 {
-	_ioCardInserted[chn] = FALSE;
 	_ioFlag[chn] = NOT_INITIALIZED;
+	_ioCardInserted[chn] = FALSE;
 	sdgecko_ejectedCB(chn);
 	return 1;
 }
@@ -1431,11 +1431,15 @@ s32 sdgecko_doUnmount(s32 drv_no)
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
 	if(_ioCardInserted[drv_no]==TRUE) {
-		_ioCardInserted[drv_no] = FALSE;
+		if(_ioFlag[drv_no]==INITIALIZED) {
+			_ioFlag[drv_no] = INITIALIZING;
+			__card_softreset(drv_no);
+		}
 		_ioFlag[drv_no] = NOT_INITIALIZED;
+		_ioCardInserted[drv_no] = FALSE;
 		if(drv_no!=2) {
-			sdgecko_ejectedCB(drv_no);
 			EXI_Detach(drv_no);
+			sdgecko_ejectedCB(drv_no);
 		}
 	}
 	if(_ioRetryCB)
@@ -1476,10 +1480,16 @@ u32 sdgecko_getPageSize(s32 drv_no)
 
 s32 sdgecko_setPageSize(s32 drv_no, u32 size)
 {
-	if(_ioPageSize[drv_no]!=size)
-		_ioPageSize[drv_no] = size;
+	s32 ret;
 
-	return __card_setblocklen(drv_no, _ioPageSize[drv_no]);
+	ret = sdgecko_preIO(drv_no);
+	if(ret!=0) return ret;
+
+	if(_ioPageSize[drv_no]!=size) {
+		_ioPageSize[drv_no] = size;
+		ret = __card_setblocklen(drv_no, _ioPageSize[drv_no]);
+	}
+	return ret;
 }
 
 card_addressing_type_t sdgecko_getAddressingType(s32 drv_no)
