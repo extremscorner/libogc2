@@ -7,11 +7,6 @@
 
 #include "geckousb.h"
 
-#define _SHIFTL(v, s, w)	\
-	((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
-#define _SHIFTR(v, s, w)	\
-	((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
-
 static struct dbginterface usb_device;
 
 static __inline__ int __send_command(s32 chn,u16 *cmd)
@@ -81,7 +76,7 @@ static int __usb_checkrecv(s32 chn)
 static void __usb_flush(s32 chn)
 {
 	char tmp;
-	
+
 	if(!EXI_Lock(chn,EXI_DEVICE_0,NULL)) return;
 
 	while(__usb_recvbyte(chn,&tmp));
