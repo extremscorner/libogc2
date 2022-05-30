@@ -55,9 +55,9 @@ struct aesndpb_t
 	u32 voiceno;
 	u32 shift;
 	AESNDVoiceCallback cb;
-	
+
 	AESNDAudioCallback audioCB;
-} ATTRIBUTE_PACKED;
+};
 
 static dsptask_t __aesnddsptask;
 
@@ -338,7 +338,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 		while(__aesndcurrvoice<MAX_VOICES && (!(__aesndvoicepb[__aesndcurrvoice].flags&VOICE_USED) || (__aesndvoicepb[__aesndcurrvoice].flags&VOICE_STOPPED))) __aesndcurrvoice++;
 		if(__aesndcurrvoice<MAX_VOICES) {
 			__aesndcopycommand(&__aesndcommand,&__aesndvoicepb[__aesndcurrvoice]);
-			
+
 			if(__aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_RUNNING);
 
 			DCFlushRange(&__aesndcommand,PB_STRUCT_SIZE);
@@ -476,7 +476,7 @@ void AESND_Reset(void)
 
 		DSP_SendMailTo(0xfacedead);
 		while(DSP_CheckMailTo());
-		
+
 		do {
 			_CPU_ISR_Flash(level);
 		} while(__aesnddspinit);
@@ -503,7 +503,7 @@ u32 AESND_GetDSPProcessTime(void)
 	_CPU_ISR_Disable(level);
 	time = ticks_to_microsecs(__aesnddspprocesstime);
 	_CPU_ISR_Restore(level);
-	
+
 	return time;
 }
 
@@ -515,7 +515,7 @@ f32 AESND_GetDSPProcessUsage(void)
 	_CPU_ISR_Disable(level);
 	usage = (ticks_to_microsecs(__aesnddspprocesstime)*100)/2000.0f;
 	_CPU_ISR_Restore(level);
-	
+
 	return usage;
 }
 
@@ -582,7 +582,7 @@ void AESND_PlayVoice(AESNDPB *pb,u32 format,const void *buffer,u32 len,f32 freq,
 	__aesndsetvoicebuffer(pb,ptr,len);
 
 	pb->flags &= ~(VOICE_RUNNING|VOICE_STOPPED|VOICE_LOOP|VOICE_ONCE);
-	if(looped==true) 
+	if(looped==true)
 		pb->flags |= VOICE_LOOP;
 	else
 		pb->flags |= VOICE_ONCE;
@@ -626,7 +626,7 @@ void AESND_SetVoiceVolume(AESNDPB *pb,u16 volume_l,u16 volume_r)
 void AESND_SetVoiceFrequency(AESNDPB *pb,f32 freq)
 {
 	u32 level;
-	
+
 	_CPU_ISR_Disable(level);
 	__aesndsetvoicefreq(pb,freq);
 	_CPU_ISR_Restore(level);
@@ -635,7 +635,7 @@ void AESND_SetVoiceFrequency(AESNDPB *pb,f32 freq)
 void AESND_SetVoiceStream(AESNDPB *pb,bool stream)
 {
 	u32 level;
-	
+
 	_CPU_ISR_Disable(level);
 	if(stream==true)
 		pb->flags |= VOICE_STREAM;
@@ -647,7 +647,7 @@ void AESND_SetVoiceStream(AESNDPB *pb,bool stream)
 void AESND_SetVoiceLoop(AESNDPB *pb,bool loop)
 {
 	u32 level;
-	
+
 	_CPU_ISR_Disable(level);
 	if(loop==true)
 		pb->flags |= VOICE_LOOP;

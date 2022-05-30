@@ -177,7 +177,7 @@ struct _syssram {
 	u8 ntd;
 	u8 lang;
 	u8 flags;
-} ATTRIBUTE_PACKED;
+};
 
 
 /*!
