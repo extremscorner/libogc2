@@ -227,7 +227,7 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 # elif defined(FPM_ARM)
 
-/* 
+/*
  * This ARM V4 version is as accurate as FPM_64BIT but much faster. The
  * least significant bit is properly rounded at no CPU cycle cost!
  */
@@ -436,8 +436,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 
 # if !defined(mad_f_mul)
 #  define mad_f_mul(x, y)  \
-    ({ register mad_fixed64hi_t __hi;  \
-       register mad_fixed64lo_t __lo;  \
+    ({  mad_fixed64hi_t __hi;  \
+        mad_fixed64lo_t __lo;  \
        MAD_F_MLX(__hi, __lo, (x), (y));  \
        mad_f_scale64(__hi, __lo);  \
     })
