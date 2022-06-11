@@ -577,6 +577,10 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 	u32 reg,level;
 	exibus_priv *exi = &eximap[nChn];
 
+	if(nChn==EXI_CHANNEL_0 && nDev==EXI_DEVICE_2 && exi_id_serport1!=0) {
+		*nId = exi_id_serport1;
+		return 1;
+	}
 #ifdef _EXI_DEBUG
 	printf("EXI_GetID(exi_id = %d)\n",exi->exi_id);
 #endif
@@ -606,18 +610,14 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 
 	if(ret) {
 		if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==1) {
-			reg = 0x0000<<16;
+			reg = 0;
 			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
 			EXI_Sync(nChn);
-			*nId = 0xffffffff;
-			EXI_Imm(nChn,nId,4,EXI_READWRITE,NULL);
-			EXI_Sync(nChn);
-			reg = 0xffff<<16;
-			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
+			EXI_Imm(nChn,nId,4,EXI_READ,NULL);
 			EXI_Sync(nChn);
 			EXI_Deselect(nChn);
-			EXI_Unlock(nChn);
 		}
+		EXI_Unlock(nChn);
 	}
 
 	if(nChn<EXI_CHANNEL_2 && nDev==EXI_DEVICE_0) {
@@ -816,7 +816,6 @@ void EXI_ProbeReset(void)
 
 	__exi_probe(0);
 	__exi_probe(1);
-	EXI_GetID(EXI_CHANNEL_0,EXI_DEVICE_2,&exi_id_serport1);
 }
 
 void __exi_init(void)
@@ -842,6 +841,8 @@ void __exi_init(void)
 	IRQ_Request(IRQ_EXI1_EXT,__ext_irq_handler,NULL);
 	IRQ_Request(IRQ_EXI2_EXI,__exi_irq_handler,NULL);
 	IRQ_Request(IRQ_EXI2_TC,__tc_irq_handler,NULL);
+
+	EXI_GetID(EXI_CHANNEL_0,EXI_DEVICE_2,&exi_id_serport1);
 
 	EXI_ProbeReset();
 }
