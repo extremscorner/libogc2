@@ -376,6 +376,8 @@ static void __dvd_statebusy(dvdcmdblk *block);
 static s32 __issuecommand(s32 prio,dvdcmdblk *block);
 
 void DVD_LowReset(u32 reset_mode);
+dvdcallbacklow DVD_LowSetResetCoverCallback(dvdcallbacklow cb);
+dvdcallbacklow DVD_LowClearCallback(void);
 s32 DVD_LowSeek(s64 offset,dvdcallbacklow cb);
 s32 DVD_LowRead(void *buf,u32 len,s64 offset,dvdcallbacklow cb);
 s32 DVD_LowReadDiskID(dvddiskid *diskID,dvdcallbacklow cb);
@@ -512,6 +514,7 @@ static void __dvd_timeouthandler(syswd_t alarm,void *cbarg)
 
 	__MaskIrq(IRQMASK(IRQ_PI_DI));
 	cb = __dvd_callback;
+	__dvd_callback = NULL;
 	if(cb) cb(0x10);
 }
 
@@ -1329,8 +1332,6 @@ static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
 	u32 status,ir,irm,irmm,diff;
 	dvdcallbacklow cb;
 
-	SYS_CancelAlarm(__dvd_timeoutalarm);
-
 	irmm = 0;
 	if(__dvd_lastcmdwasread) {
 		__dvd_cmd_prev.buf = __dvd_cmd_curr.buf;
@@ -1351,8 +1352,10 @@ static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
 	if(ir&DVD_TC_INT) irmm |= 0x0001;
 	if(ir&DVD_DE_INT) irmm |= 0x0002;
 
-	if(irmm) __dvd_resetoccured = 0;
-
+	if(irmm) {
+		__dvd_resetoccured = 0;
+		SYS_CancelAlarm(__dvd_timeoutalarm);
+	}
 	_diReg[0] = (ir|irm);
 
 	now = gettime();
@@ -1364,11 +1367,9 @@ static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
 		if(ir&0x0004) {
 			cb = __dvd_resetcovercb;
 			__dvd_resetcovercb = NULL;
-			if(cb) {
-				cb(0x0004);
-			}
+			if(cb) cb(0x0004);
 		}
-		_diReg[1] = _diReg[1];
+		_diReg[1] = (ir|irm);
 	} else {
 		if(__dvd_waitcoverclose) {
 			status = _diReg[1];
@@ -1392,11 +1393,12 @@ static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
 		__dvd_nextcmdnum = 0;
 	}
 
-	cb = __dvd_callback;
-	__dvd_callback = NULL;
-	if(cb) cb(irmm);
-
-	__dvd_breaking = 0;
+	if(irmm) {
+		cb = __dvd_callback;
+		__dvd_callback = NULL;
+		if(cb) cb(irmm);
+		__dvd_breaking = 0;
+	}
 }
 
 static void __dvd_patchdrivecb(s32 result)
@@ -1605,6 +1607,12 @@ static void __dvd_stateready(void)
 		return;
 	}
 
+	if(__dvd_pauseflag) {
+		__dvd_pausingflag = 1;
+		__dvd_executing = NULL;
+		return;
+	}
+
 	__dvd_executing = __dvd_popwaitingqueue();
 
 	if(__dvd_fatalerror) {
@@ -1788,7 +1796,7 @@ static s32 __issuecommand(s32 prio,dvdcmdblk *block)
 	_CPU_ISR_Disable(level);
 	block->state = DVD_STATE_WAITING;
 	ret = __dvd_pushwaitingqueue(prio,block);
-	if(!__dvd_executing) __dvd_stateready();
+	if(!__dvd_executing && !__dvd_pauseflag) __dvd_stateready();
 	_CPU_ISR_Restore(level);
 	return ret;
 }
@@ -2222,6 +2230,30 @@ void DVD_LowReset(u32 reset_mode)
 	__dvd_resetoccured = 1;
 	__dvd_lastresetend = gettime();
 	__dvd_drivestate |= DVD_DRIVERESET;
+}
+
+dvdcallbacklow DVD_LowSetResetCoverCallback(dvdcallbacklow cb)
+{
+	u32 level;
+	dvdcallbacklow old;
+
+	_CPU_ISR_Disable(level);
+	old = __dvd_resetcovercb;
+	__dvd_resetcovercb = cb;
+	_CPU_ISR_Restore(level);
+	return old;
+}
+
+dvdcallbacklow DVD_LowClearCallback(void)
+{
+	dvdcallbacklow old;
+
+	_diReg[1] = 0;
+	__dvd_waitcoverclose = 0;
+
+	old = __dvd_callback;
+	__dvd_callback = NULL;
+	return old;
 }
 
 s32 DVD_LowAudioStream(u32 subcmd,u32 len,s64 offset,dvdcallbacklow cb)
@@ -2745,7 +2777,20 @@ void DVD_Pause(void)
 
 	_CPU_ISR_Disable(level);
 	__dvd_pauseflag = 1;
-	if(__dvd_executing==NULL) __dvd_pausingflag = 1;
+	if(!__dvd_executing) __dvd_pausingflag = 1;
+	_CPU_ISR_Restore(level);
+}
+
+void DVD_Resume(void)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	__dvd_pauseflag = 0;
+	if(__dvd_pausingflag) {
+		__dvd_pausingflag = 0;
+		__dvd_stateready();
+	}
 	_CPU_ISR_Restore(level);
 }
 
@@ -2764,6 +2809,11 @@ void DVD_Reset(u32 reset_mode)
 
 	__dvd_resetrequired = 0;
 	__dvd_internalretries = 0;
+}
+
+u32 DVD_ResetRequired(void)
+{
+	return __dvd_resetrequired;
 }
 
 static void callback(s32 result,dvdcmdblk *block)
@@ -2845,8 +2895,12 @@ void DVD_Init(void)
 		SYS_CreateAlarm(&__dvd_timeoutalarm);
 		LWP_InitQueue(&__dvd_wait_queue);
 
+		_piReg[9] |= 0x0005;
+		__dvd_resetoccured = 1;
+		__dvd_lastresetend = gettime();
+
 		_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
-		_diReg[1] = 0;
+		_diReg[1] = DVD_CVR_MSK;
 	}
 }
 
@@ -2920,7 +2974,9 @@ static bool __gcode_Startup(void)
 	dvdcmdblk blk;
 
 	DVD_Init();
-	DVD_Inquiry(&blk, &__dvd_driveinfo);
+
+	if(DVD_Inquiry(&blk, &__dvd_driveinfo) < 0)
+		return false;
 
 	if(__dvd_driveinfo.rel_date != 0x20196c64)
 		return false;
