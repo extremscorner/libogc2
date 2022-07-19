@@ -47,6 +47,8 @@ AESNDAudioCallback AESND_RegisterAudioCallback(AESNDAudioCallback cb);
 
 AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb);
 void AESND_FreeVoice(AESNDPB *pb);
+void* AESND_GetVoiceUserData(AESNDPB *pb);
+void AESND_SetVoiceUserData(AESNDPB *pb,void *usr_data);
 void AESND_SetVoiceDelay(AESNDPB *pb,u32 delay);
 void AESND_SetVoiceStop(AESNDPB *pb,bool stop);
 void AESND_SetVoiceMute(AESNDPB *pb,bool mute);

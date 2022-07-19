@@ -55,6 +55,7 @@ struct aesndpb_t
 	u32 voiceno;
 	u32 shift;
 	AESNDVoiceCallback cb;
+	void *usr_data;
 	
 	AESNDAudioCallback audioCB;
 } ATTRIBUTE_PACKED;
@@ -125,6 +126,7 @@ static __inline__ void __aesndcopycommand(AESNDPB *dst,AESNDPB *src)
 	dst->voiceno = src->voiceno;
 	dst->shift = src->shift;
 	dst->cb = src->cb;
+	dst->usr_data = src->usr_data;
 }
 
 static __inline__ void __aesndsetvoiceformat(AESNDPB *pb,u32 format)
@@ -687,6 +689,27 @@ void AESND_SetVoiceDelay(AESNDPB *pb,u32 delay)
 	_CPU_ISR_Disable(level);
 	pb->delay = (delay*48);
 	_CPU_ISR_Restore(level);
+}
+
+void AESND_SetVoiceUserData(AESNDPB *pb,void *usr_data)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	pb->usr_data = usr_data;
+	_CPU_ISR_Restore(level);
+}
+
+void* AESND_GetVoiceUserData(AESNDPB *pb)
+{
+	u32 level;
+	void *usr_data = NULL;
+
+	_CPU_ISR_Disable(level);
+	usr_data = pb->usr_data;
+	_CPU_ISR_Restore(level);
+
+	return usr_data;
 }
 
 AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb)
