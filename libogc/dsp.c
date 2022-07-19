@@ -121,7 +121,9 @@ static void __dsp_removetask(dsptask_t *task)
 		__dsp_currtask = __dsp_firsttask;
 		return;
 	}
-	__dsp_currtask = __dsp_currtask->next;
+	__dsp_currtask = task->next;
+	task->prev->next = __dsp_currtask;
+	task->next->prev = task->prev;
 }
 
 static void __dsp_boottask(dsptask_t *task)
@@ -250,7 +252,7 @@ static void __dsp_def_taskcb(void)
 					while(DSP_CheckMailTo());
 
 					__dsp_exectask(__dsp_currtask,__dsp_rudetask);
-					__dsp_currtask->flags = DSPTASK_YIELD;
+					__dsp_currtask->state = DSPTASK_YIELD;
 					__dsp_currtask = __dsp_rudetask;
 					__dsp_rudetask = NULL;
 					__dsp_rudetask_pend = FALSE;
@@ -298,6 +300,15 @@ static void __dsp_def_taskcb(void)
 
 					__dsp_currtask->state = DSPTASK_DONE;
 					__dsp_removetask(__dsp_currtask);
+				} else {
+					if(__dsp_currtask->done_cb) __dsp_currtask->done_cb(__dsp_currtask);
+					DSP_SendMailTo(0xCDD10001);
+					while(DSP_CheckMailTo());
+
+					__dsp_currtask->state = DSPTASK_DONE;
+					__dsp_exectask(NULL,__dsp_firsttask);
+					__dsp_currtask = __dsp_firsttask;
+					__dsp_removetask(__dsp_lasttask);
 				}
 			} else {
 				if(__dsp_currtask->done_cb) __dsp_currtask->done_cb(__dsp_currtask);
@@ -306,9 +317,9 @@ static void __dsp_def_taskcb(void)
 				while(DSP_CheckMailTo());
 
 				__dsp_currtask->state = DSPTASK_DONE;
-				__dsp_exectask(NULL,__dsp_firsttask);
-				__dsp_currtask = __dsp_firsttask;
-				__dsp_removetask(__dsp_lasttask);
+				__dsp_exectask(NULL,__dsp_currtask->next);
+				__dsp_currtask = __dsp_currtask->next;
+				__dsp_removetask(__dsp_currtask->prev);
 			}
 			break;
 		case 0xDCD10004:
@@ -435,6 +446,7 @@ void DSP_Reset(void)
 	_CPU_ISR_Disable(level);
 	old = _dspReg[5];
 	_dspReg[5] = (old&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|(DSPCR_DSPRESET|DSPCR_RES);
+	__dsp_inited = FALSE;
 	_CPU_ISR_Restore(level);
 }
 
