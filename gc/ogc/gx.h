@@ -3408,6 +3408,24 @@ void GX_SetTevIndBumpST(u8 tevstage,u8 indstage,u8 mtx_sel);
 void GX_SetTevIndBumpXYZ(u8 tevstage,u8 indstage,u8 mtx_sel);
 
 /*!
+ * \fn void GX_SetTevIndWarp(u8 tevstage,u8 indstage,u8 signed_offset,u8 replace_mode,u8 mtx_sel)
+ * \brief Allows an indirect map to warp or distort the texture coordinates used with a regular TEV stage lookup.
+ *
+ * \details The indirect map should have 8-bit offsets, which may be signed or unsigned. "Signed" actually means "biased," and thus if \a signed_offset is <tt>GX_TRUE</tt>,
+ * 128 is subtracted from the values looked up from the indirect map. The indirect results can either modify or completely replace the regular texture coordinates.
+ * One may use the indirect matrix and scale to modify the indirect offsets.
+ *
+ * \param[in] tevstage \ref tevstage that is being affected
+ * \param[in] indstage \ref indtexstage results to use with this TEV stage
+ * \param[in] signed_offset whether the 8-bit offsets should be signed/biased (<tt>GX_TRUE</tt>) or unsigned (<tt>GX_FALSE</tt>)
+ * \param[in] replace_mode whether the offsets should replace (<tt>GX_TRUE</tt>) or be added to (<tt>GX_FALSE</tt>) the regular texture coordinates
+ * \param[in] mtx_sel which \ref indtexmtx to multiply the offsets with
+ *
+ * \return none
+ */
+void GX_SetTevIndWarp(u8 tevstage,u8 indstage,u8 signed_offset,u8 replace_mode,u8 mtx_sel);
+
+/*!
  * \fn void GX_SetTevIndTile(u8 tevstage,u8 indtexid,u16 tilesize_x,u16 tilesize_y,u16 tilespacing_x,u16 tilespacing_y,u8 indtexfmt,u8 indtexmtx,u8 bias_sel,u8 alpha_sel)
  * \brief Used to implement tiled texturing using indirect textures.
  *
