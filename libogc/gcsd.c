@@ -38,17 +38,6 @@
 
 static int __gcsd_init = 0;
 
-static bool __gcsd_isInserted(int n)
-{
-	s32 ret;
-
-	ret = sdgecko_readStatus(n);
-	if(ret == CARDIO_ERROR_READY)
-		return true;
-
-	return false;
-}
-
 static bool __gcsd_startup(int n)
 {
 	s32 ret;
@@ -66,6 +55,10 @@ static bool __gcsd_startup(int n)
 	return false;
 }
 
+static bool __gcsd_isInserted(int n)
+{
+	return sdgecko_isInserted(n);
+}
 
 static bool __gcsd_readSectors(int n, sec_t sector, sec_t numSectors, void *buffer)
 {
