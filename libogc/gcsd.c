@@ -67,7 +67,11 @@ static bool __gcsd_readSectors(int n, sec_t sector, sec_t numSectors, void *buff
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 
-	ret = sdgecko_readSectors(n,sector,numSectors,buffer);
+	if(numSectors == 1)
+		ret = sdgecko_readSector(n, buffer, sector);
+	else
+		ret = sdgecko_readSectors(n, sector, numSectors, buffer);
+
 	if(ret == CARDIO_ERROR_READY)
 		return true;
 
@@ -81,7 +85,11 @@ static bool __gcsd_writeSectors(int n, sec_t sector, sec_t numSectors, const voi
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 
-	ret = sdgecko_writeSectors(n,sector,numSectors,buffer);
+	if(numSectors == 1)
+		ret = sdgecko_writeSector(n, buffer, sector);
+	else
+		ret = sdgecko_writeSectors(n, sector, numSectors, buffer);
+
 	if(ret == CARDIO_ERROR_READY)
 		return true;
 

@@ -40,8 +40,9 @@ s32 sdgecko_preIO(s32 drv_no);
 s32 sdgecko_readCID(s32 drv_no);
 s32 sdgecko_readCSD(s32 drv_no);
 s32 sdgecko_readStatus(s32 drv_no);
+s32 sdgecko_readSector(s32 drv_no,void *buf,u32 sector_no);
 s32 sdgecko_readSectors(s32 drv_no,u32 sector_no,u32 num_sectors,void *buf);
-s32 sdgecko_writeSector(s32 drv_no,u32 sector_no,const void *buf,u32 len);
+s32 sdgecko_writeSector(s32 drv_no,const void *buf,u32 sector_no);
 s32 sdgecko_writeSectors(s32 drv_no,u32 sector_no,u32 num_sectors,const void *buf);
 
 s32 sdgecko_doUnmount(s32 drv_no);
