@@ -469,8 +469,11 @@ void AESND_Init(void)
 
 void AESND_Reset(void)
 {
+#if defined(HW_DOL)
 	u32 i,level;
-
+#else
+	u32 level;
+#endif
 	_CPU_ISR_Disable(level);
 	if(__aesndinit) {
 		AUDIO_StopDMA();
@@ -544,8 +547,8 @@ AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb)
 
 	_CPU_ISR_Disable(level);
 	for(i=0;i<MAX_VOICES;i++) {
-		pb = &__aesndvoicepb[i];
-		if(!(pb->flags&VOICE_USED)) {
+		if(!(__aesndvoicepb[i].flags&VOICE_USED)) {
+			pb = &__aesndvoicepb[i];
 			pb->voiceno = i;
 			pb->flags = (VOICE_USED|VOICE_STOPPED);
 			pb->pds = pb->yn1 = pb->yn2 = 0;
