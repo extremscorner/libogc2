@@ -60,7 +60,7 @@ static __inline__ u32 __lwp_mutex_seize_irq_trylock(lwp_mutex *mutex,u32 *isr_le
 				_thr_executing->wait.id = _id; \
 				__lwp_thread_dispatchdisable(); \
 				_CPU_ISR_Restore(_level); \
-				__lwp_mutex_seize_irq_blocking(_mutex_t,(u64)_timeout); \
+				__lwp_mutex_seize_irq_blocking(_mutex_t,_timeout); \
 			} \
 		} \
 	} while(0)

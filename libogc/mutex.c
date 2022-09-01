@@ -52,7 +52,7 @@ typedef struct _mutex_st
 
 lwp_objinfo _lwp_mutex_objects;
 
-static s32 __lwp_mutex_locksupp(mutex_t lock,u32 timeout,u8 block)
+static s32 __lwp_mutex_locksupp(mutex_t lock,u64 timeout,u8 block)
 {
 	u32 level;
 	mutex_st *p;
@@ -140,6 +140,14 @@ s32 LWP_MutexDestroy(mutex_t mutex)
 s32 LWP_MutexLock(mutex_t mutex)
 {
 	return __lwp_mutex_locksupp(mutex,LWP_THREADQ_NOTIMEOUT,TRUE);
+}
+
+s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *abstime)
+{
+	u64 timeout = LWP_THREADQ_NOTIMEOUT;
+
+	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	return __lwp_mutex_locksupp(mutex,timeout,TRUE);
 }
 
 s32 LWP_MutexTryLock(mutex_t mutex)

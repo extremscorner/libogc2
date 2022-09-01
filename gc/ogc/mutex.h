@@ -37,6 +37,7 @@ distribution.
 */ 
 
 #include <gctypes.h>
+#include <time.h>
 
 #define LWP_MUTEX_NULL		0xffffffff
 
@@ -72,11 +73,21 @@ s32 LWP_MutexDestroy(mutex_t mutex);
 
 /*! \fn s32 LWP_MutexLock(mutex_t mutex)
 \brief Enter the mutex lock.
-\param[in] mutex handle to the mutext_t structure.
+\param[in] mutex handle to the mutex_t structure.
 
 \return 0 on success, <0 on error
 */
 s32 LWP_MutexLock(mutex_t mutex);
+
+
+/*! \fn s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *abstime)
+\brief Try to enter the mutex lock until timeout.
+\param[in] mutex handle to the mutex_t structure.
+\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+
+\return 0 on success, <0 on error
+*/
+s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *abstime);
 
 
 /*! \fn s32 LWP_MutexTryLock(mutex_t mutex)
