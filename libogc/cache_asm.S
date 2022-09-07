@@ -36,31 +36,30 @@ DCFlashInvalidate:
 	mfspr	r3,HID0
 	ori		r3,r3,0x0400
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl DCEnable
 DCEnable:
+	sync
 	mfspr	r3,HID0
 	ori		r3,r3,0x4000
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl DCDisable
 DCDisable:
+	sync
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,18,16
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl DCFreeze
 DCFreeze:
+	sync
 	mfspr	r3,HID0
 	ori		r3,r3,0x1000
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl DCUnfreeze
@@ -68,7 +67,6 @@ DCUnfreeze:
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,20,18
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl DCTouchLoad
@@ -98,140 +96,116 @@ DCBlockInvalidate:
 
 	.globl DCInvalidateRange
 DCInvalidateRange:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbi r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbi	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	blr
 
 	.globl DCFlushRange
 DCFlushRange:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbf r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbf	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	sc
 	blr
 
 	.globl DCStoreRange
 DCStoreRange:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbst r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbst	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	sc
 	blr
 
 	.globl DCFlushRangeNoSync
 DCFlushRangeNoSync:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbf r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbf	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	blr
 
 	.globl DCStoreRangeNoSync
 DCStoreRangeNoSync:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbst r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbst	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	blr
 
 	.globl DCZeroRange
 DCZeroRange:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbz r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbz	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	blr
 
 	.globl DCTouchRange
 DCTouchRange:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	dcbt r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	dcbt	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	blr
 
 	.globl ICInvalidateRange
 ICInvalidateRange:
-	cmplwi r4, 0   # zero or negative size?
+	cmplwi	r4,0
 	blelr
-	clrlwi. r5, r3, 27  # check for lower bits set in address
-	beq 1f
-	addi r4, r4, 0x20 
-1:
-	addi r4, r4, 0x1f
-	srwi r4, r4, 5
-	mtctr r4
-2:
-	icbi r0, r3
-	addi r3, r3, 0x20
-	bdnz 2b
+	clrlwi	r5,r3,27
+	add		r4,r4,r5
+	addi	r4,r4,31
+	srwi	r4,r4,5
+	mtctr	r4
+1:	icbi	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	sync
 	isync
 	blr
@@ -241,31 +215,30 @@ ICFlashInvalidate:
 	mfspr	r3,HID0
 	ori		r3,r3,0x0800
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl ICEnable
 ICEnable:
+	isync
 	mfspr	r3,HID0
 	ori		r3,r3,0x8000
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl ICDisable
 ICDisable:
+	isync
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,17,15
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl ICFreeze
 ICFreeze:
+	isync
 	mfspr	r3,HID0
 	ori		r3,r3,0x2000
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl ICUnfreeze
@@ -273,7 +246,6 @@ ICUnfreeze:
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,19,17
 	mtspr	HID0,r3
-	isync
 	blr
 
 	.globl ICBlockInvalidate
@@ -292,29 +264,26 @@ L2Init:
 	stw		r0,4(sp)
 	stwu	sp,-16(sp)
 	stw		r31,12(sp)
-	mfmsr	r3
-	mr		r31,r3
+	mfmsr	r31
 	sync
 	li		r3,48
 	mtmsr	r3
 	sync
 	bl		L2Disable
 	bl		L2GlobalInvalidate
-	mr		r3,r31
-	mtmsr	r3
+	mtmsr	r31
 	lwz		r0,20(sp)
 	lwz		r31,12(sp)
+	addi	sp,sp,16
 	mtlr	r0
 	blr
 
 	.globl L2Enable
 L2Enable:
-	sync
-	mfspr	r3,L2CR;
+	mfspr	r3,L2CR
 	oris	r0,r3,0x8000
 	rlwinm	r3,r0,0,11,9
 	mtspr	L2CR,r3
-	sync
 	blr
 
 	.globl L2Disable
@@ -336,15 +305,13 @@ L2GlobalInvalidate:
 	oris	r3,r3,0x0020
 	mtspr	L2CR,r3
 1:	mfspr	r3,L2CR
-	clrlwi	r0,r3,31
-	cmplwi	r0,0x0000
+	clrlwi.	r0,r3,31
 	bne		1b
 	mfspr	r3,L2CR
 	rlwinm	r3,r3,0,11,9
 	mtspr	L2CR,r3
 2:	mfspr	r3,L2CR
-	clrlwi	r0,r3,31
-	cmplwi	r0,0x0000
+	clrlwi.	r0,r3,31
 	bne		2b
 	lwz		r0,12(sp)
 	addi	sp,sp,8
@@ -361,7 +328,7 @@ __LCEnable:
 	mtctr	r4
 1:	dcbt	r0,r3
 	dcbst	r0,r3
-	addi    r3,r3,32
+	addi	r3,r3,32
 	bdnz	1b
 	mfspr	r4,HID2
 	oris	r4,r4,0x100f
@@ -418,6 +385,12 @@ LCDisable:
 	mtspr	HID2,r4
 	blr
 
+	.globl LCIsEnable
+LCIsEnable:
+	mfspr	r4,HID2
+	extrwi	r3,r4,1,3
+	blr
+
 	.globl LCAllocOneTag
 LCAllocOneTag:
 	cmpwi	r3,0
@@ -448,7 +421,7 @@ LCAllocTags:
 	.globl LCLoadBlocks
 LCLoadBlocks:
 	extrwi		r6,r5,5,25
-	clrlwi		r4,r4,4
+	clrlwi		r4,r4,3
 	or			r6,r6,r4
 	mtspr		DMAU,r6
 	clrlslwi	r6,r5,30,2
@@ -460,7 +433,7 @@ LCLoadBlocks:
 	.globl LCStoreBlocks
 LCStoreBlocks:
 	extrwi		r6,r5,5,25
-	clrlwi		r4,r4,4
+	clrlwi		r3,r3,3
 	or			r6,r6,r3
 	mtspr		DMAU,r6
 	clrlslwi	r6,r5,30,2
@@ -468,4 +441,3 @@ LCStoreBlocks:
 	ori			r6,r6,0x0002
 	mtspr		DMAL,r6
 	blr
-	

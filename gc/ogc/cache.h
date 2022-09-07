@@ -306,12 +306,13 @@ void L2Enhance(void);
 
 void LCEnable(void);
 void LCDisable(void);
+BOOL LCIsEnable(void);
 void LCLoadBlocks(void *,void *,u32);
 void LCStoreBlocks(void *,void *,u32);
 u32 LCLoadData(void *,void *,u32);
 u32 LCStoreData(void *,void *,u32);
 u32 LCQueueLength(void);
-u32 LCQueueWait(u32);
+void LCQueueWait(u32);
 void LCFlushQueue(void);
 void LCAlloc(void *,u32);
 void LCAllocNoInvalidate(void *,u32);

@@ -96,15 +96,12 @@ u32 LCStoreData(void *dstAddr,void *srcAddr,u32 nCount)
 
 u32 LCQueueLength(void)
 {
-	u32 hid2 = mfspr(920);
-	return _SHIFTR(hid2,4,4);
+	return _SHIFTR(mfspr(920),24,4);
 }
 
-u32 LCQueueWait(u32 len)
+void LCQueueWait(u32 len)
 {
-	len++;
-	while(_SHIFTR(mfspr(920),4,4)>=len);
-	return len;
+	while(_SHIFTR(mfspr(920),24,4)>len);
 }
 
 void LCFlushQueue(void)
