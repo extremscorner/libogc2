@@ -318,6 +318,32 @@ L2GlobalInvalidate:
 	mtlr	r0
 	blr
 
+	.globl L2SetDataOnly
+L2SetDataOnly:
+	cmpwi	r3,0
+	beq		1f
+	mfspr	r3,L2CR
+	oris	r3,r3,0x0040
+	mtspr	L2CR,r3
+	blr
+1:	mfspr	r3,L2CR
+	rlwinm	r3,r3,0,10,8
+	mtspr	L2CR,r3
+	blr
+
+	.globl L2SetWriteThrough
+L2SetWriteThrough:
+	cmpwi	r3,0
+	beq		1f
+	mfspr	r3,L2CR
+	oris	r3,r3,0x0008
+	mtspr	L2CR,r3
+	blr
+1:	mfspr	r3,L2CR
+	rlwinm	r3,r3,0,13,11
+	mtspr	L2CR,r3
+	blr
+
 	.globl __LCEnable
 __LCEnable:
 	mfmsr	r5

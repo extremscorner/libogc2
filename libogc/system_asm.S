@@ -212,13 +212,13 @@ __InitPS:
 	.extern ICEnable
 	.extern DCEnable
 	.extern L2Init
+	.extern L2SetWriteThrough
 	.extern L2Enable
 	.globl __InitCache
 __InitCache:
-	mflr    r0
-	stw     r0, 4(sp)
-	stwu    sp, -16(sp)
-	stw     r31, 12(sp)
+	mflr	r0
+	stw		r0,4(sp)
+	stwu	sp,-8(sp)
 
 	mfspr   r3,HID0
 	rlwinm. r0,r3, 0, 16, 16	// Check if the Instruction Cache has been enabled or not.
@@ -232,20 +232,15 @@ ICEnabled:
 	
 	bl		DCEnable	
 DCEnabled:
-	
-	mfspr   r3, L2CR
-	clrrwi. r0, r3, 31			// Check if the Locked Cache has been enabled or not.
-	bne     L2Enabled
 
 	bl		L2Init
+	li		r3,1
+	bl		L2SetWriteThrough
 	bl		L2Enable
 
-L2Enabled:
-	# Restore the non-volatile registers to their previous values and return.
-	lwz     r0, 20(sp)
-	lwz     r31, 12(sp)
-	addi    sp, sp, 16
-	mtlr    r0
+	lwz		r0,12(sp)
+	addi	sp,sp,8
+	mtlr	r0
 	blr
 
 	.globl __InitSystem
