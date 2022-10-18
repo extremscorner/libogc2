@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: Checkout libogc2
-      uses: actions/checkout@v2
+      uses: actions/checkout@main
 
     - name: Checkout libfat
-      uses: actions/checkout@v2
+      uses: actions/checkout@main
       with:
         repository: extremscorner/libfat
         path: libfat
@@ -26,7 +26,7 @@ jobs:
       working-directory: libfat
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: libogc2
         path: /opt/devkitpro/libogc2
