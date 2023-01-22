@@ -586,7 +586,7 @@ ps_guVecScale:
 	blr
 
 	.globl	ps_guVecNormalize
-	//r3 = v
+	//r3 = src,r4 = unit
 ps_guVecNormalize:
 	lfs		fr0,NrmData@sdarel(r13)
 	lfs		fr1,NrmData+4@sdarel(r13)
@@ -601,9 +601,9 @@ ps_guVecNormalize:
 	fnmsubs		fr8,fr8,fr6,fr1
 	fmuls		fr7,fr8,fr9
 	ps_muls0	fr2,fr2,fr7
-	psq_st		fr2,0(r3),0,0
+	psq_st		fr2,0(r4),0,0
 	ps_muls0	fr3,fr3,fr7
-	psq_st		fr3,8(r3),1,0
+	psq_st		fr3,8(r4),1,0
 	blr
 
 	.globl ps_guVecCross
