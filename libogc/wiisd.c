@@ -538,7 +538,7 @@ static bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 	s32 ret;
 
 	if((u32)sector != sector) return false;
-	if((u32)numSectors != numSectors) return false;
+	if(numSectors & ~0x7fffff) return false;
 	if((u32)buffer & 0x1f) return false;
 
 	ret = __sd0_select();
@@ -557,7 +557,7 @@ static bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 	s32 ret;
 
 	if((u32)sector != sector) return false;
-	if((u32)numSectors != numSectors) return false;
+	if(numSectors & ~0x7fffff) return false;
 	if((u32)buffer & 0x1f) return false;
 
 	ret = __sd0_select();
