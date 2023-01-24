@@ -2734,7 +2734,10 @@ s32 CARD_CreateAsync(s32 chn,const char *filename,u32 size,card_file *file,cardc
 	card->card_api_cb = cb;
 	
 	entry[filenum].length = size/card->sector_size;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
 	strncpy((char*)entry[filenum].filename,filename,CARD_FILENAMELEN);
+#pragma GCC diagnostic pop
 	
 	card->curr_file = file;
 	file->chn = chn;

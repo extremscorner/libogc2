@@ -97,7 +97,7 @@ INCLUDES	+=	-I$(BASEDIR)/cube
 MACHDEP		+=	-DHW_DOL
 endif
 
-CFLAGS		:= -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall $(MACHDEP) $(INCLUDES)
+CFLAGS		:= -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall -Wno-address-of-packed-member $(MACHDEP) $(INCLUDES)
 ASFLAGS		:=	$(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
 #---------------------------------------------------------------------------------
