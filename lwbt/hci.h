@@ -73,7 +73,7 @@
 #define HCI_PIN_CODE_REQ_REP 0x0D
 #define HCI_PIN_CODE_REQ_NEG_REP 0x0E
 #define HCI_LINK_KEY_REQ_REP 0x0B
-#define HCI_LINK_KEY_REQ_REP_NEG 0x0C
+#define HCI_LINK_KEY_REQ_NEG_REP 0x0C
 #define HCI_SET_CONN_ENCRYPT 0x13
 
 /* Link Policy commands */
@@ -245,7 +245,7 @@
 #define HCI_PIN_CODE_REQ_REP_PLEN 27
 #define HCI_PIN_CODE_REQ_NEG_REP_PLEN 10
 #define HCI_LINK_KEY_REQ_REP_PLEN 26
-#define HCI_LINK_KEY_REQ_REP_NEG_PLEN 10
+#define HCI_LINK_KEY_REQ_NEG_REP_PLEN 10
 #define HCI_SET_CONN_ENCRYPT_PLEN 7
 #define HCI_WRITE_STORED_LINK_KEY_PLEN 27
 #define HCI_SET_EV_MASK_PLEN 12
@@ -379,13 +379,13 @@ err_t hci_write_inquiry_scan_type(u8_t type);
 err_t hci_disconnect(struct bd_addr *bdaddr, u8_t reason);
 err_t hci_reject_connection_request(struct bd_addr *bdaddr, u8_t reason);
 err_t hci_pin_code_request_reply(struct bd_addr *bdaddr, u8_t pinlen, u8_t *pincode);
-err_t hci_link_key_req_reply(struct bd_addr *bdaddr, u8_t *link_key);
+err_t hci_link_key_request_reply(struct bd_addr *bdaddr, u8_t *link);
 err_t hci_write_stored_link_key(struct bd_addr *bdaddr, u8_t *link);
 err_t hci_set_event_filter(u8_t filter_type,u8_t filter_cond_type,u8_t *cond);
 err_t hci_write_page_timeout(u16_t timeout);
 err_t hci_inquiry(u32_t lap,u8_t inq_len,u8_t num_resp,err_t (*inq_complete)(void *arg,struct hci_pcb *pcb,struct hci_inq_res *ires,u16_t result));
 err_t hci_pin_code_request_neg_reply(struct bd_addr *bdaddr);
-err_t hci_link_key_req_neg_reply(struct bd_addr *bdaddr);
+err_t hci_link_key_request_neg_reply(struct bd_addr *bdaddr);
 err_t hci_write_scan_enable(u8_t scan_enable);
 err_t hci_host_num_comp_packets(u16_t conhdl, u16_t num_complete);
 err_t hci_sniff_mode(struct bd_addr *bdaddr, u16_t max_interval, u16_t min_interval, u16_t attempt, u16_t timeout);
@@ -430,8 +430,8 @@ err_t lp_write_flush_timeout(struct bd_addr *bdaddr, u16_t flushto);
                          if((pcb)->link_key_req != NULL) { \
                            (ret = (pcb)->link_key_req((pcb)->cbarg,(bdaddr))); \
                          } else { \
-                           ret = hci_link_key_req_neg_reply(bdaddr); \
-						}
+                           ret = hci_link_key_request_neg_reply(bdaddr); \
+                         }
 #define HCI_EVENT_CONN_REQ(pcb,bdaddr,cod,linktype,ret) \
 						 if((pcb)->conn_req!=NULL) \
 						 (ret = (pcb)->conn_req((pcb)->cbarg,(bdaddr),(cod),(linktype)))
