@@ -13,7 +13,7 @@
 u32 MALLOC_MEM2 __attribute__((weak)) = 1;
 #endif
 
-void* __libogc_sbrk_r( struct _reent *ptr, ptrdiff_t incr)
+void* __libogc_sbrk_r(struct _reent *ptr,ptrdiff_t incr)
 {
 	u32 level;
 	char *heap_end = 0;
@@ -27,7 +27,7 @@ void* __libogc_sbrk_r( struct _reent *ptr, ptrdiff_t incr)
 	if(MALLOC_MEM2) {
 		// use MEM2 aswell for malloc
 		if(mem2_start==NULL)
-			heap_end = (char*)SYS_GetArenaLo();
+			heap_end = (char*)SYS_GetArena1Lo();
 		else
 			heap_end = (char*)SYS_GetArena2Lo();
 
@@ -39,8 +39,10 @@ void* __libogc_sbrk_r( struct _reent *ptr, ptrdiff_t incr)
 				prev_heap = (char *)-1;
 			} else if ((heap_end+incr) < mem2_start) {
 				// trying to sbrk() back below the MEM2 start barrier
-				ptr->_errno = EINVAL;
-				prev_heap = (char *)-1;
+				incr = mem2_start-(heap_end+incr);
+				heap_end = prev_heap = SYS_GetArena1Lo();
+				SYS_SetArena1Lo((void*)(heap_end+incr));
+				SYS_SetArena2Lo((void*)mem2_start);
 			} else {
 				// success case
 				prev_heap = heap_end;
@@ -50,7 +52,7 @@ void* __libogc_sbrk_r( struct _reent *ptr, ptrdiff_t incr)
 			if(SYS_GetArena2Lo() == mem2_start) mem2_start = NULL;
 		} else {
 			// we're in MEM1
-			if((heap_end+incr)>(char*)SYS_GetArenaHi()) {
+			if((heap_end+incr)>(char*)SYS_GetArena1Hi()) {
 				// out of MEM1, transition into MEM2
 				if(((char*)SYS_GetArena2Lo() + incr) > (char*)SYS_GetArena2Hi()) {
 					// this increment doesn't fit in available MEM2
@@ -64,7 +66,7 @@ void* __libogc_sbrk_r( struct _reent *ptr, ptrdiff_t incr)
 			} else {
 				// MEM1 is available (or we're freeing memory)
 				prev_heap = heap_end;
-				SYS_SetArenaLo((void*)(heap_end+incr));
+				SYS_SetArena1Lo((void*)(heap_end+incr));
 			}
 		}
 	} else {
