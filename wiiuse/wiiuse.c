@@ -269,7 +269,7 @@ int wiiuse_write_data(struct wiimote_t *wm,uint addr,ubyte *data,ubyte len,cmd_b
 	struct cmd_blk_t *cmd;
 
 	if(!wm || !WIIMOTE_IS_CONNECTED(wm)) return 0;
-	if(!data || !len) return 0;
+	if(!data || !len || len>16) return 0;
 	
 	cmd = (struct cmd_blk_t*)__lwp_queue_get(&wm->cmdq);
 	if(!cmd) return 0;
@@ -282,7 +282,7 @@ int wiiuse_write_data(struct wiimote_t *wm,uint addr,ubyte *data,ubyte len,cmd_b
 	op->buffer = NULL;
 	op->wait = 0;
 	op->writedata.addr = BIG_ENDIAN_LONG(addr);
-	op->writedata.size = (len&0x0f);
+	op->writedata.size = len;
 	memcpy(op->writedata.data,data,len);
 	memset(op->writedata.data+len,0,(16 - len));
 	__wiiuse_push_command(wm,cmd);
