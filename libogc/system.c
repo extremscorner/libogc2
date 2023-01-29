@@ -2009,7 +2009,8 @@ s8 SYS_GetCoreTemperature(void)
 
 	pvr = mfpvr();
 	if(_SHIFTR(pvr,16,16)!=0x8 || _SHIFTR(pvr,12,4)==0x7) return -1;
-	mtthrm3((_SHIFTL(0x04,25,5)|_SHIFTL(8000,1,13)|1));
+	if(!(mfthrm3()&1))
+		mtthrm3((_SHIFTL(0x04,25,5)|_SHIFTL(8000,1,13)|1));
 
 	i = 5;
 	ret = 64;
