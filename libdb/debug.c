@@ -329,6 +329,37 @@ static void process_query(const char *inp,char *outp,s32 thread)
 				packqq(outp,mask,rthread,&info);
 			}
 			break;
+		case 'f':
+			if(!strncmp(&inp[2],"ThreadInfo",10))
+			{
+				s32 rthread;
+
+				rthread = gdbstub_getnextthread(0);
+				if(rthread<=0) {
+					optr = outp;
+					*optr++ = 'l';
+					*optr = 0;
+					break;
+				}
+				optr = outp;
+				*optr++ = 'm';
+				optr = thread2vhstr(optr,rthread);
+
+				while((rthread=gdbstub_getnextthread(rthread))>0) {
+					*optr++ = ',';
+					optr = thread2vhstr(optr,rthread);
+				}
+				*optr = 0;
+			}
+			break;
+		case 's':
+			if(!strncmp(&inp[2],"ThreadInfo",10))
+			{
+				optr = outp;
+				*optr++ = 'l';
+				*optr = 0;
+			}
+			break;
 		case 'L':
 			{
 				s32 ret,athread,first,max_cnt,i,done,rthread;
@@ -510,8 +541,7 @@ void c_debug_handler(frame_context *frame)
 				goto exit;
 			case 'z':
 				{
-					s32 ret,type;
-					u32 len;
+					s32 ret,type,len;
 					char *addr;
 
 					ret = parsezbreak(remcomInBuffer,&type,&addr,&len);
@@ -575,8 +605,7 @@ void c_debug_handler(frame_context *frame)
 				break;
 			case 'Z':
 				{
-					s32 ret,type;
-					u32 len;
+					s32 ret,type,len;
 					char *addr;
 
 					ret = parsezbreak(remcomInBuffer,&type,&addr,&len);
@@ -640,6 +669,7 @@ void DEBUG_Init(s32 device_type,s32 channel_port)
 	if(current_device!=NULL) {
 		_CPU_ISR_Disable(level);
 		__exception_sethandler(EX_DSI,dbg_exceptionhandler);
+		__exception_sethandler(EX_ISI,dbg_exceptionhandler);
 		__exception_sethandler(EX_PRG,dbg_exceptionhandler);
 		__exception_sethandler(EX_TRACE,dbg_exceptionhandler);
 		__exception_sethandler(EX_IABR,dbg_exceptionhandler);
