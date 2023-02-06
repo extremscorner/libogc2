@@ -1476,7 +1476,7 @@ bool smbInitDevice(const char* name, const char *user, const char *password, con
 		}
 
 		if(cache_thread == LWP_THREAD_NULL)
-			if(LWP_CreateThread(&cache_thread, process_cache_thread, NULL, NULL, 0, 64) != 0)
+			if(LWP_CreateThread(&cache_thread, process_cache_thread, NULL, NULL, 0, LWP_PRIO_NORMAL) != 0)
 				return false;
 
 		smbInited = true;
