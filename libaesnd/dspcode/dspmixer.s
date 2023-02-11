@@ -107,6 +107,7 @@ _start:
 	jmp		exception6
 	jmp		exception7
 	
+init_task:
 	sbset	#0x02
 	sbset	#0x03
 	sbclr	#0x04
@@ -123,12 +124,34 @@ _start:
 	lri		$wr2,#0xffff
 	lri		$wr3,#0xffff
 	
-main:
 	si		@DMBH,#0xdcd1
 	si		@DMBL,#0x0000
 	si		@DIRQ,#0x01
+	
+	jmp		wait_commands
 
-recv_cmd:	
+resume_task:
+	sbset	#0x02
+	sbset	#0x03
+	sbclr	#0x04
+	sbset	#0x05
+	sbset	#0x06
+
+	s16
+	clr15
+	m0
+	lri		$config,#0xff
+	
+	lri		$wr0,#0xffff
+	lri		$wr1,#0xffff
+	lri		$wr2,#0xffff
+	lri		$wr3,#0xffff
+	
+	si		@DMBH,#0xdcd1
+	si		@DMBL,#0x0001
+	si		@DIRQ,#0x01
+
+wait_commands:
 	clr		$acc0
 	clr		$acc1
 	
@@ -137,7 +160,7 @@ recv_cmd:
 	
 	lri		$acc0.m,#0xcdd1
 	cmp
-	jeq		sys_commands
+	jeq		task_commands
 	
 	lri		$acc0.m,#0xface
 	cmp
@@ -157,24 +180,27 @@ recv_cmd:
 	cmpi	$acc1.m,#0x0100
 	jeq		send_samples
 	
+	cmpi	$acc1.m,#0x0200
+	jeq		no_samples
+	
 	lri		$acc0.m,#0xdead
 	cmp
-	jeq		task_terminate
+	jeq		done_task
 	
-wait_commands:
-	jmp		recv_cmd
+	jmp		wait_commands
 	
-sys_commands:
+task_commands:
 	lrs		$acc1.m,@CMBL
 	
 	cmpi	$acc1.m,#0x0001
-	jeq		run_nexttask
+	jeq		yield_task
 	
 	cmpi	$acc1.m,#0x0002
 	jeq		0x8000
-	halt
 	
-run_nexttask:
+	jmp		wait_commands
+	
+yield_task:
 	s16
 	clr			$acc0
 	clr			$acc1
@@ -220,11 +246,12 @@ wait_dmem_dma:
 	jmp			0x80b5		
 	halt
 
-task_terminate:
+done_task:
 	si		@DMBH,#0xdcd1
 	si		@DMBL,#0x0003
 	si		@DIRQ,#0x01
-	jmp		recv_cmd
+	
+	jmp		wait_commands
 
 send_samples:
 	lri		$ar0,#MEM_SND_BUF
@@ -234,11 +261,12 @@ send_samples:
 	lr		$acc0.l,@OUTBUF_ADDRL
 	call	dma_data
 	
+no_samples:
 	si		@DMBH,#0xdcd1
-	si		@DMBL,#0x0004
+	si		@DMBL,#0x0002
 	si		@DIRQ,#0x01
 	
-	jmp		recv_cmd
+	jmp		wait_commands
 
 get_pb_address:
 	call	wait_mail_recv
@@ -251,7 +279,7 @@ get_pb_address:
 	lrs		$acc0.m,@CMBL
 	srr		@$ar2,$acc0.m
 
-	jmp		recv_cmd
+	jmp		wait_commands
 	
 process_next_voice:
 	si		@DMACR,#DMA_TO_DSP
@@ -438,7 +466,7 @@ finish_voice:
 	si		@DMBL,#0x0004
 	si		@DIRQ,#0x01
 
-	jmp		recv_cmd
+	jmp		wait_commands
 	
 dma_pb_block:
 	lr		$acc0.m,@PB_MADDRH

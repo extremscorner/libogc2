@@ -69,7 +69,6 @@ static vu32 __aesndcurrvoice = 0;
 static vu32 __aesnddspcomplete = 0;
 static vu64 __aesnddspstarttime = 0;
 static vu64 __aesnddspprocesstime = 0;
-static vu32 __aesnddspabrequested = 0;
 static volatile bool __aesndglobalpause = false;
 static volatile bool __aesndvoicesstopped = true;
 
@@ -314,17 +313,12 @@ static void __dsp_initcallback(dsptask_t *task)
 
 static void __dsp_resumecallback(dsptask_t *task)
 {
+	__aesnddspprocesstime = (gettime() - __aesnddspstarttime);
+	__aesnddspcomplete = 1;
 }
 
 static void __dsp_requestcallback(dsptask_t *task)
 {
-	if(__aesnddspabrequested==1) {
-		__aesnddspprocesstime = (gettime() - __aesnddspstarttime);
-		__aesnddspabrequested = 0;
-		__aesnddspcomplete = 1;
-		return;
-	}
-
 	DCInvalidateRange(&__aesndcommand,PB_STRUCT_SIZE);
 
 	if(__aesndcommand.flags&VOICE_FINISHED) {
@@ -353,8 +347,6 @@ static void __dsp_requestcallback(dsptask_t *task)
 	if(__aesndcurrvoice>=MAX_VOICES) {
 		DSP_SendMailTo(0xface0100);
 		while(DSP_CheckMailTo());
-
-		__aesnddspabrequested = 1;
 	}
 }
 
@@ -362,7 +354,6 @@ static void __dsp_donecallback(dsptask_t *task)
 {
 	__aesnddspinit = 0;
 	__aesnddspcomplete = 0;
-	__aesnddspabrequested = 0;
 }
 
 static void __audio_dma_callback(void)
@@ -382,14 +373,18 @@ static void __audio_dma_callback(void)
 	if(!__aesnddspcomplete || !__aesnddspinit) return;
 
 	__aesndcurrvoice = 0;
+	__aesnddspcomplete = 0;
 	__aesnddspprocesstime = 0;
 	while(__aesndcurrvoice<MAX_VOICES && (!(__aesndvoicepb[__aesndcurrvoice].flags&VOICE_USED) || (__aesndvoicepb[__aesndcurrvoice].flags&VOICE_STOPPED))) __aesndcurrvoice++;
 	if(__aesndcurrvoice>=MAX_VOICES) {
 		__aesndvoicesstopped = true;
+
+		__aesnddspstarttime = gettime();
+		DSP_SendMailTo(0xface0200);
+		while(DSP_CheckMailTo());
 		return;
 	}
 
-	__aesnddspcomplete = 0;
 	__aesndvoicesstopped = false;
 	__aesndcopycommand(&__aesndcommand,&__aesndvoicepb[__aesndcurrvoice]);
 
@@ -406,7 +401,7 @@ static void __audio_dma_callback(void)
 
 static void __aesndloaddsptask(dsptask_t *task,const void *dsp_code,u32 dsp_code_size,const void *dram_image,u32 dram_size)
 {
-	task->prio = 255;
+	task->prio = 0;
 	task->iram_maddr = (void*)MEM_VIRTUAL_TO_PHYSICAL(dsp_code);
 	task->iram_len = dsp_code_size;
 	task->iram_addr = 0x0000;
@@ -414,6 +409,7 @@ static void __aesndloaddsptask(dsptask_t *task,const void *dsp_code,u32 dsp_code
 	task->dram_len = dram_size;
 	task->dram_addr = 0x0000;
 	task->init_vec = 0x0010;
+	task->resume_vec = 0x002a;
 	task->res_cb = __dsp_resumecallback;
 	task->req_cb = __dsp_requestcallback;
 	task->init_cb = __dsp_initcallback;
