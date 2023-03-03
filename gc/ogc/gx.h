@@ -1175,6 +1175,7 @@ typedef union _wgpipe
 	vu32 U32;
 	vs32 S32;
 	vf32 F32;
+	vf64 F64;
 } WGPipe;
 
 /*! \typedef struct _gx_color GXColor

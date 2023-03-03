@@ -1533,7 +1533,6 @@ lwp_t GX_SetCurrentGXThread(void)
 volatile void* GX_RedirectWriteGatherPipe(void *ptr)
 {
 	u32 level;
-	struct __gxfifo *cpufifo = (struct __gxfifo*)&_cpufifo;
 
 	_CPU_ISR_Disable(level);
 	GX_Flush();
@@ -1544,41 +1543,35 @@ volatile void* GX_RedirectWriteGatherPipe(void *ptr)
 		__GX_FifoLink(GX_FALSE);
 		__GX_WriteFifoIntEnable(GX_DISABLE,GX_DISABLE);
 	}
-	cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0(_piReg[5]&~0x04000000);
+	__GX_SaveFifo();
 
 	_piReg[3] = 0;
 	_piReg[4] = 0x04000000;
-	_piReg[5] = (((u32)ptr&0x3FFFFFE0)&~0x04000000);
-	_sync();
+	_piReg[5] = ((u32)ptr&0x1FFFFFE0);
+	ppcsync();
 
 	_CPU_ISR_Restore(level);
 
-	return (volatile void*)0x0C008000;
+	return (volatile void*)0xCC008000;
 }
 
 void GX_RestoreWriteGatherPipe(void)
 {
-	u32 level;
+	u32 i,level;
 	struct __gxfifo *cpufifo = (struct __gxfifo*)&_cpufifo;
 
 	_CPU_ISR_Disable(level);
 
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-
+	for(i=0;i<31;i++) {
+		wgPipe->U8 = 0;
+	}
 	ppcsync();
 	while(!IsWriteGatherBufferEmpty());
 
 	mtwpar(0x0C008000);
 	_piReg[3] = MEM_VIRTUAL_TO_PHYSICAL(cpufifo->buf_start);
 	_piReg[4] = MEM_VIRTUAL_TO_PHYSICAL(cpufifo->buf_end);
-	_piReg[5] = (((u32)cpufifo->wt_ptr&0x3FFFFFE0)&~0x04000000);
+	_piReg[5] = (cpufifo->wt_ptr&0x1FFFFFE0);
 	if(_cpgplinked) {
 		__GX_WriteFifoIntReset(GX_TRUE,GX_TRUE);
 		__GX_WriteFifoIntEnable(GX_ENABLE,GX_DISABLE);
