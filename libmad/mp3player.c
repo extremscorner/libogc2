@@ -22,7 +22,7 @@
 #include "mp3player.h"
 
 static s32 have_samples = 0;
-static u32 mp3_volume = 255;
+static u32 mp3_volume = 256;
 
 #ifndef __SNDLIB_H__
 	#define ADMA_BUFFERSIZE			(4992)
@@ -473,7 +473,7 @@ static void DataTransferCallback(s32 voice)
 
 void MP3Player_Volume(u32 volume)
 {
-	if(volume>255) volume = 255;
+	if(volume>256) volume = 256;
 
 	mp3_volume = volume;
 #ifdef __SNDLIB_H__
