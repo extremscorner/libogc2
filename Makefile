@@ -30,7 +30,6 @@ export BASEDIR		:= $(CURDIR)
 export LWIPDIR		:= $(BASEDIR)/lwip
 export OGCDIR		:= $(BASEDIR)/libogc
 export MODDIR		:= $(BASEDIR)/libmodplay
-export MADDIR		:= $(BASEDIR)/libmad
 export SAMPLEDIR	:= $(BASEDIR)/libsamplerate
 export DBDIR		:= $(BASEDIR)/libdb
 export DIDIR		:= $(BASEDIR)/libdi
@@ -63,7 +62,6 @@ endif
 BBALIB		:= $(LIBDIR)/libbba
 OGCLIB		:= $(LIBDIR)/libogc
 MODLIB		:= $(LIBDIR)/libmodplay
-MADLIB		:= $(LIBDIR)/libmad
 DBLIB		:= $(LIBDIR)/libdb
 DILIB		:= $(LIBDIR)/libdi
 BTELIB		:= $(LIBDIR)/libbte
@@ -88,14 +86,19 @@ MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffun
 
 
 ifeq ($(PLATFORM),wii)
-INCLUDES	+=	-I$(BASEDIR)/wii
+INCLUDES	+=	-I$(BASEDIR)/wii \
+				-I$(PORTLIBS_PATH)/wii/include
 MACHDEP		+=	-DHW_RVL
 endif
 
 ifeq ($(PLATFORM),cube)
-INCLUDES	+=	-I$(BASEDIR)/cube
+INCLUDES	+=	-I$(BASEDIR)/cube \
+				-I$(PORTLIBS_PATH)/gamecube/include
 MACHDEP		+=	-DHW_DOL
 endif
+
+INCLUDES	+=	-I$(PORTLIBS_PATH)/ppc/include
+
 
 CFLAGS		:= -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall -Wno-address-of-packed-member $(MACHDEP) $(INCLUDES)
 ASFLAGS		:=	$(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
@@ -109,7 +112,6 @@ VPATH :=	$(LWIPDIR)				\
 			$(LWIPDIR)/netif	\
 			$(OGCDIR)			\
 			$(MODDIR)			\
-			$(MADDIR)			\
 			$(SAMPLEDIR)			\
 			$(DBDIR)			\
 			$(DBDIR)/uIP		\
@@ -153,11 +155,6 @@ OGCOBJ		:=	\
 MODOBJ		:=	freqtab.o mixer.o modplay.o semitonetab.o gcmodplay.o
 
 #---------------------------------------------------------------------------------
-MADOBJ		:=	mp3player.o bit.o decoder.o fixed.o frame.o huffman.o \
-			layer12.o layer3.o stream.o synth.o timer.o \
-			version.o
-
-#---------------------------------------------------------------------------------
 DBOBJ		:=	uip_ip.o uip_tcp.o uip_pbuf.o uip_netif.o uip_arp.o uip_arch.o \
 				uip_icmp.o memb.o memr.o bba.o tcpip.o debug.o debug_handler.o \
 				debug_supp.o geckousb.o
@@ -175,7 +172,7 @@ WIIUSEOBJ	:=	classic.o dynamics.o events.o guitar_hero_3.o io.o io_wii.o ir.o \
 TINYSMBOBJ	:=	des.o md4.o ntlm.o smb.o smb_devoptab.o
 
 #---------------------------------------------------------------------------------
-ASNDLIBOBJ	:=	asndlib.o
+ASNDLIBOBJ	:=	asndlib.o mp3player.o
 
 #---------------------------------------------------------------------------------
 AESNDLIBOBJ	:=	aesndlib.o
@@ -253,8 +250,6 @@ $(MP3LIB).a: $(MP3OBJ)
 #---------------------------------------------------------------------------------
 $(MODLIB).a: $(MODOBJ)
 #---------------------------------------------------------------------------------
-$(MADLIB).a: $(MADOBJ)
-#---------------------------------------------------------------------------------
 $(DBLIB).a: $(DBOBJ)
 #---------------------------------------------------------------------------------
 $(DILIB).a: $(DIOBJ)
@@ -316,8 +311,7 @@ dist: wii cube install-headers
 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
 
 
-LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(MADLIB).a $(DBLIB).a \
-				$(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
+LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a $(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
 
 ifeq ($(PLATFORM),cube)
 LIBRARIES	+=	$(BBALIB).a
