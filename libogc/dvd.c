@@ -2742,7 +2742,7 @@ s32 DVD_GcodeWrite(dvdcmdblk *block,const void *buf,u32 len,u32 offset)
 	return ret;
 }
 
-s32 DVD_GetCmdBlockStatus(dvdcmdblk *block)
+s32 DVD_GetCmdBlockStatus(const dvdcmdblk *block)
 {
 	s32 ret;
 	u32 level;

@@ -2651,7 +2651,7 @@ s32 CARD_Read(card_file *file,void *buffer,u32 len,u32 offset)
 	return ret;
 }
 
-s32 CARD_WriteAsync(card_file *file,void *buffer,u32 len,u32 offset,cardcallback callback)
+s32 CARD_WriteAsync(card_file *file,const void *buffer,u32 len,u32 offset,cardcallback callback)
 {
 	s32 ret;
 	cardcallback cb = NULL;
@@ -2663,18 +2663,18 @@ s32 CARD_WriteAsync(card_file *file,void *buffer,u32 len,u32 offset,cardcallback
 		return CARD_ERROR_FATAL_ERROR;
 	}
 	
-	DCStoreRange(buffer,len);
+	DCStoreRange((void*)buffer,len);
 	cb = callback;
 	if(!cb) cb = __card_defaultapicallback;
 	card->card_api_cb = cb;
 
-	card->cmd_usr_buf = buffer;
+	card->cmd_usr_buf = (void*)buffer;
 	if((ret=__card_sectorerase(file->chn,(file->iblock*card->sector_size),__erase_callback))>=0) return ret;
 	__card_putcntrlblock(card,ret);
 	return ret;
 }
 
-s32 CARD_Write(card_file *file,void *buffer,u32 len,u32 offset)
+s32 CARD_Write(card_file *file,const void *buffer,u32 len,u32 offset)
 {
 	s32 ret;
 

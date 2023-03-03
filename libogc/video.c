@@ -2613,7 +2613,7 @@ void VIDEO_Init(void)
 	_CPU_ISR_Restore(level);
 }
 
-void VIDEO_Configure(GXRModeObj *rmode)
+void VIDEO_Configure(const GXRModeObj *rmode)
 {
 	u16 dcr;
 	u32 nonint,vimode,level;

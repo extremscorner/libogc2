@@ -126,14 +126,14 @@ u32 VIDEO_GetCurrentTvMode(void);
 
 
 /*! 
- * \fn void VIDEO_Configure(GXRModeObj *rmode)
+ * \fn void VIDEO_Configure(const GXRModeObj *rmode)
  * \brief Configure the VI with the given render mode object
  *
  * \param[in] rmode pointer to the video/render mode \ref gxrmode_obj "configuration".
  *
  * \return none
  */
-void VIDEO_Configure(GXRModeObj *rmode);
+void VIDEO_Configure(const GXRModeObj *rmode);
 
 void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height);
 

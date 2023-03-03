@@ -345,7 +345,7 @@ s32 DVD_GcodeRead(dvdcmdblk *block,void *buf,u32 len,u32 offset);
 s32 DVD_GcodeReadAsync(dvdcmdblk *block,void *buf,u32 len,u32 offset,dvdcbcallback cb);
 s32 DVD_GcodeWrite(dvdcmdblk *block,const void *buf,u32 len,u32 offset);
 s32 DVD_GcodeWriteAsync(dvdcmdblk *block,const void *buf,u32 len,u32 offset,dvdcbcallback cb);
-s32 DVD_GetCmdBlockStatus(dvdcmdblk *block);
+s32 DVD_GetCmdBlockStatus(const dvdcmdblk *block);
 s32 DVD_SpinUpDrive(dvdcmdblk *block);
 s32 DVD_SpinUpDriveAsync(dvdcmdblk *block,dvdcbcallback cb);
 s32 DVD_Inquiry(dvdcmdblk *block,dvddrvinfo *info);

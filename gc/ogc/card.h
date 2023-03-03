@@ -418,7 +418,7 @@ s32 CARD_DeleteEntry(s32 chn,card_dir *dir_entry);
 s32 CARD_DeleteEntryAsync(s32 chn,card_dir *dir_entry,cardcallback callback);
 
 
-/*! \fn s32 CARD_Write(card_file *file,void *buffer,u32 len,u32 offset)
+/*! \fn s32 CARD_Write(card_file *file,const void *buffer,u32 len,u32 offset)
 \brief Writes the data to the file from the buffer to the given offset with the given length. Synchronous version
 \param[in] file pointer to the card_file structure which holds the fileinformations.
 \param[in] buffer pointer to the memory area to read from. The startaddress of the buffer should be aligned on a 32byte boundery.
@@ -427,10 +427,10 @@ s32 CARD_DeleteEntryAsync(s32 chn,card_dir *dir_entry,cardcallback callback);
 
 \return \ref card_errors "card error codes"
 */
-s32 CARD_Write(card_file *file,void *buffer,u32 len,u32 offset);
+s32 CARD_Write(card_file *file,const void *buffer,u32 len,u32 offset);
 
 
-/*! \fn s32 CARD_WriteAsync(card_file *file,void *buffer,u32 len,u32 offset,cardcallback callback)
+/*! \fn s32 CARD_WriteAsync(card_file *file,const void *buffer,u32 len,u32 offset,cardcallback callback)
 \brief Writes the data to the file from the buffer to the given offset with the given length. This function returns immediately. Asynchronous version
 \param[in] file pointer to the card_file structure which holds the fileinformations.
 \param[in] buffer pointer to the memory area to read from. The startaddress of the buffer should be aligned on a 32byte boundery.
@@ -440,7 +440,7 @@ s32 CARD_Write(card_file *file,void *buffer,u32 len,u32 offset);
 
 \return \ref card_errors "card error codes"
 */
-s32 CARD_WriteAsync(card_file *file,void *buffer,u32 len,u32 offset,cardcallback callback);
+s32 CARD_WriteAsync(card_file *file,const void *buffer,u32 len,u32 offset,cardcallback callback);
 
 
 /*! \fn s32 CARD_GetErrorCode(s32 chn)
