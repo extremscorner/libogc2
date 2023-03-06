@@ -55,10 +55,11 @@ void AESND_SetVoiceMute(AESNDPB *pb,bool mute);
 void AESND_SetVoiceLoop(AESNDPB *pb,bool loop);
 void AESND_SetVoiceFormat(AESNDPB *pb,u32 format);
 void AESND_SetVoiceStream(AESNDPB *pb,bool stream);
-void AESND_SetVoiceFrequency(AESNDPB *pb,f32 freq);
+void AESND_SetVoiceFrequency(AESNDPB *pb,u32 freq);
+void AESND_SetVoiceFrequencyRatio(AESNDPB *pb,f32 ratio);
 void AESND_SetVoiceVolume(AESNDPB *pb,u16 volume_l,u16 volume_r);
 void AESND_SetVoiceBuffer(AESNDPB *pb,const void *buffer,u32 len);
-void AESND_PlayVoice(AESNDPB *pb,u32 format,const void *buffer,u32 len,f32 freq,u32 delay,bool looped);
+void AESND_PlayVoice(AESNDPB *pb,u32 format,const void *buffer,u32 len,u32 freq,u32 delay,bool looped);
 AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb);
 
 #ifdef __cplusplus

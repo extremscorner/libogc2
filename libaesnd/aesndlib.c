@@ -154,9 +154,11 @@ static __inline__ void __aesndsetvoicebuffer(AESNDPB *pb,void* buffer,u32 len)
 	pb->mram_end = (u32)buffer + len;
 }
 
-static __inline__ void __aesndsetvoicefreq(AESNDPB *pb,f32 freq)
+static __inline__ void __aesndsetvoicefreq(AESNDPB *pb,u32 freq)
 {
-	register u32 ratio = 0x00010000*(freq/DSP_DEFAULT_FREQ)+0.5f;
+	register u32 fact = (u32)(0x00010000u*DSP_DEFAULT_FREQ);
+	register u32 ratio = (u32)((((u64)freq<<32)+(fact>>1))/fact);
+
 	pb->freq_h = (u16)(ratio>>16);
 	pb->freq_l = (u16)(ratio&0xffff);
 }
@@ -575,7 +577,7 @@ void AESND_FreeVoice(AESNDPB *pb)
 	_CPU_ISR_Restore(level);
 }
 
-void AESND_PlayVoice(AESNDPB *pb,u32 format,const void *buffer,u32 len,f32 freq,u32 delay,bool looped)
+void AESND_PlayVoice(AESNDPB *pb,u32 format,const void *buffer,u32 len,u32 freq,u32 delay,bool looped)
 {
 	u32 level;
 	void *ptr = (void*)buffer;
@@ -627,12 +629,23 @@ void AESND_SetVoiceVolume(AESNDPB *pb,u16 volume_l,u16 volume_r)
 	_CPU_ISR_Restore(level);
 }
 
-void AESND_SetVoiceFrequency(AESNDPB *pb,f32 freq)
+void AESND_SetVoiceFrequency(AESNDPB *pb,u32 freq)
 {
 	u32 level;
 	
 	_CPU_ISR_Disable(level);
 	__aesndsetvoicefreq(pb,freq);
+	_CPU_ISR_Restore(level);
+}
+
+void AESND_SetVoiceFrequencyRatio(AESNDPB *pb,f32 ratio)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	ratio = (ratio*65536.0f)+0.5f;
+	pb->freq_h = (u16)((s32)ratio>>16);
+	pb->freq_l = (u16)((s32)ratio&0xffff);
 	_CPU_ISR_Restore(level);
 }
 
