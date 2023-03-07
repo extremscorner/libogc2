@@ -112,6 +112,60 @@ void guMtx44Copy(const Mtx44 src,Mtx44 dst)
 	dst[3][0] = src[3][0]; dst[3][1] = src[3][1]; dst[3][2] = src[3][2]; dst[3][3] = src[3][3];
 }
 
+void guMtx44Concat(const Mtx44 a,const Mtx44 b,Mtx44 ab)
+{
+	Mtx44 tmp;
+	Mtx44P m;
+
+	if(ab==b || ab==a)
+		m = tmp;
+	else
+		m = ab;
+
+    m[0][0] = a[0][0]*b[0][0] + a[0][1]*b[1][0] + a[0][2]*b[2][0] + a[0][3]*b[3][0];
+    m[0][1] = a[0][0]*b[0][1] + a[0][1]*b[1][1] + a[0][2]*b[2][1] + a[0][3]*b[3][1];
+    m[0][2] = a[0][0]*b[0][2] + a[0][1]*b[1][2] + a[0][2]*b[2][2] + a[0][3]*b[3][2];
+    m[0][3] = a[0][0]*b[0][3] + a[0][1]*b[1][3] + a[0][2]*b[2][3] + a[0][3]*b[3][3];
+
+    m[1][0] = a[1][0]*b[0][0] + a[1][1]*b[1][0] + a[1][2]*b[2][0] + a[1][3]*b[3][0];
+    m[1][1] = a[1][0]*b[0][1] + a[1][1]*b[1][1] + a[1][2]*b[2][1] + a[1][3]*b[3][1];
+    m[1][2] = a[1][0]*b[0][2] + a[1][1]*b[1][2] + a[1][2]*b[2][2] + a[1][3]*b[3][2];
+    m[1][3] = a[1][0]*b[0][3] + a[1][1]*b[1][3] + a[1][2]*b[2][3] + a[1][3]*b[3][3];
+
+    m[2][0] = a[2][0]*b[0][0] + a[2][1]*b[1][0] + a[2][2]*b[2][0] + a[2][3]*b[3][0];
+    m[2][1] = a[2][0]*b[0][1] + a[2][1]*b[1][1] + a[2][2]*b[2][1] + a[2][3]*b[3][1];
+    m[2][2] = a[2][0]*b[0][2] + a[2][1]*b[1][2] + a[2][2]*b[2][2] + a[2][3]*b[3][2];
+    m[2][3] = a[2][0]*b[0][3] + a[2][1]*b[1][3] + a[2][2]*b[2][3] + a[2][3]*b[3][3];
+
+    m[3][0] = a[3][0]*b[0][0] + a[3][1]*b[1][0] + a[3][2]*b[2][0] + a[3][3]*b[3][0];
+    m[3][1] = a[3][0]*b[0][1] + a[3][1]*b[1][1] + a[3][2]*b[2][1] + a[3][3]*b[3][1];
+    m[3][2] = a[3][0]*b[0][2] + a[3][1]*b[1][2] + a[3][2]*b[2][2] + a[3][3]*b[3][2];
+    m[3][3] = a[3][0]*b[0][3] + a[3][1]*b[1][3] + a[3][2]*b[2][3] + a[3][3]*b[3][3];
+
+	if(m==tmp)
+		guMtx44Copy(tmp,ab);
+}
+
+void guMtx44Transpose(const Mtx44 src,Mtx44 xPose)
+{
+    Mtx44 mTmp;
+    Mtx44P m;
+
+    if(src==xPose)
+        m = mTmp;
+    else
+        m = xPose;
+
+    m[0][0] = src[0][0];    m[0][1] = src[1][0];    m[0][2] = src[2][0];    m[0][3] = src[3][0];
+    m[1][0] = src[0][1];    m[1][1] = src[1][1];    m[1][2] = src[2][1];    m[1][3] = src[3][1];
+    m[2][0] = src[0][2];    m[2][1] = src[1][2];    m[2][2] = src[2][2];    m[2][3] = src[3][2];
+    m[3][0] = src[0][3];    m[3][1] = src[1][3];    m[3][2] = src[2][3];    m[3][3] = src[3][3];
+
+    // copy back if needed
+    if(m==mTmp)
+        guMtx44Copy(mTmp,xPose);
+}
+
 u32 guMtx44Inverse(const Mtx44 src,Mtx44 inv)
 {
     f32 det;
@@ -255,6 +309,134 @@ u32 guMtx44Inverse(const Mtx44 src,Mtx44 inv)
     inv[3][3] *= det;
 
     return 1;
+}
+
+void guMtx44Trans(Mtx44 mt,f32 xT,f32 yT,f32 zT)
+{
+    mt[0][0] = 1.0f;  mt[0][1] = 0.0f;  mt[0][2] = 0.0f;  mt[0][3] =  xT;
+    mt[1][0] = 0.0f;  mt[1][1] = 1.0f;  mt[1][2] = 0.0f;  mt[1][3] =  yT;
+    mt[2][0] = 0.0f;  mt[2][1] = 0.0f;  mt[2][2] = 1.0f;  mt[2][3] =  zT;
+    mt[3][0] = 0.0f;  mt[3][1] = 0.0f;  mt[3][2] = 0.0f;  mt[3][3] =  1.0f;
+}
+
+void guMtx44TransApply(const Mtx44 src,Mtx44 dst,f32 xT,f32 yT,f32 zT)
+{
+	if ( src != dst )
+	{
+		dst[0][0] = src[0][0];    dst[0][1] = src[0][1];    dst[0][2] = src[0][2];
+		dst[1][0] = src[1][0];    dst[1][1] = src[1][1];    dst[1][2] = src[1][2];
+		dst[2][0] = src[2][0];    dst[2][1] = src[2][1];    dst[2][2] = src[2][2];
+		dst[3][0] = src[3][0];    dst[3][1] = src[3][1];    dst[3][2] = src[3][2];
+		dst[3][3] = src[3][3];
+	}
+
+	dst[0][3] = src[0][3] + xT;
+	dst[1][3] = src[1][3] + yT;
+	dst[2][3] = src[2][3] + zT;
+}
+
+void guMtx44Scale(Mtx44 mt,f32 xS,f32 yS,f32 zS)
+{
+    mt[0][0] = xS;    mt[0][1] = 0.0f;  mt[0][2] = 0.0f;  mt[0][3] = 0.0f;
+    mt[1][0] = 0.0f;  mt[1][1] = yS;    mt[1][2] = 0.0f;  mt[1][3] = 0.0f;
+    mt[2][0] = 0.0f;  mt[2][1] = 0.0f;  mt[2][2] = zS;    mt[2][3] = 0.0f;
+    mt[3][0] = 0.0f;  mt[3][1] = 0.0f;  mt[3][2] = 0.0f;  mt[3][3] = 1.0f;
+}
+
+void guMtx44ScaleApply(const Mtx44 src,Mtx44 dst,f32 xS,f32 yS,f32 zS)
+{
+	dst[0][0] = src[0][0] * xS;     dst[0][1] = src[0][1] * xS;
+	dst[0][2] = src[0][2] * xS;     dst[0][3] = src[0][3] * xS;
+
+	dst[1][0] = src[1][0] * yS;     dst[1][1] = src[1][1] * yS;
+	dst[1][2] = src[1][2] * yS;     dst[1][3] = src[1][3] * yS;
+
+	dst[2][0] = src[2][0] * zS;     dst[2][1] = src[2][1] * zS;
+	dst[2][2] = src[2][2] * zS;     dst[2][3] = src[2][3] * zS;
+
+	dst[3][0] = src[3][0];          dst[3][1] = src[3][1];
+	dst[3][2] = src[3][2];          dst[3][3] = src[3][3];
+}
+
+void guMtx44RotRad(Mtx44 mt,char axis,f32 rad)
+{
+	f32 sinA, cosA;
+
+	sinA = sinf(rad);
+	cosA = cosf(rad);
+
+	guMtx44RotTrig(mt,axis,sinA,cosA);
+}
+
+void guMtx44RotTrig(Mtx44 mt,char axis,f32 sinA,f32 cosA)
+{
+	switch(axis) {
+		case 'x':
+		case 'X':
+			mt[0][0] =  1.0f;  mt[0][1] =  0.0f;    mt[0][2] =  0.0f;  mt[0][3] = 0.0f;
+			mt[1][0] =  0.0f;  mt[1][1] =  cosA;    mt[1][2] = -sinA;  mt[1][3] = 0.0f;
+			mt[2][0] =  0.0f;  mt[2][1] =  sinA;    mt[2][2] =  cosA;  mt[2][3] = 0.0f;
+			mt[3][0] =  0.0f;  mt[3][1] =  0.0f;    mt[3][2] =  0.0f;  mt[3][3] = 1.0f;
+			break;
+		case 'y':
+		case 'Y':
+			mt[0][0] =  cosA;  mt[0][1] =  0.0f;    mt[0][2] =  sinA;  mt[0][3] = 0.0f;
+			mt[1][0] =  0.0f;  mt[1][1] =  1.0f;    mt[1][2] =  0.0f;  mt[1][3] = 0.0f;
+			mt[2][0] = -sinA;  mt[2][1] =  0.0f;    mt[2][2] =  cosA;  mt[2][3] = 0.0f;
+			mt[3][0] =  0.0f;  mt[3][1] =  0.0f;    mt[3][2] =  0.0f;  mt[3][3] = 1.0f;
+			break;
+		case 'z':
+		case 'Z':
+			mt[0][0] =  cosA;  mt[0][1] = -sinA;    mt[0][2] =  0.0f;  mt[0][3] = 0.0f;
+			mt[1][0] =  sinA;  mt[1][1] =  cosA;    mt[1][2] =  0.0f;  mt[1][3] = 0.0f;
+			mt[2][0] =  0.0f;  mt[2][1] =  0.0f;    mt[2][2] =  1.0f;  mt[2][3] = 0.0f;
+			mt[3][0] =  0.0f;  mt[3][1] =  0.0f;    mt[3][2] =  0.0f;  mt[3][3] = 1.0f;
+		default:
+			break;
+	}
+}
+
+void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad)
+{
+	guVector vN;
+	f32 s,c;
+	f32 t;
+	f32 x,y,z;
+	f32 xSq,ySq,zSq;
+	
+	s = sinf(rad);
+	c = cosf(rad);
+	t = 1.0f-c;
+	
+	c_guVecNormalize(axis,&vN);
+	
+	x = vN.x;
+	y = vN.y;
+	z = vN.z;
+
+	xSq = x*x;
+	ySq = y*y;
+	zSq = z*z;
+
+    mt[0][0] = ( t * xSq )   + ( c );
+    mt[0][1] = ( t * x * y ) - ( s * z );
+    mt[0][2] = ( t * x * z ) + ( s * y );
+    mt[0][3] =    0.0f;
+
+    mt[1][0] = ( t * x * y ) + ( s * z );
+    mt[1][1] = ( t * ySq )   + ( c );
+    mt[1][2] = ( t * y * z ) - ( s * x );
+    mt[1][3] =    0.0f;
+
+    mt[2][0] = ( t * x * z ) - ( s * y );
+    mt[2][1] = ( t * y * z ) + ( s * x );
+    mt[2][2] = ( t * zSq )   + ( c );
+    mt[2][3] =    0.0f;
+
+    mt[3][0] =    0.0f;
+    mt[3][1] =    0.0f;
+    mt[3][2] =    0.0f;
+    mt[3][3] =    1.0f;
 }
 
 void guLightPerspective(Mtx mt,f32 fovY,f32 aspect,f32 scaleS,f32 scaleT,f32 transS,f32 transT)

@@ -419,7 +419,16 @@ void ps_guMtxReflect(register Mtx m,register const guVector *p,register const gu
 
 void guMtx44Identity(Mtx44 mt);
 void guMtx44Copy(const Mtx44 src,Mtx44 dst);
+void guMtx44Concat(const Mtx44 a,const Mtx44 b,Mtx44 ab);
+void guMtx44Transpose(const Mtx44 src,Mtx44 xPose);
 u32 guMtx44Inverse(const Mtx44 src,Mtx44 inv);
+void guMtx44Trans(Mtx44 mt,f32 xT,f32 yT,f32 zT);
+void guMtx44TransApply(const Mtx44 src,Mtx44 dst,f32 xT,f32 yT,f32 zT);
+void guMtx44Scale(Mtx44 mt,f32 xS,f32 yS,f32 zS);
+void guMtx44ScaleApply(const Mtx44 src,Mtx44 dst,f32 xS,f32 yS,f32 zS);
+void guMtx44RotRad(Mtx44 mt,char axis,f32 rad);
+void guMtx44RotTrig(Mtx44 mt,char axis,f32 sinA,f32 cosA);
+void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad);
 
 #ifdef MTX_USE_C
 
