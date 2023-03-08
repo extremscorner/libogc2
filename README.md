@@ -50,6 +50,7 @@ Not currently supported.
 ```
 cd libogc2
 git pull
+sudo -E make uninstall
 sudo -E make clean
 make
 sudo -E make install

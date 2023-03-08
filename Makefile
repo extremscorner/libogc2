@@ -269,7 +269,7 @@ $(BTELIB).a: $(BTEOBJ)
 $(WIIUSELIB).a: $(WIIUSEOBJ)
 #---------------------------------------------------------------------------------
 
-.PHONY: libs wii cube install-headers install dist docs
+.PHONY: libs wii cube install-headers install uninstall dist docs
 
 #---------------------------------------------------------------------------------
 install-headers:
@@ -301,6 +301,10 @@ install: wii cube install-headers
 	@cp -frv libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv gamecube_rules wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
 
+#---------------------------------------------------------------------------------
+uninstall:
+#---------------------------------------------------------------------------------
+	@rm -frv $(DESTDIR)$(DEVKITPRO)/libogc2
 
 #---------------------------------------------------------------------------------
 dist: wii cube install-headers
