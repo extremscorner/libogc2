@@ -8,3 +8,57 @@
 - [iplboot](https://github.com/redolution/iplboot) - Minimal GameCube IPL
 - [Swiss](https://github.com/emukidid/swiss-gc) - The swiss army knife of GameCube homebrew
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
+
+## Installing
+
+```
+git clone https://github.com/extremscorner/libogc2.git
+cd libogc2
+make
+sudo -E make install
+```
+
+```
+git clone https://github.com/extremscorner/libfat.git
+cd libfat
+make ogc-release
+sudo -E make ogc-install
+```
+
+Using `sudo` is not necessary with MSYS2.
+
+## Migrating from libogc
+
+### GNU Make
+
+```diff
+-include $(DEVKITPPC)/gamecube_rules
++include $(DEVKITPRO)/libogc2/gamecube_rules
+```
+
+```diff
+-include $(DEVKITPPC)/wii_rules
++include $(DEVKITPRO)/libogc2/wii_rules
+```
+
+### CMake
+
+Not currently supported.
+
+## Upgrading
+
+```
+cd libogc2
+git pull
+sudo -E make clean
+make
+sudo -E make install
+```
+
+```
+cd libfat
+git pull
+make ogc-clean
+make ogc-release
+sudo -E make ogc-install
+```
