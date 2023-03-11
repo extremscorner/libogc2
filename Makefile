@@ -175,7 +175,7 @@ TINYSMBOBJ	:=	des.o md4.o ntlm.o smb.o smb_devoptab.o
 ASNDLIBOBJ	:=	asndlib.o mp3player.o
 
 #---------------------------------------------------------------------------------
-AESNDLIBOBJ	:=	aesndlib.o
+AESNDLIBOBJ	:=	aesndlib.o aesndmp3player.o
 
 #---------------------------------------------------------------------------------
 ISOLIBOBJ	:=	iso9660.o
