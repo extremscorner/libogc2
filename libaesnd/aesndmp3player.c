@@ -17,6 +17,7 @@
 
 static u32 mp3volume = 256;
 static AESNDPB *mp3voice = NULL;
+static BOOL mp3running = FALSE;
 
 #define STACKSIZE				(32768)
 
@@ -181,7 +182,8 @@ static void *StreamPlay(void *arg)
 				memcpy(Pcm,&Synth.pcm,sizeof(struct mad_pcm));
 				MQ_Send(thOutputQueue,(mqmsg_t)Pcm,MQ_MSG_BLOCK);
 
-				AESND_SetVoiceStop(mp3voice,false);
+				if(mp3running==FALSE)
+					AESND_SetVoiceStop(mp3voice,false);
 			}
 		}
 
@@ -197,11 +199,12 @@ static void *StreamPlay(void *arg)
 	mad_frame_finish(&Frame);
 	mad_stream_finish(&Stream);
 
-	if(thr_running==TRUE)
-		MQ_Send(thOutputQueue,(mqmsg_t)NULL,MQ_MSG_BLOCK);
-	else MQ_Jam(thOutputQueue,(mqmsg_t)NULL,MQ_MSG_BLOCK);
-
-	while(MQ_Receive(thInputQueue,(mqmsg_t)&Pcm,MQ_MSG_BLOCK) && Pcm!=NULL);
+	if(mp3running==TRUE) {
+		if(thr_running==TRUE)
+			MQ_Send(thOutputQueue,(mqmsg_t)NULL,MQ_MSG_BLOCK);
+		else MQ_Jam(thOutputQueue,(mqmsg_t)NULL,MQ_MSG_BLOCK);
+		while(MQ_Receive(thInputQueue,(mqmsg_t)&Pcm,MQ_MSG_BLOCK) && Pcm!=NULL);
+	}
 
 	MQ_Close(thInputQueue);
 	MQ_Close(thOutputQueue);
@@ -244,7 +247,10 @@ static void DataTransferCallback(AESNDPB *pb,u32 state)
 
 	switch(state) {
 		case VOICE_STATE_STOPPED:
+			mp3running = FALSE;
+			break;
 		case VOICE_STATE_RUNNING:
+			mp3running = TRUE;
 			break;
 		case VOICE_STATE_STREAM:
 			if(MQ_Receive(thOutputQueue,(mqmsg_t)&Pcm,MQ_MSG_NOBLOCK)) {
