@@ -1037,7 +1037,19 @@ s64 __SYS_GetSystemTime(void)
 
 void __SYS_SetBootTime(void)
 {
-	__SYS_SetTime(SYS_Time());
+	u32 gctime;
+#if defined(HW_RVL)
+	u32 bias;
+#endif
+
+	if(__SYS_GetRTC(&gctime)==1) {
+#if defined(HW_RVL)
+		if(CONF_GetCounterBias(&bias)==0) gctime += bias;
+#else
+		gctime += SYS_GetCounterBias();
+#endif
+		__SYS_SetTime(secs_to_ticks(gctime));
+	}
 }
 
 u32 __SYS_LoadFont(void *src,void *dest)
@@ -1157,7 +1169,9 @@ void SYS_Init(void)
 // This function gets called inside the main thread, prior to the application's main() function
 void SYS_PreMain(void)
 {
-#if defined(HW_RVL)
+#if defined(HW_DOL)
+	__SYS_SetBootTime();
+#elif defined(HW_RVL)
 	u32 i;
 
 	for (i = 0; i < 32; ++i)
