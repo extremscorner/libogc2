@@ -2068,19 +2068,3 @@ s8 SYS_GetCoreTemperature(void)
 	mtthrm2(0);
 	return ret;
 }
-
-u64 SYS_Time(void)
-{
-	u64 current_time = 0;
-    u32 gmtime =0;
-    __SYS_GetRTC(&gmtime);
-    current_time = gmtime;
-#ifdef HW_RVL
-	u32 bias;
-	if (CONF_GetCounterBias(&bias) >= 0)
-		current_time += bias;
-#else
-	current_time += SYS_GetCounterBias();
-#endif
-	return (TB_TIMER_CLOCK * 1000) * current_time;
-}
