@@ -1209,7 +1209,7 @@ static void __write_callback(s32 chn,s32 result)
 			if(file->len<=0) {
 				dirblock = __card_getdirblock(card);
 				entry = &dirblock->entries[file->filenum];
-				entry->lastmodified = time(NULL);
+				entry->lastmodified = ticks_to_secs(gettime());
 				cb = card->card_api_cb;
 				card->card_api_cb = NULL;
 				if((ret=__card_updatedir(chn,cb))>=0) return;
@@ -1853,7 +1853,7 @@ static void __card_createfatcallback(s32 chn,s32 result)
 	entry->iconspeed = 0;
 	entry->pad_01 = 0xffff;
 	entry->iconspeed = (entry->iconspeed&~CARD_SPEED_MASK)|CARD_SPEED_FAST;
-	entry->lastmodified = time(NULL);
+	entry->lastmodified = ticks_to_secs(gettime());
 
 	file->offset = 0;
 	file->iblock = card->curr_fileblock;
@@ -3199,7 +3199,7 @@ s32 CARD_SetStatusAsync(s32 chn,s32 fileno,card_stat *stats,cardcallback callbac
 		
 		if(entry->iconaddr==-1) entry->iconspeed = ((entry->iconspeed&~CARD_SPEED_MASK)|CARD_SPEED_FAST);
 
-		entry->lastmodified = time(NULL);
+		entry->lastmodified = ticks_to_secs(gettime());
 		if((ret=__card_updatedir(chn,callback))>=0) return ret;
 	}
 
