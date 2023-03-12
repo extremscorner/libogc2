@@ -71,6 +71,9 @@ extern u32 gettick(void);
 extern u64 gettime(void);
 extern void settime(u64);
 
+extern void __SYS_SetTime(s64 time);
+extern s64 __SYS_GetSystemTime(void);
+
 u32 diff_sec(u64 start,u64 end);
 u32 diff_msec(u64 start,u64 end);
 u32 diff_usec(u64 start,u64 end);

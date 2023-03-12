@@ -61,7 +61,7 @@ static __inline__ void __lwp_wd_tickle_ticks(void)
 
 static __inline__ void __lwp_wd_insert_ticks(wd_cntrl *wd,s64 interval)
 {
-	wd->start = gettime();
+	wd->start = __SYS_GetSystemTime();
 	wd->fire = (wd->start+LWP_WD_ABS(interval));
 	__lwp_wd_insert(&_wd_ticks_queue,wd);
 }

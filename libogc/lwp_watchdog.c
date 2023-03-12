@@ -25,7 +25,7 @@ static void __lwp_wd_settimer(wd_cntrl *wd)
 		u32 ul[2];
 	} v;
 
-	now = gettime();
+	now = __SYS_GetSystemTime();
 	v.ull = diff = diff_ticks(now,wd->fire);
 #ifdef _LWPWD_DEBUG
 	printf("__lwp_wd_settimer(%p,%llu,%lld)\n",wd,wd->fire,diff);
@@ -136,7 +136,7 @@ void __lwp_wd_tickle(lwp_queue *queue)
 	if(__lwp_queue_isempty(queue)) return;
 
 	wd = __lwp_wd_first(queue);
-	now = gettime();
+	now = __SYS_GetSystemTime();
 	diff = diff_ticks(now,wd->fire);
 #ifdef _LWPWD_DEBUG
 	printf("__lwp_wd_tickle(%p,%08x%08x,%08x%08x,%08x%08x,%08x%08x)\n",wd,(u32)(now>>32),(u32)now,(u32)(wd->start>>32),(u32)wd->start,(u32)(wd->fire>>32),(u32)wd->fire,(u32)(diff>>32),(u32)diff);
@@ -167,7 +167,7 @@ void __lwp_wd_adjust(lwp_queue *queue,u32 dir,s64 interval)
 	u64 abs_int;
 
 	_CPU_ISR_Disable(level);
-	abs_int = gettime()+LWP_WD_ABS(interval);
+	abs_int = __SYS_GetSystemTime()+LWP_WD_ABS(interval);
 	if(!__lwp_queue_isempty(queue)) {
 		switch(dir) {
 			case LWP_WD_BACKWARD:
@@ -180,7 +180,7 @@ void __lwp_wd_adjust(lwp_queue *queue,u32 dir,s64 interval)
 						break;
 					} else {
 						abs_int -= __lwp_wd_first(queue)->fire;
-						__lwp_wd_first(queue)->fire = gettime();
+						__lwp_wd_first(queue)->fire = __SYS_GetSystemTime();
 						__lwp_wd_tickle(queue);
 						if(__lwp_queue_isempty(queue)) break;
 					}

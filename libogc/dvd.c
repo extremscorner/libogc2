@@ -406,11 +406,11 @@ s32 DVD_GcodeLowWrite(u32 offset,dvdcallbacklow cb);
 
 extern void udelay(int us);
 extern u32 diff_msec(unsigned long long start,unsigned long long end);
-extern long long gettime(void);
 extern void __MaskIrq(u32);
 extern void __UnmaskIrq(u32);
 extern syssramex* __SYS_LockSramEx(void);
 extern u32 __SYS_UnlockSramEx(u32 write);
+extern s64 __SYS_GetSystemTime(void);
 
 static u8 err2num(u32 errorcode)
 {
@@ -1358,7 +1358,7 @@ static void __DVDInterruptHandler(u32 nIrq,void *pCtx)
 	}
 	_diReg[0] = (ir|irm);
 
-	now = gettime();
+	now = __SYS_GetSystemTime();
 	diff = diff_msec(__dvd_lastresetend,now);
 	if(__dvd_resetoccured && diff<200) {
 		status = _diReg[1];
@@ -2206,7 +2206,7 @@ s32 DVD_LowGetCoverStatus(void)
 	s64 now;
 	u32 diff;
 
-	now = gettime();
+	now = __SYS_GetSystemTime();
 	diff = diff_msec(__dvd_lastresetend,now);
 	if(diff<100) return 0;
 	else if(_diReg[1]&DVD_CVR_STATE) return 1;
@@ -2228,7 +2228,7 @@ void DVD_LowReset(u32 reset_mode)
 	_piReg[9] = val;
 
 	__dvd_resetoccured = 1;
-	__dvd_lastresetend = gettime();
+	__dvd_lastresetend = __SYS_GetSystemTime();
 	__dvd_drivestate |= DVD_DRIVERESET;
 }
 
@@ -2900,7 +2900,7 @@ void DVD_Init(void)
 
 		_piReg[9] |= 0x0005;
 		__dvd_resetoccured = 1;
-		__dvd_lastresetend = gettime();
+		__dvd_lastresetend = __SYS_GetSystemTime();
 
 		_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
 		_diReg[1] = DVD_CVR_MSK;
