@@ -2078,7 +2078,7 @@ static inline void __importAdjustingValues(void)
 
 static void __VIInit(u32 vimode)
 {
-	u32 cnt;
+	vu32 cnt;
 	u32 vi_mode,interlace,progressive;
 	const struct _timing *cur_timing = NULL;
 
@@ -2089,8 +2089,8 @@ static void __VIInit(u32 vimode)
 	cur_timing = __gettiming(vimode);
 
 	//reset the interface
-	cnt = 0;
 	_viReg[1] = 0x02;
+	cnt = 0;
 	while(cnt<1000) cnt++;
 	_viReg[1] = 0x00;
 
@@ -2859,6 +2859,20 @@ u32 VIDEO_GetCurrentTvMode(void)
 	_CPU_ISR_Restore(level);
 
 	return tv;
+}
+
+u32 VIDEO_GetScanMode(void)
+{
+	u32 level;
+	u32 nonint;
+
+	_CPU_ISR_Disable(level);
+	if(_viReg[54]&0x0001) nonint = VI_PROGRESSIVE;
+	else if(_SHIFTR(_viReg[1],2,1)) nonint = VI_NON_INTERLACE;
+	else nonint = VI_INTERLACE;
+	_CPU_ISR_Restore(level);
+
+	return nonint;
 }
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode)

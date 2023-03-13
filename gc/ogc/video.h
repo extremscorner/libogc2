@@ -126,6 +126,15 @@ u32 VIDEO_GetCurrentTvMode(void);
 
 
 /*! 
+ * \fn u32 VIDEO_GetScanMode(void)
+ * \brief Get current configured scan mode
+ *
+ * \return \ref vi_modetypedef "scanmode"
+ */
+u32 VIDEO_GetScanMode(void);
+
+
+/*! 
  * \fn void VIDEO_Configure(const GXRModeObj *rmode)
  * \brief Configure the VI with the given render mode object
  *
