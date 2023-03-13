@@ -136,7 +136,7 @@ static void *__ipcbufferlo = NULL;
 static void *__ipcbufferhi = NULL;
 #endif
 
-static void __RSWDefaultHandler(u32 irq, void* ctx);
+static void __RSWDefaultHandler(void);
 static resetcallback __RSWCallback = NULL;
 #if defined(HW_RVL)
 static void __POWDefaultHandler(void);
@@ -417,12 +417,12 @@ static void __doreboot(u32 resetcode,s32 force_menu)
 }
 #endif
 
-static void __MEMInterruptHandler(u32 irq, void* ctx)
+static void __MEMInterruptHandler(u32 irq,void *ctx)
 {
 	_memReg[16] = 0;
 }
 
-static void __RSWDefaultHandler(u32 irq, void* ctx)
+static void __RSWDefaultHandler(void)
 {
 
 }
@@ -434,7 +434,7 @@ static void __POWDefaultHandler(void)
 #endif
 
 #if defined(HW_DOL)
-static void __RSWHandler(u32 irq, void* ctx)
+static void __RSWHandler(u32 irq,void *ctx)
 {
 	s64 now;
 	static s64 hold_down = 0;
@@ -447,7 +447,7 @@ static void __RSWHandler(u32 irq, void* ctx)
 
 	if(!(_piReg[0]&0x10000)) {
 		if(__RSWCallback) {
-			__RSWCallback(irq, ctx);
+			__RSWCallback();
 		}
 	}
 	_piReg[0] = 2;
@@ -466,7 +466,7 @@ static void __STMEventHandler(u32 event)
 			_CPU_ISR_Disable(level);
 			__sys_resetdown = 1;
 			if(__RSWCallback) {
-				__RSWCallback(IRQ_PI_RSW, NULL);
+				__RSWCallback();
 			}
 			_CPU_ISR_Restore(level);
 		}

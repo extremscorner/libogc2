@@ -235,7 +235,7 @@ struct _sys_fontheader {
     u8  c3;
 } ATTRIBUTE_PACKED;
 
-typedef void (*resetcallback)(u32 irq, void* ctx);
+typedef void (*resetcallback)(void);
 typedef void (*powercallback)(void);
 typedef s32 (*resetfunction)(s32 final);
 typedef struct _sys_resetinfo sys_resetinfo;
