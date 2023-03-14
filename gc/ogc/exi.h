@@ -89,12 +89,15 @@ distribution.
  * @{
  */
 
-#define EXI_SPEED1MHZ				0			/*!< EXI device frequency 1MHz */
-#define EXI_SPEED2MHZ				1			/*!< EXI device frequency 2MHz */
-#define EXI_SPEED4MHZ				2			/*!< EXI device frequency 4MHz */
-#define EXI_SPEED8MHZ				3			/*!< EXI device frequency 8MHz */
-#define EXI_SPEED16MHZ				4			/*!< EXI device frequency 16MHz */
-#define EXI_SPEED32MHZ				5			/*!< EXI device frequency 32MHz */
+#define EXI_SPEED1MHZ				0			/*!< EXI device frequency 0.84375MHz */
+#define EXI_SPEED2MHZ				1			/*!< EXI device frequency 1.6875MHz */
+#define EXI_SPEED4MHZ				2			/*!< EXI device frequency 3.375MHz */
+#define EXI_SPEED8MHZ				3			/*!< EXI device frequency 6.75MHz */
+#define EXI_SPEED16MHZ				4			/*!< EXI device frequency 13.5MHz */
+#define EXI_SPEED32MHZ				5			/*!< EXI device frequency 27MHz */
+#if defined(HW_RVL)
+#define EXI_SPEED64MHZ				6			/*!< EXI device frequency 54MHz */
+#endif
 
 /*!
  * @}
