@@ -204,6 +204,9 @@ extern int __libogc_lock_acquire(int *lock);
 extern void __libogc_exit(int status);
 extern void * __libogc_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
 extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
+extern int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp);
+extern int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp);
+extern int __libogc_clock_getres(clockid_t clock_id, struct timespec *res);
 extern int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem);
 
 extern u8 __gxregs[];
@@ -327,11 +330,23 @@ void __syscall_exit(int rc) {
 	return __libogc_exit(rc);
 }
 
-int  __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz){
-	return __libogc_gettod_r(ptr,tp,tz);
+int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz) {
+	return __libogc_gettod_r(ptr, tp, tz);
 }
 
-int __syscall_nanosleep(const struct timespec *req, struct timespec *rem){
+int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp) {
+	return __libogc_clock_gettime(clock_id, tp);
+}
+
+int __syscall_clock_settime(clockid_t clock_id, const struct timespec *tp) {
+	return __libogc_clock_settime(clock_id, tp);
+}
+
+int __syscall_clock_getres(clockid_t clock_id, struct timespec *res) {
+	return __libogc_clock_getres(clock_id, res);
+}
+
+int __syscall_nanosleep(const struct timespec *req, struct timespec *rem) {
 	return __libogc_nanosleep(req, rem);
 }
 
