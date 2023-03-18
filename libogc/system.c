@@ -175,9 +175,6 @@ extern void __lwp_start_multitasking(void);
 extern void __memlock_init(void);
 extern void __libc_init(int);
 
-extern void __libogc_malloc_lock( struct _reent *ptr );
-extern void __libogc_malloc_unlock( struct _reent *ptr );
-
 extern void __exception_console(void);
 extern void __exception_printf(const char *str, ...);
 
@@ -193,18 +190,6 @@ extern u32 __PADDisableRecalibration(s32 disable);
 
 extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride);
 
-
-extern int __libogc_lock_init(int *lock,int recursive);
-extern int __libogc_lock_close(int *lock);
-extern int __libogc_lock_release(int *lock);
-extern int __libogc_lock_acquire(int *lock);
-extern void __libogc_exit(int status);
-extern void * __libogc_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
-extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
-extern int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp);
-extern int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp);
-extern int __libogc_clock_getres(clockid_t clock_id, struct timespec *res);
-extern int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem);
 
 extern u8 __gxregs[];
 extern u8 __text_start[];
@@ -282,7 +267,7 @@ void __reload(void)
 #endif
 }
 
-void __libogc_exit(int status)
+void __syscall_exit(int rc)
 {
 	if(__stub_found()) {
 		SYS_ResetSystem(SYS_SHUTDOWN, 0, FALSE);
@@ -293,58 +278,6 @@ void __libogc_exit(int status)
 #else
 	SYS_ResetSystem(SYS_RETURNTOMENU, 0, FALSE);
 #endif
-}
-
-void *__syscall_sbrk_r(struct _reent *ptr, ptrdiff_t incr) {
-	return __libogc_sbrk_r(ptr, incr);
-}
-
-int __syscall_lock_init(int *lock, int recursive) {
-	return __libogc_lock_init(lock,recursive);
-}
-
-int __syscall_lock_close(int *lock) {
-	return __libogc_lock_close(lock);
-}
-
-int __syscall_lock_release(int *lock) {
-	return __libogc_lock_release(lock);
-}
-
-int __syscall_lock_acquire(int *lock) {
-	return __libogc_lock_acquire(lock);
-}
-
-void __syscall_malloc_lock(struct _reent *ptr) {
-	return __libogc_malloc_lock(ptr);
-}
-
-void __syscall_malloc_unlock(struct _reent *ptr) {
-	return __libogc_malloc_unlock(ptr);
-}
-
-void __syscall_exit(int rc) {
-	return __libogc_exit(rc);
-}
-
-int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz) {
-	return __libogc_gettod_r(ptr, tp, tz);
-}
-
-int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp) {
-	return __libogc_clock_gettime(clock_id, tp);
-}
-
-int __syscall_clock_settime(clockid_t clock_id, const struct timespec *tp) {
-	return __libogc_clock_settime(clock_id, tp);
-}
-
-int __syscall_clock_getres(clockid_t clock_id, struct timespec *res) {
-	return __libogc_clock_getres(clock_id, res);
-}
-
-int __syscall_nanosleep(const struct timespec *req, struct timespec *rem) {
-	return __libogc_nanosleep(req, rem);
 }
 
 static alarm_st* __lwp_syswd_allocate(void)

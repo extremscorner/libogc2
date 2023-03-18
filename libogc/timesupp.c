@@ -89,7 +89,7 @@ u32 diff_nsec(u64 start,u64 end)
 	return ticks_to_nanosecs(diff);
 }
 
-int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp)
+int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
 	u64 now;
 	switch (clock_id) {
@@ -109,7 +109,7 @@ int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp)
 	}
 }
 
-int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp)
+int __syscall_clock_settime(clockid_t clock_id, const struct timespec *tp)
 {
 	u64 now;
 	switch (clock_id) {
@@ -124,7 +124,7 @@ int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp)
 	}
 }
 
-int __libogc_clock_getres(clockid_t clock_id, struct timespec *res)
+int __syscall_clock_getres(clockid_t clock_id, struct timespec *res)
 {
 	switch (clock_id) {
 		case CLOCK_REALTIME:
@@ -151,7 +151,7 @@ void udelay(unsigned us)
 	}
 }
 
-int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem)
+int __syscall_nanosleep(const struct timespec *tb, struct timespec *rem)
 {
 	u64 timeout;
 
@@ -166,7 +166,7 @@ int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem)
 	return 0;
 }
 
-int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz)
+int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz)
 {
 	u64 now;
 	if (tp != NULL) {

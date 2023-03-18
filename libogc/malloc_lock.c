@@ -4,8 +4,6 @@
 #include <reent.h>
 #endif
 #include <errno.h>
-#undef errno
-extern int errno;
 
 #include "asm.h"
 #include "processor.h"
@@ -34,7 +32,7 @@ void __memlock_init(void)
 }
 
 #ifndef REENTRANT_SYSCALLS_PROVIDED
-void __libogc_malloc_lock(struct _reent *r)
+void __syscall_malloc_lock(struct _reent *ptr)
 {
 	u32 level;
 
@@ -44,7 +42,7 @@ void __libogc_malloc_lock(struct _reent *r)
 	__lwp_mutex_seize(&mem_lock,MEMLOCK_MUTEX_ID,TRUE,LWP_THREADQ_NOTIMEOUT,level);
 }
 
-void __libogc_malloc_unlock(struct _reent *r)
+void __syscall_malloc_unlock(struct _reent *ptr)
 {
 	if(!initialized) return;
 
@@ -52,9 +50,8 @@ void __libogc_malloc_unlock(struct _reent *r)
 	__lwp_mutex_surrender(&mem_lock);
 	__lwp_thread_dispatchenable();
 }
-
 #else
-void __libogc_malloc_lock(struct _reent *ptr)
+void __syscall_malloc_lock(struct _reent *ptr)
 {
 	unsigned int level;
 
@@ -65,7 +62,7 @@ void __libogc_malloc_lock(struct _reent *ptr)
 	ptr->_errno = _thr_executing->wait.ret_code;
 }
 
-void __libogc_malloc_unlock(struct _reent *ptr)
+void __syscall_malloc_unlock(struct _reent *ptr)
 {
 	if(!initialized) return;
 
@@ -73,5 +70,4 @@ void __libogc_malloc_unlock(struct _reent *ptr)
 	ptr->_errno = __lwp_mutex_surrender(&mem_lock);
 	__lwp_thread_dispatchenable();
 }
-
 #endif
