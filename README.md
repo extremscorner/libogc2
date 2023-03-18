@@ -8,8 +8,13 @@
 - [iplboot](https://github.com/redolution/iplboot) - Minimal GameCube IPL
 - [Swiss](https://github.com/emukidid/swiss-gc) - The swiss army knife of GameCube homebrew
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
+- [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
 
 ## Installing
+
+```
+sudo (dkp-)pacman -S ppc-libmad
+```
 
 ```
 git clone https://github.com/extremscorner/libogc2.git
@@ -46,6 +51,10 @@ Using `sudo` is not necessary with MSYS2.
 Not currently supported.
 
 ## Upgrading
+
+```
+sudo (dkp-)pacman -Syu
+```
 
 ```
 cd libogc2
