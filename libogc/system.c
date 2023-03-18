@@ -175,6 +175,9 @@ extern void __lwp_start_multitasking(void);
 extern void __memlock_init(void);
 extern void __libc_init(int);
 
+const void *__libogc_malloc_lock = __syscall_malloc_lock;
+const void *__libogc_malloc_unlock = __syscall_malloc_unlock;
+
 extern void __exception_console(void);
 extern void __exception_printf(const char *str, ...);
 
@@ -190,6 +193,18 @@ extern u32 __PADDisableRecalibration(s32 disable);
 
 extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride);
 
+
+const void *__libogc_lock_init = __syscall_lock_init;
+const void *__libogc_lock_close = __syscall_lock_close;
+const void *__libogc_lock_release = __syscall_lock_release;
+const void *__libogc_lock_acquire = __syscall_lock_acquire;
+const void *__libogc_exit = __syscall_exit;
+const void *__libogc_sbrk_r = _sbrk_r;
+const void *__libogc_gettod_r = __syscall_gettod_r;
+const void *__libogc_clock_gettime = __syscall_clock_gettime;
+const void *__libogc_clock_settime = __syscall_clock_settime;
+const void *__libogc_clock_getres = __syscall_clock_getres;
+const void *__libogc_nanosleep = __syscall_nanosleep;
 
 extern u8 __gxregs[];
 extern u8 __text_start[];
