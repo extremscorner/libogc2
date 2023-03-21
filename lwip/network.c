@@ -120,6 +120,7 @@ static struct netconn* netconn_new_with_proto_and_callback(enum netconn_type,u16
 static err_t netconn_delete(struct netconn *);
 static struct netconn* netconn_accept(struct netconn* );
 static err_t netconn_peer(struct netconn *,struct ip_addr *,u16 *);
+static err_t netconn_addr(struct netconn *,struct ip_addr **,u16 *);
 static err_t netconn_bind(struct netconn *,struct ip_addr *,u16);
 static err_t netconn_listen(struct netconn *);
 static struct netbuf* netconn_recv(struct netconn *);
@@ -431,6 +432,27 @@ static err_t netconn_peer(struct netconn *conn,struct ip_addr *addr,u16 *port)
 				return ERR_CONN;
 			*addr = conn->pcb.tcp->remote_ip;
 			*port = conn->pcb.tcp->remote_port;
+			break;
+	}
+	return (conn->err = ERR_OK);
+}
+
+static err_t netconn_addr(struct netconn *conn,struct ip_addr **addr,u16 *port)
+{
+	switch(conn->type) {
+		case NETCONN_RAW:
+			*addr = &conn->pcb.raw->local_ip;
+			*port = conn->pcb.raw->protocol;
+			break;
+		case NETCONN_UDPLITE:
+		case NETCONN_UDPNOCHKSUM:
+		case NETCONN_UDP:
+			*addr = &conn->pcb.udp->local_ip;
+			*port = conn->pcb.udp->local_port;
+			break;
+		case NETCONN_TCP:
+			*addr = &conn->pcb.tcp->local_ip;
+			*port = conn->pcb.tcp->local_port;
 			break;
 	}
 	return (conn->err = ERR_OK);
@@ -1618,7 +1640,8 @@ s32 net_init()
 
 s32 net_shutdown(s32 s,u32 how)
 {
-	return -1;
+	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_shutdown(%d, how=%d)\n", s, how));
+	return net_close(s);
 }
 
 s32 net_fcntl(s32 s, u32 cmd, u32 flags)
@@ -1652,7 +1675,7 @@ s32 net_socket(u32 domain,u32 type,u32 protocol)
 	i = alloc_socket(conn);
 	if(i==-1) {
 		netconn_delete(conn);
-		return -ENFILE;
+		return -ENOBUFS;
 	}
 	
 	conn->socket = i;
@@ -1671,12 +1694,13 @@ s32 net_accept(s32 s,struct sockaddr *addr,socklen_t *addrlen)
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_accept(%d)\n", s));
 
 	sock = get_socket(s);
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 
 	newconn = netconn_accept(sock->conn);
 	netconn_peer(newconn,&naddr,&port);
 	
 	memset(&sin,0,sizeof(sin));
+	sin.sin_len = sizeof(sin);
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port);
 	sin.sin_addr.s_addr = naddr.addr;
@@ -1688,7 +1712,7 @@ s32 net_accept(s32 s,struct sockaddr *addr,socklen_t *addrlen)
 	newsock = alloc_socket(newconn);
 	if(newsock==-1) {
 		netconn_delete(newconn);
-		return -ENFILE;
+		return -(sock->err = ENOBUFS);
 	}
 
 	newconn->callback = evt_callback;
@@ -1699,6 +1723,7 @@ s32 net_accept(s32 s,struct sockaddr *addr,socklen_t *addrlen)
 	newconn->socket = newsock;
 	LWP_SemPost(netsocket_sem);
 
+	sock->err = 0;
 	return newsock;
 }
 
@@ -1710,15 +1735,15 @@ s32 net_bind(s32 s,struct sockaddr *name,socklen_t namelen)
 	err_t err;
 	
 	sock = get_socket(s);
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 
 	loc_addr.addr = ((struct sockaddr_in*)name)->sin_addr.s_addr;
 	loc_port = ((struct sockaddr_in*)name)->sin_port;
 
 	err = netconn_bind(sock->conn,&loc_addr,ntohs(loc_port));
-	if(err!=ERR_OK) return -err_to_errno(err);
+	if(err!=ERR_OK) return -(sock->err = err_to_errno(err));
 
-	return 0;
+	return (sock->err = 0);
 }
 
 s32 net_listen(s32 s,u32 backlog)
@@ -1728,14 +1753,14 @@ s32 net_listen(s32 s,u32 backlog)
 
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_listen(%d, backlog=%d)\n", s, backlog));
 	sock = get_socket(s);
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 	
 	err = netconn_listen(sock->conn);
 	if(err!=ERR_OK) {
 	    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_listen(%d) failed, err=%d\n", s, err));
-		return -err_to_errno(err);
+		return -(sock->err = err_to_errno(err));
 	}
-	return 0;
+	return (sock->err = 0);
 }
 
 s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen_t *fromlen)
@@ -1745,31 +1770,28 @@ s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen
 	u16 buflen,copylen;
 	struct ip_addr *addr;
 	u16 port;
-	
-	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d, %p, %d, 0x%x, ..)\n", s, mem, len, flags));
-	if(mem==NULL || len<=0) return -EINVAL;
 
+	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d, %p, %d, 0x%x, ..)\n", s, mem, len, flags));
 	sock = get_socket(s);
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 
 	if(sock->lastdata)
 		buf = sock->lastdata;
 	else {
 		if(((flags&MSG_DONTWAIT) || (sock->flags&O_NONBLOCK)) && !sock->rcvevt) {
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d): returning EWOULDBLOCK\n", s));
-			return -EWOULDBLOCK;
+			return -(sock->err = EWOULDBLOCK);
 		}
 		buf = netconn_recv(sock->conn);
 		if(!buf) {
 		    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d): buf == NULL!\n", s));
-			return 0;
+			return (sock->err = 0);
 		}
 	}
 	
 	buflen = netbuf_len(buf);
 	buflen -= sock->lastoffset;
-	if(buflen<=0)
-		return 0;
+
 	if(len>buflen)
 		copylen = buflen;
 	else
@@ -1784,6 +1806,7 @@ s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen
 		port = netbuf_fromport(buf);
 
 		memset(&sin,0,sizeof(sin));
+		sin.sin_len = sizeof(sin);
 		sin.sin_family = AF_INET;
 		sin.sin_port = htons(port);
 		sin.sin_addr.s_addr = addr->addr;
@@ -1805,6 +1828,7 @@ s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen
 		sock->lastoffset = 0;
 		netbuf_delete(buf);
 	}
+	sock->err = 0;
 	return copylen;
 }
 
@@ -1825,11 +1849,8 @@ s32 net_sendto(s32 s,const void *data,s32 len,u32 flags,struct sockaddr *to,sock
 	u16_t remote_port, port = 0;
 	s32 ret,connected;
 
-	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_sendto(%d, data=%p, size=%d, flags=0x%x)\n", s, data, len, flags));
-	if(data==NULL || len<=0) return -EINVAL;
-
 	sock = get_socket(s);
-	if (!sock) return -ENOTSOCK;
+	if (!sock) return -EBADF;
 
 	/* get the peer if currently connected */
 	connected = (netconn_peer(sock->conn, &addr, &port) == ERR_OK);
@@ -1861,10 +1882,9 @@ s32 net_send(s32 s,const void *data,s32 len,u32 flags)
 	err_t err;
 
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d, data=%p, size=%d, flags=0x%x)\n", s, data, len, flags));
-	if(data==NULL || len<=0) return -EINVAL;
 
 	sock = get_socket(s);
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 
 	switch(netconn_type(sock->conn)) {
 		case NETCONN_RAW:
@@ -1874,7 +1894,7 @@ s32 net_send(s32 s,const void *data,s32 len,u32 flags)
 			buf = netbuf_new();
 			if(!buf) {
 				LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d) ENOBUFS\n", s));
-				return -ENOBUFS;
+				return -(sock->err = ENOBUFS);
 			}
 			netbuf_ref(buf,data,len);
 			err = netconn_send(sock->conn,buf);
@@ -1889,10 +1909,11 @@ s32 net_send(s32 s,const void *data,s32 len,u32 flags)
 	}
 	if(err!=ERR_OK) {
 		LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d) err=%d\n", s, err));
-		return -err_to_errno(err);
+		return -(sock->err = err_to_errno(err));
 	}
 
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d) ok size=%d\n", s, len));
+	sock->err = 0;
 	return len;
 }
 
@@ -1907,7 +1928,7 @@ s32 net_connect(s32 s,struct sockaddr *name,socklen_t namelen)
 	err_t err;
 	
 	sock = get_socket(s);
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 
 	if(((struct sockaddr_in*)name)->sin_family==AF_UNSPEC) {
 	    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_connect(%d, AF_UNSPEC)\n", s));
@@ -1927,11 +1948,11 @@ s32 net_connect(s32 s,struct sockaddr *name,socklen_t namelen)
 	}
 	if(err!=ERR_OK) {
 	    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_connect(%d) failed, err=%d\n", s, err));
-		return -err_to_errno(err);
+		return -(sock->err = err_to_errno(err));
 	}
 
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_connect(%d) succeeded\n", s));
-	return 0;
+	return (sock->err = 0);
 }
 
 s32 net_close(s32 s)
@@ -1945,7 +1966,7 @@ s32 net_close(s32 s)
 	sock = get_socket(s);
 	if(!sock) {
 		LWP_SemPost(netsocket_sem);
-		return -ENOTSOCK;
+		return -EBADF;
 	}
 	
 	netconn_delete(sock->conn);
@@ -1956,7 +1977,7 @@ s32 net_close(s32 s)
 	sock->conn = NULL;
 	
 	LWP_SemPost(netsocket_sem);
-	return 0;
+	return (sock->err = 0);
 }
 
 static s32 net_selscan(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset)
@@ -2109,14 +2130,72 @@ s32 net_select(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,st
 	return nready;
 }
 
+s32 net_getpeername(s32 s,struct sockaddr *name,socklen_t *namelen)
+{
+	struct netsocket *sock;
+	struct sockaddr_in sin;
+	struct ip_addr naddr;
+
+	sock = get_socket(s);
+	if(!sock) return -EBADF;
+
+	memset(&sin,0,sizeof(sin));
+	sin.sin_len = sizeof(sin);
+	sin.sin_family = AF_INET;
+
+	netconn_peer(sock->conn,&naddr,&sin.sin_port);
+
+	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getpeername(%d, addr=", s));
+	ip_addr_debug_print(SOCKETS_DEBUG, &naddr);
+	LWIP_DEBUGF(SOCKETS_DEBUG, (" port=%d)\n", sin.sin_port));
+
+	sin.sin_port = htons(sin.sin_port);
+	sin.sin_addr.s_addr = naddr.addr;
+
+	if(*namelen>sizeof(sin))
+		*namelen = sizeof(sin);
+
+	memcpy(name,&sin,*namelen);
+	return (sock->err = 0);
+}
+
+s32 net_getsockname(s32 s,struct sockaddr *name,socklen_t *namelen)
+{
+	struct netsocket *sock;
+	struct sockaddr_in sin;
+	struct ip_addr *naddr = NULL;
+
+	sock = get_socket(s);
+	if(!sock) return -EBADF;
+
+	memset(&sin,0,sizeof(sin));
+	sin.sin_len = sizeof(sin);
+	sin.sin_family = AF_INET;
+
+	netconn_addr(sock->conn,&naddr,&sin.sin_port);
+
+	LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_getsockname(%d, addr=", s));
+	ip_addr_debug_print(SOCKETS_DEBUG, naddr);
+	LWIP_DEBUGF(SOCKETS_DEBUG, (" port=%d)\n", sin.sin_port));
+
+	sin.sin_port = htons(sin.sin_port);
+	sin.sin_addr.s_addr = naddr->addr;
+
+	if(*namelen>sizeof(sin))
+		*namelen = sizeof(sin);
+
+	memcpy(name,&sin,*namelen);
+	return (sock->err = 0);
+}
+
 s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 {
 	s32 err = 0;
 	struct netsocket *sock;
 
 	sock = get_socket(s);
-	if(sock==NULL) return -ENOTSOCK;
-	if(optval==NULL || optlen==NULL) return -EINVAL;
+	if(sock==NULL) return -EBADF;
+	if(optval==NULL || optlen==NULL) return -(sock->err = EFAULT);
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2182,7 +2261,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, level=0x%x, UNIMPL: optname=0x%x, ..)\n", s, level, optname));
 			err = ENOPROTOOPT;
 	}
-	if(err) return -err;
+	if(err) return -(sock->err = err);
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2256,7 +2335,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 			}
 		}
 	}
-	return 0;
+	return -(sock->err = err);
 }
 
 s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optlen)
@@ -2265,8 +2344,8 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 	struct netsocket *sock;
 
 	sock = get_socket(s);
-	if(sock==NULL) return -ENOTSOCK;
-	if(optval==NULL) return -EINVAL;
+	if(sock==NULL) return -EBADF;
+	if(optval==NULL) return -(sock->err = EFAULT);
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2329,7 +2408,7 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_setsockopt(%d, level=0x%x, UNIMPL: optname=0x%x, ..)\n", s, level, optname));
 			err = ENOPROTOOPT;
 	}
-	if(err) return -err;
+	if(err) return -(sock->err = err);
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2387,23 +2466,23 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 			}
 		}
 	}
-	return 0;
+	return -(sock->err = err);
 }
 
 s32 net_ioctl(s32 s, u32 cmd, void *argp)
 {
 	struct netsocket *sock = get_socket(s);
 
-	if(!sock) return -ENOTSOCK;
+	if(!sock) return -EBADF;
 
 	switch (cmd) {
 		case FIONREAD:
-			if(!argp) return -EINVAL;
+			if(!argp) return -(sock->err = EINVAL);
 
 			*((u16_t*)argp) = sock->conn->recvavail;
 
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, FIONREAD, %p) = %u\n", s, argp, *((u16*)argp)));
-			return 0;
+			return (sock->err = 0);
 
 		case FIONBIO:
 			if(argp && *(u32*)argp)
@@ -2411,10 +2490,10 @@ s32 net_ioctl(s32 s, u32 cmd, void *argp)
 			else
 				sock->flags &= ~O_NONBLOCK;
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, FIONBIO, %d)\n", s, !!(sock->flags&O_NONBLOCK)));
-			return 0;
+			return (sock->err = 0);
 
 		default:
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, UNIMPL: 0x%lx, %p)\n", s, cmd, argp));
-			return -EINVAL;
+			return -(sock->err = ENOSYS);
 	}
 }
