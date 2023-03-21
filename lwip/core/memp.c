@@ -49,23 +49,23 @@ struct memp {
   struct memp *next;
 };
 
-
+#define MEMP_SIZE MEM_ALIGN_SIZE(sizeof(struct memp))
 
 static struct memp *memp_tab[MEMP_MAX];
 
 static const u16_t memp_sizes[MEMP_MAX] = {
-  sizeof(struct pbuf),
-  sizeof(struct raw_pcb),
-  sizeof(struct udp_pcb),
-  sizeof(struct tcp_pcb),
-  sizeof(struct tcp_pcb_listen),
-  sizeof(struct tcp_seg),
-  sizeof(struct netbuf),
-  sizeof(struct netconn),
-  sizeof(struct api_msg),
-  sizeof(struct net_msg),
-  sizeof(struct pbuf) + PBUF_POOL_BUFSIZE,
-  sizeof(struct sys_timeout)
+  MEM_ALIGN_SIZE(sizeof(struct pbuf)),
+  MEM_ALIGN_SIZE(sizeof(struct raw_pcb)),
+  MEM_ALIGN_SIZE(sizeof(struct udp_pcb)),
+  MEM_ALIGN_SIZE(sizeof(struct tcp_pcb)),
+  MEM_ALIGN_SIZE(sizeof(struct tcp_pcb_listen)),
+  MEM_ALIGN_SIZE(sizeof(struct tcp_seg)),
+  MEM_ALIGN_SIZE(sizeof(struct netbuf)),
+  MEM_ALIGN_SIZE(sizeof(struct netconn)),
+  MEM_ALIGN_SIZE(sizeof(struct api_msg)),
+  MEM_ALIGN_SIZE(sizeof(struct net_msg)),
+  MEM_ALIGN_SIZE(sizeof(struct pbuf)) + MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE),
+  MEM_ALIGN_SIZE(sizeof(struct sys_timeo))
 };
 
 static const u16_t memp_num[MEMP_MAX] = {
@@ -83,45 +83,23 @@ static const u16_t memp_num[MEMP_MAX] = {
   MEMP_NUM_SYS_TIMEOUT
 };
 
-static u8_t memp_memory[(MEMP_NUM_PBUF *
-       MEM_ALIGN_SIZE(sizeof(struct pbuf) +
-          sizeof(struct memp)) +
-      MEMP_NUM_RAW_PCB *
-       MEM_ALIGN_SIZE(sizeof(struct raw_pcb) +
-          sizeof(struct memp)) +
-      MEMP_NUM_UDP_PCB *
-       MEM_ALIGN_SIZE(sizeof(struct udp_pcb) +
-          sizeof(struct memp)) +
-      MEMP_NUM_TCP_PCB *
-       MEM_ALIGN_SIZE(sizeof(struct tcp_pcb) +
-          sizeof(struct memp)) +
-      MEMP_NUM_TCP_PCB_LISTEN *
-       MEM_ALIGN_SIZE(sizeof(struct tcp_pcb_listen) +
-          sizeof(struct memp)) +
-      MEMP_NUM_TCP_SEG *
-       MEM_ALIGN_SIZE(sizeof(struct tcp_seg) +
-          sizeof(struct memp)) +
-      MEMP_NUM_NETBUF *
-       MEM_ALIGN_SIZE(sizeof(struct netbuf) +
-          sizeof(struct memp)) +
-      MEMP_NUM_NETCONN *
-       MEM_ALIGN_SIZE(sizeof(struct netconn) +
-          sizeof(struct memp)) +
-      MEMP_NUM_API_MSG *
-       MEM_ALIGN_SIZE(sizeof(struct api_msg) +
-          sizeof(struct memp)) +
-      MEMP_NUM_TCPIP_MSG *
-       MEM_ALIGN_SIZE(sizeof(struct net_msg) +
-          sizeof(struct memp)) +
-      PBUF_POOL_SIZE *
-       MEM_ALIGN_SIZE(sizeof(struct pbuf) +
-          sizeof(struct memp)) +
-      PBUF_POOL_SIZE *
-       MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE) +
-      MEMP_NUM_SYS_TIMEOUT *
-       MEM_ALIGN_SIZE(sizeof(struct sys_timeout) +
-          sizeof(struct memp)))];
+#define MEMP_TYPE_SIZE(qty, type) \
+  ((qty) * (MEMP_SIZE + MEM_ALIGN_SIZE(sizeof(type))))
 
+static u8_t memp_memory[MEM_ALIGNMENT - 1 + 
+  MEMP_TYPE_SIZE(MEMP_NUM_PBUF, struct pbuf) +
+  MEMP_TYPE_SIZE(MEMP_NUM_RAW_PCB, struct raw_pcb) +
+  MEMP_TYPE_SIZE(MEMP_NUM_UDP_PCB, struct udp_pcb) +
+  MEMP_TYPE_SIZE(MEMP_NUM_TCP_PCB, struct tcp_pcb) +
+  MEMP_TYPE_SIZE(MEMP_NUM_TCP_PCB_LISTEN, struct tcp_pcb_listen) +
+  MEMP_TYPE_SIZE(MEMP_NUM_TCP_SEG, struct tcp_seg) +
+  MEMP_TYPE_SIZE(MEMP_NUM_NETBUF, struct netbuf) +
+  MEMP_TYPE_SIZE(MEMP_NUM_NETCONN, struct netconn) +
+  MEMP_TYPE_SIZE(MEMP_NUM_API_MSG, struct api_msg) +
+  MEMP_TYPE_SIZE(MEMP_NUM_TCPIP_MSG, struct net_msg) +
+  MEMP_TYPE_SIZE(PBUF_POOL_SIZE, struct pbuf) +
+                 PBUF_POOL_SIZE * MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE) +
+  MEMP_TYPE_SIZE(MEMP_NUM_SYS_TIMEOUT, struct sys_timeo)];
 
 #if !SYS_LIGHTWEIGHT_PROT
 static sys_sem mutex;
@@ -134,14 +112,13 @@ memp_sanity(void)
   s16_t i, c;
   struct memp *m, *n;
 
-  for(i = 0; i < MEMP_MAX; i++) {
-    for(m = memp_tab[i]; m != NULL; m = m->next) {
+  for (i = 0; i < MEMP_MAX; i++) {
+    for (m = memp_tab[i]; m != NULL; m = m->next) {
       c = 1;
-      for(n = memp_tab[i]; n != NULL; n = n->next) {
-         if (n == m) {
-          --c;
+      for (n = memp_tab[i]; n != NULL; n = n->next) {
+        if (n == m && --c < 0) {
+          return 0; /* LW was: abort(); */
         }
-        if (c < 0) return 0; /* LW was: abort(); */
       }
     }
   }
@@ -152,42 +129,30 @@ memp_sanity(void)
 void
 memp_init(void)
 {
-  struct memp *m, *memp;
+  struct memp *memp;
   u16_t i, j;
-  u16_t size;
-      
+
 #if MEMP_STATS
-  for(i = 0; i < MEMP_MAX; ++i) {
+  for (i = 0; i < MEMP_MAX; ++i) {
     lwip_stats.memp[i].used = lwip_stats.memp[i].max =
       lwip_stats.memp[i].err = 0;
     lwip_stats.memp[i].avail = memp_num[i];
   }
 #endif /* MEMP_STATS */
 
-  memp = (struct memp *)&memp_memory[0];
-  for(i = 0; i < MEMP_MAX; ++i) {
-    size = MEM_ALIGN_SIZE(memp_sizes[i] + sizeof(struct memp));
-    if (memp_num[i] > 0) {
+  memp = MEM_ALIGN(memp_memory);
+  for (i = 0; i < MEMP_MAX; ++i) {
+    memp_tab[i] = NULL;
+    for (j = 0; j < memp_num[i]; ++j) {
+      memp->next = memp_tab[i];
       memp_tab[i] = memp;
-      m = memp;
-      
-      for(j = 0; j < memp_num[i]; ++j) {
-  m->next = (struct memp *)MEM_ALIGN((u8_t *)m + size);
-  memp = m;
-  m = m->next;
-      }
-      memp->next = NULL;
-      memp = m;
-    } else {
-      memp_tab[i] = NULL;
+      memp = (struct memp *)((u8_t *)memp + MEMP_SIZE + memp_sizes[i]);
     }
   }
 
 #if !SYS_LIGHTWEIGHT_PROT
   LWP_SemInit(&mutex,1,1);
 #endif
-
-  
 }
 
 void *
@@ -208,6 +173,7 @@ memp_malloc(memp_t type)
 #endif /* SYS_LIGHTWEIGHT_PROT */  
 
   memp = memp_tab[type];
+  
   if (memp != NULL) {    
     memp_tab[type] = memp->next;    
     memp->next = NULL;
@@ -217,28 +183,24 @@ memp_malloc(memp_t type)
       lwip_stats.memp[type].max = lwip_stats.memp[type].used;
     }
 #endif /* MEMP_STATS */
-#if SYS_LIGHTWEIGHT_PROT
-    SYS_ARCH_UNPROTECT(old_level);
-#else /* SYS_LIGHTWEIGHT_PROT */
-    LWP_SemPost(mutex);
-#endif /* SYS_LIGHTWEIGHT_PROT */  
+    mem = (u8_t *)memp + MEMP_SIZE;
     LWIP_ASSERT("memp_malloc: memp properly aligned",
-     ((mem_ptr_t)MEM_ALIGN((u8_t *)memp + sizeof(struct memp)) % MEM_ALIGNMENT) == 0);
-
-    mem = MEM_ALIGN((u8_t *)memp + sizeof(struct memp));
-    return mem;
+                ((mem_ptr_t)memp % MEM_ALIGNMENT) == 0);
   } else {
     LWIP_DEBUGF(MEMP_DEBUG | 2, ("memp_malloc: out of memory in pool %"S16_F"\n", type));
 #if MEMP_STATS
     ++lwip_stats.memp[type].err;
 #endif /* MEMP_STATS */
+    mem = NULL;
+  }
+
 #if SYS_LIGHTWEIGHT_PROT
   SYS_ARCH_UNPROTECT(old_level);
 #else /* SYS_LIGHTWEIGHT_PROT */
-    LWP_SemPost(mutex);
+  LWP_SemPost(mutex);
 #endif /* SYS_LIGHTWEIGHT_PROT */  
-    return NULL;
-  }
+
+  return mem;
 }
 
 void
@@ -252,10 +214,11 @@ memp_free(memp_t type, void *mem)
   if (mem == NULL) {
     return;
   }
-  memp = (struct memp *)((u8_t *)mem - sizeof(struct memp));
+
+  memp = (struct memp *)((u8_t *)mem - MEMP_SIZE);
 
 #if SYS_LIGHTWEIGHT_PROT
-    SYS_ARCH_PROTECT(old_level);
+  SYS_ARCH_PROTECT(old_level);
 #else /* SYS_LIGHTWEIGHT_PROT */  
   LWP_SemWait(mutex);
 #endif /* SYS_LIGHTWEIGHT_PROT */  
@@ -274,7 +237,6 @@ memp_free(memp_t type, void *mem)
 #if SYS_LIGHTWEIGHT_PROT
   SYS_ARCH_UNPROTECT(old_level);
 #else /* SYS_LIGHTWEIGHT_PROT */
-    LWP_SemPost(mutex);
+  LWP_SemPost(mutex);
 #endif /* SYS_LIGHTWEIGHT_PROT */  
 }
-

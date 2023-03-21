@@ -29,9 +29,6 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-
-#include <time.h>
-#include "lwp_watchdog.h"
 #include "lwip/opt.h"
 
 #if LWIP_HAVE_LOOPIF
@@ -53,16 +50,14 @@
 static u64 loopif_ticks;
 static wd_cntrl loopif_tmr_cntrl;
 
-extern unsigned int timespec_to_interval(const struct timespec *);
-
 static void
 loopif_input( void * arg )
 {
-	struct netif *netif = (struct netif*)(((void**)arg)[0]);
-	struct pbuf *r = (struct pbuf*)(((void**)arg)[1]);
+	struct netif *netif = (struct netif *)( ((void **)arg)[ 0 ] );
+	struct pbuf *r = (struct pbuf *)( ((void **)arg)[ 1 ] );
 
-	mem_free(arg);
-	netif->input(r,netif);
+	mem_free( arg );
+	netif -> input( r, netif );
 }
 
 static err_t
@@ -70,7 +65,7 @@ loopif_output(struct netif *netif, struct pbuf *p,
        struct ip_addr *ipaddr)
 {
   struct pbuf *q, *r;
-  char *ptr;
+  u8_t *ptr;
   void **arg;
 
 #if defined(LWIP_DEBUG) && defined(LWIP_TCPDUMP)
@@ -122,11 +117,11 @@ loopif_init(struct netif *netif)
 #endif
   netif->output = loopif_output;
 
- tb.tv_sec = 0;
- tb.tv_nsec = 10*TB_NSPERMS;
- loopif_ticks = __lwp_wd_calc_ticks(&tb);
+  tb.tv_sec = 0;
+  tb.tv_nsec = 10*TB_NSPERMS;
+  loopif_ticks = __lwp_wd_calc_ticks(&tb);
 
- return ERR_OK;
+  return ERR_OK;
 }
 
 #endif /* LWIP_HAVE_LOOPIF */

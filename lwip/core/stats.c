@@ -84,10 +84,10 @@ void
 stats_display_mem(struct stats_mem *mem, char *name)
 {
   LWIP_PLATFORM_DIAG(("\n MEM %s\n\t", name));
-  LWIP_PLATFORM_DIAG(("avail: %"S16_F"\n\t", mem->avail)); 
-  LWIP_PLATFORM_DIAG(("used: %"S16_F"\n\t", mem->used)); 
-  LWIP_PLATFORM_DIAG(("max: %"S16_F"\n\t", mem->max)); 
-  LWIP_PLATFORM_DIAG(("err: %"S16_F"\n", mem->err));
+  LWIP_PLATFORM_DIAG(("avail: %"MEM_SIZE_F"\n\t", mem->avail)); 
+  LWIP_PLATFORM_DIAG(("used: %"MEM_SIZE_F"\n\t", mem->used)); 
+  LWIP_PLATFORM_DIAG(("max: %"MEM_SIZE_F"\n\t", mem->max)); 
+  LWIP_PLATFORM_DIAG(("err: %"MEM_SIZE_F"\n", mem->err));
   
 }
 
@@ -96,7 +96,7 @@ stats_display(void)
 {
   s16_t i;
   char * memp_names[] = {"PBUF", "RAW_PCB", "UDP_PCB", "TCP_PCB", "TCP_PCB_LISTEN",
-	  		"TCP_SEG", "NETBUF", "NETCONN", "API_MSG", "TCP_MSG", "TIMEOUT"};
+        "TCP_SEG", "NETBUF", "NETCONN", "API_MSG", "TCP_MSG", "TIMEOUT"};
   stats_display_proto(&lwip_stats.link, "LINK");
   stats_display_proto(&lwip_stats.ip_frag, "IP_FRAG");
   stats_display_proto(&lwip_stats.ip, "IP");
@@ -108,7 +108,7 @@ stats_display(void)
   for (i = 0; i < MEMP_MAX; i++) {
     stats_display_mem(&lwip_stats.memp[i], memp_names[i]);
   }
-	
+  
 }
 #endif /* LWIP_STATS_DISPLAY */
 #endif /* LWIP_STATS */

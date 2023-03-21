@@ -48,16 +48,17 @@
 
 #include "lwip/sys.h"
 
-/* This is a reference implementation of the checksum algorithm, with the
+/* These are some reference implementations of the checksum algorithm, with the
  * aim of being simple, correct and fully portable. Checksumming is the
- * first thing you would want to optimize for your platform. You will
- * need to port it to your architecture and in your sys_arch.h:
+ * first thing you would want to optimize for your platform. If you create
+ * your own version, link it in and in your sys_arch.h put:
  * 
  * #define LWIP_CHKSUM <your_checksum_routine> 
 */
 #ifndef LWIP_CHKSUM
 #define LWIP_CHKSUM lwip_standard_chksum
 
+#if 1 /* Version A */
 /**
  * lwip checksum
  *
@@ -65,7 +66,7 @@
  * @param len length of data to be summed
  * @return host order (!) lwip checksum (non-inverted Internet sum) 
  *
- * @note accumulator size limits summable lenght to 64k
+ * @note accumulator size limits summable length to 64k
  * @note host endianess is irrelevant (p3 RFC1071)
  */
 static u16_t
@@ -106,10 +107,9 @@ lwip_standard_chksum(void *dataptr, u16_t len)
      The caller must invert bits for Internet sum ! */
   return htons((u16_t)acc);
 }
-
 #endif
 
-#if 0
+#if 0 /* Version B */
 /*
  * Curt McDowell
  * Broadcom Corp.
@@ -122,7 +122,7 @@ lwip_standard_chksum(void *dataptr, u16_t len)
  */
 
 static u16_t
-lwip_standard_chksum2(void *dataptr, int len)
+lwip_standard_chksum(void *dataptr, int len)
 {
   u8_t *pb = dataptr;
   u16_t *ps, t = 0;
@@ -159,7 +159,9 @@ lwip_standard_chksum2(void *dataptr, int len)
 
   return sum;
 }
+#endif
 
+#if 0 /* Version C */
 /**
  * An optimized checksum routine. Basically, it uses loop-unrolling on
  * the checksum loop, treating the head and tail bytes specially, whereas
@@ -168,14 +170,13 @@ lwip_standard_chksum2(void *dataptr, int len)
  * @arg start of buffer to be checksummed. May be an odd byte address.
  * @len number of bytes in the buffer to be checksummed.
  * 
- * @todo First argument type conflicts with generic checksum routine.
- * 
  * by Curt McDowell, Broadcom Corp. December 8th, 2005
  */
 
 static u16_t
-lwip_standard_chksum4(u8_t *pb, int len)
+lwip_standard_chksum(void *dataptr, int len)
 {
+  u8_t *pb = dataptr;
   u16_t *ps, t = 0;
   u32_t *pl;
   u32_t sum = 0, tmp;
@@ -235,6 +236,8 @@ lwip_standard_chksum4(u8_t *pb, int len)
 }
 #endif
 
+#endif /* LWIP_CHKSUM */
+
 /* inet_chksum_pseudo:
  *
  * Calculates the pseudo Internet checksum used by TCP and UDP for a pbuf chain.
@@ -286,7 +289,7 @@ inet_chksum_pseudo(struct pbuf *p,
 
 /* inet_chksum:
  *
- * Calculates the Internet checksum over a portion of memory. Used primarely for IP
+ * Calculates the Internet checksum over a portion of memory. Used primarily for IP
  * and ICMP.
  */
 

@@ -107,7 +107,9 @@ static void dhcp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_
 static err_t dhcp_unfold_reply(struct dhcp *dhcp);
 static u8_t *dhcp_get_option_ptr(struct dhcp *dhcp, u8_t option_type);
 static u8_t dhcp_get_option_byte(u8_t *ptr);
-//static u16_t dhcp_get_option_short(u8_t *ptr);
+#if 0
+static u16_t dhcp_get_option_short(u8_t *ptr);
+#endif
 static u32_t dhcp_get_option_long(u8_t *ptr);
 static void dhcp_free_reply(struct dhcp *dhcp);
 
@@ -308,7 +310,7 @@ void dhcp_fine_tmr()
   while (netif != NULL) {
     /* only act on DHCP configured interfaces */
     if (netif->dhcp != NULL) {
-      /* timer is active (non zero), and is about to trigger now */
+      /* timer is active (non zero), and is about to trigger now */      
       if (netif->dhcp->request_timeout > 1) {
         netif->dhcp->request_timeout--;
       }
@@ -494,12 +496,12 @@ static void dhcp_handle_ack(struct netif *netif)
   option_ptr = dhcp_get_option_ptr(dhcp, DHCP_OPTION_DNS_SERVER);
   if (option_ptr != NULL) {
     u8_t n;
-    dhcp->dns_count = dhcp_get_option_byte(&option_ptr[1]);
+    dhcp->dns_count = dhcp_get_option_byte(&option_ptr[1]) / (u32_t)sizeof(struct ip_addr);
     /* limit to at most DHCP_MAX_DNS DNS servers */
-    if (dhcp->dns_count > DHCP_MAX_DNS) dhcp->dns_count = DHCP_MAX_DNS;
-    for (n = 0; n < dhcp->dns_count; n++)
-    {
-      dhcp->offered_dns_addr[n].addr = htonl(dhcp_get_option_long(&option_ptr[2+(n<<2)]));
+    if (dhcp->dns_count > DHCP_MAX_DNS)
+      dhcp->dns_count = DHCP_MAX_DNS;
+    for (n = 0; n < dhcp->dns_count; n++) {
+      dhcp->offered_dns_addr[n].addr = htonl(dhcp_get_option_long(&option_ptr[2 + n * 4]));
     }
   }
 }
@@ -541,18 +543,18 @@ err_t dhcp_start(struct netif *netif)
   } else {
     LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | DBG_STATE | 3, ("dhcp_start(): restarting DHCP configuration\n"));
   }
-  	
-	/* clear data structure */
-	memset(dhcp, 0, sizeof(struct dhcp));
+    
+  /* clear data structure */
+  memset(dhcp, 0, sizeof(struct dhcp));
   /* allocate UDP PCB */
-	dhcp->pcb = udp_new();
-	if (dhcp->pcb == NULL) {
-	  LWIP_DEBUGF(DHCP_DEBUG  | DBG_TRACE, ("dhcp_start(): could not obtain pcb\n"));
-	  mem_free((void *)dhcp);
-	  netif->dhcp = dhcp = NULL;
-	  return ERR_MEM;
-	}
-	LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE, ("dhcp_start(): starting DHCP configuration\n"));
+  dhcp->pcb = udp_new();
+  if (dhcp->pcb == NULL) {
+    LWIP_DEBUGF(DHCP_DEBUG  | DBG_TRACE, ("dhcp_start(): could not obtain pcb\n"));
+    mem_free((void *)dhcp);
+    netif->dhcp = dhcp = NULL;
+    return ERR_MEM;
+  }
+  LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE, ("dhcp_start(): starting DHCP configuration\n"));
   /* (re)start the DHCP negotiation */
   result = dhcp_discover(netif);
   if (result != ERR_OK) {
@@ -1189,7 +1191,7 @@ static void dhcp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, struct ip_
   }
   /* match transaction ID against what we expected */
   if (ntohl(reply_msg->xid) != dhcp->xid) {
-    LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | 2, ("transaction id mismatch\n"));
+    LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | 2, ("transaction id mismatch reply_msg->xid(%"X32_F")!=dhcp->xid(%"X32_F")\n",ntohl(reply_msg->xid),dhcp->xid));
     pbuf_free(p);
     dhcp->p = NULL;
     return;
@@ -1268,6 +1270,7 @@ static err_t dhcp_create_request(struct netif *netif)
   }
   /* give unique transaction identifier to this request */
   dhcp->xid = xid++;
+  LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | 2, ("transaction id xid++(%"X32_F") dhcp->xid(%"U32_F")\n",xid,dhcp->xid));
 
   dhcp->msg_out = (struct dhcp_msg *)dhcp->p_out->payload;
 
@@ -1403,7 +1406,7 @@ static u8_t *dhcp_get_option_ptr(struct dhcp *dhcp, u8_t option_type)
       }
     }
   }
-  return 0;
+  return NULL;
 }
 
 /**
@@ -1420,6 +1423,7 @@ static u8_t dhcp_get_option_byte(u8_t *ptr)
   return *ptr;
 }
 
+#if 0
 /**
  * Return the 16-bit value of DHCP option data.
  *
@@ -1428,7 +1432,6 @@ static u8_t dhcp_get_option_byte(u8_t *ptr)
  *
  * @return byte value at the given address.
  */
-#if 0
 static u16_t dhcp_get_option_short(u8_t *ptr)
 {
   u16_t value;

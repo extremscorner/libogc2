@@ -53,6 +53,10 @@
 #define NO_SYS                          0
 #endif
 /* ---------- Memory options ---------- */
+#ifndef MEM_LIBC_MALLOC
+#define MEM_LIBC_MALLOC                 0
+#endif
+
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
    lwIP is compiled. 4 byte alignment -> define MEM_ALIGNMENT to 4, 2
    byte alignment -> define MEM_ALIGNMENT to 2. */
@@ -68,7 +72,7 @@ a lot of data that needs to be copied, this should be set high. */
 #endif
 
 #ifndef MEMP_SANITY_CHECK
-#define MEMP_SANITY_CHECK		0
+#define MEMP_SANITY_CHECK       0
 #endif
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
@@ -216,10 +220,30 @@ a lot of data that needs to be copied, this should be set high. */
 #define IP_FRAG                         1
 #endif
 
+/* IP reassemly default age in seconds */
+#ifndef IP_REASS_MAXAGE
+#define IP_REASS_MAXAGE 3
+#endif
+
+/* IP reassembly buffer size (minus IP header) */
+#ifndef IP_REASS_BUFSIZE
+#define IP_REASS_BUFSIZE 5760
+#endif
+
+/* Assumed max MTU on any interface for IP frag buffer */
+#ifndef IP_FRAG_MAX_MTU
+#define IP_FRAG_MAX_MTU 1500
+#endif
+
+/** Global default value for Time To Live used by transport layers. */
+#ifndef IP_DEFAULT_TTL
+#define IP_DEFAULT_TTL                  255
+#endif
+
 /* ---------- ICMP options ---------- */
 
 #ifndef ICMP_TTL
-#define ICMP_TTL                        255
+#define ICMP_TTL                        (IP_DEFAULT_TTL)
 #endif
 
 /* ---------- RAW options ---------- */
@@ -229,7 +253,7 @@ a lot of data that needs to be copied, this should be set high. */
 #endif
 
 #ifndef RAW_TTL
-#define RAW_TTL                        255
+#define RAW_TTL                        (IP_DEFAULT_TTL)
 #endif
 
 /* ---------- DHCP options ---------- */
@@ -244,13 +268,33 @@ a lot of data that needs to be copied, this should be set high. */
 #define DHCP_DOES_ARP_CHECK             1
 #endif
 
+/* ---------- SNMP options ---------- */
+/** @note UDP must be available for SNMP transport */
+#ifndef LWIP_SNMP
+#define LWIP_SNMP                       0
+#endif
+
+/** @note At least one request buffer is required.  */
+#ifndef SNMP_CONCURRENT_REQUESTS
+#define SNMP_CONCURRENT_REQUESTS        1
+#endif
+
+/** @note At least one trap destination is required */
+#ifndef SNMP_TRAP_DESTINATIONS
+#define SNMP_TRAP_DESTINATIONS          1
+#endif
+
+#ifndef SNMP_PRIVATE_MIB
+#define SNMP_PRIVATE_MIB                0
+#endif
+
 /* ---------- UDP options ---------- */
 #ifndef LWIP_UDP
 #define LWIP_UDP                        1
 #endif
 
 #ifndef UDP_TTL
-#define UDP_TTL                         255
+#define UDP_TTL                         (IP_DEFAULT_TTL)
 #endif
 
 /* ---------- TCP options ---------- */
@@ -259,7 +303,7 @@ a lot of data that needs to be copied, this should be set high. */
 #endif
 
 #ifndef TCP_TTL
-#define TCP_TTL                         255
+#define TCP_TTL                         (IP_DEFAULT_TTL)
 #endif
 
 #ifndef TCP_WND
@@ -311,7 +355,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* Support loop interface (127.0.0.1) */
 #ifndef LWIP_HAVE_LOOPIF
-#define LWIP_HAVE_LOOPIF		1
+#define LWIP_HAVE_LOOPIF                1
 #endif
 
 #ifndef LWIP_EVENT_API
@@ -346,8 +390,10 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* ---------- Socket Options ---------- */
 /* Enable SO_REUSEADDR and SO_REUSEPORT options */ 
-#ifndef SO_REUSE
-# define SO_REUSE 0
+#ifdef SO_REUSE
+/* I removed the lot since this was an ugly hack. It broke the raw-API.
+   It also came with many ugly goto's, Christiaan Simons. */
+#error "SO_REUSE currently unavailable, this was a hack"
 #endif                                                                        
 
 
@@ -363,63 +409,63 @@ a lot of data that needs to be copied, this should be set high. */
 #endif
 
 #ifndef LINK_STATS
-#define LINK_STATS	1
+#define LINK_STATS  1
 #endif
 
 #ifndef IP_STATS
-#define IP_STATS	1
+#define IP_STATS    1
 #endif
 
 #ifndef IPFRAG_STATS
-#define IPFRAG_STATS	1
+#define IPFRAG_STATS    1
 #endif
 
 #ifndef ICMP_STATS
-#define ICMP_STATS	1
+#define ICMP_STATS  1
 #endif
 
 #ifndef UDP_STATS
-#define UDP_STATS	1
+#define UDP_STATS   1
 #endif
 
 #ifndef TCP_STATS
-#define TCP_STATS	1
+#define TCP_STATS   1
 #endif
 
 #ifndef MEM_STATS
-#define MEM_STATS	1
+#define MEM_STATS   1
 #endif
 
 #ifndef MEMP_STATS
-#define MEMP_STATS	1
+#define MEMP_STATS  1
 #endif
 
 #ifndef PBUF_STATS
-#define PBUF_STATS	1
+#define PBUF_STATS  1
 #endif
 
 #ifndef SYS_STATS
-#define SYS_STATS	1
+#define SYS_STATS   1
 #endif
 
 #ifndef RAW_STATS
-#define RAW_STATS	0
+#define RAW_STATS   0
 #endif
 
 #else
 
-#define LINK_STATS	0
-#define IP_STATS	0
-#define IPFRAG_STATS	0
-#define ICMP_STATS	0
-#define UDP_STATS	0
-#define TCP_STATS	0
-#define MEM_STATS	0
-#define MEMP_STATS	0
-#define PBUF_STATS	0
-#define SYS_STATS	0
-#define RAW_STATS	0
-#define LWIP_STATS_DISPLAY	0
+#define LINK_STATS  0
+#define IP_STATS    0
+#define IPFRAG_STATS    0
+#define ICMP_STATS  0
+#define UDP_STATS   0
+#define TCP_STATS   0
+#define MEM_STATS   0
+#define MEMP_STATS  0
+#define PBUF_STATS  0
+#define SYS_STATS   0
+#define RAW_STATS   0
+#define LWIP_STATS_DISPLAY  0
 
 #endif /* LWIP_STATS */
 
@@ -658,6 +704,13 @@ a lot of data that needs to be copied, this should be set high. */
 #define DHCP_DEBUG                      DBG_OFF
 #endif
 
+#ifndef SNMP_MSG_DEBUG 
+#define SNMP_MSG_DEBUG                  DBG_OFF
+#endif
+
+#ifndef SNMP_MIB_DEBUG 
+#define SNMP_MIB_DEBUG                  DBG_OFF
+#endif
 
 #ifndef DBG_MIN_LEVEL
 #define DBG_MIN_LEVEL                   DBG_LEVEL_OFF

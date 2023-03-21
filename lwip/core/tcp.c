@@ -47,12 +47,12 @@
 #include "lwip/def.h"
 #include "lwip/mem.h"
 #include "lwip/memp.h"
+#include "lwip/snmp.h"
 
 #include "lwip/tcp.h"
 #if LWIP_TCP
 
-/* Incremented every coarse grained timer shot
-   (typically every 500 ms, determined by TCP_COARSE_TIMEOUT). */
+/* Incremented every coarse grained timer shot (typically every 500 ms). */
 u32_t tcp_ticks;
 const u8_t tcp_backoff[13] =
     { 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7};
@@ -117,10 +117,10 @@ tcp_close(struct tcp_pcb *pcb)
   err_t err;
 
 #if TCP_DEBUG
-  LWIP_DEBUGF(TCP_DEBUG, ("tcp_close: closing in state "));
+  LWIP_DEBUGF(TCP_DEBUG, ("tcp_close: closing in "));
   tcp_debug_print_state(pcb->state);
-  LWIP_DEBUGF(TCP_DEBUG, ("\n"));
 #endif /* TCP_DEBUG */
+
   switch (pcb->state) {
   case CLOSED:
     /* Closing a pcb in the CLOSED state might seem erroneous,
@@ -145,17 +145,26 @@ tcp_close(struct tcp_pcb *pcb)
     tcp_pcb_remove(&tcp_active_pcbs, pcb);
     memp_free(MEMP_TCP_PCB, pcb);
     pcb = NULL;
+    snmp_inc_tcpattemptfails();
     break;
   case SYN_RCVD:
+    err = tcp_send_ctrl(pcb, TCP_FIN);
+    if (err == ERR_OK) {
+      snmp_inc_tcpattemptfails();
+      pcb->state = FIN_WAIT_1;
+    }
+    break;
   case ESTABLISHED:
     err = tcp_send_ctrl(pcb, TCP_FIN);
     if (err == ERR_OK) {
+      snmp_inc_tcpestabresets();
       pcb->state = FIN_WAIT_1;
     }
     break;
   case CLOSE_WAIT:
     err = tcp_send_ctrl(pcb, TCP_FIN);
     if (err == ERR_OK) {
+      snmp_inc_tcpestabresets();
       pcb->state = LAST_ACK;
     }
     break;
@@ -436,6 +445,8 @@ tcp_connect(struct tcp_pcb *pcb, struct ip_addr *ipaddr, u16_t port,
   pcb->connected = connected;
 #endif /* LWIP_CALLBACK_API */  
   TCP_REG(&tcp_active_pcbs, pcb);
+
+  snmp_inc_tcpactiveopens();
   
   /* Build an MSS option */
   optdata = htonl(((u32_t)2 << 24) | 

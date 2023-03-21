@@ -105,12 +105,27 @@ struct netif {
   u16_t mtu;
   /** flags (see NETIF_FLAG_ above) */
   u8_t flags;
-  /** link type */
-  u8_t link_type;
   /** descriptive abbreviation */
   char name[2];
   /** number of this interface */
   u8_t num;
+#if LWIP_SNMP
+  /** link type (ifType values per RFC1213) */
+  u8_t link_type;
+  /** (estimate) link speed */
+  u32_t link_speed;
+  /** timestamp at last change made (up/down) */
+  u32_t ts;
+  /** counters */
+  u32_t ifinoctets;
+  u32_t ifinucastpkts;
+  u32_t ifinnucastpkts;
+  u32_t ifindiscards;
+  u32_t ifoutoctets;
+  u32_t ifoutucastpkts;
+  u32_t ifoutnucastpkts;
+  u32_t ifoutdiscards;
+#endif
 };
 
 /** The list of network interfaces. */

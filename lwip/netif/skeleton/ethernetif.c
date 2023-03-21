@@ -239,8 +239,12 @@ ethernetif_input(struct netif *netif)
   switch (htons(ethhdr->type)) {
   /* IP packet? */
   case ETHTYPE_IP:
+#if 0
+/* CSi disabled ARP table update on ingress IP packets.
+   This seems to work but needs thorough testing. */
     /* update ARP table */
     etharp_ip_input(netif, p);
+#endif
     /* skip Ethernet header */
     pbuf_header(p, -sizeof(struct eth_hdr));
     /* pass to network layer */
@@ -286,6 +290,22 @@ ethernetif_init(struct netif *netif)
   	LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_init: out of memory\n"));
   	return ERR_MEM;
   }
+
+#if LWIP_SNMP
+  /* ifType ethernetCsmacd(6) @see RFC1213 */
+  netif->link_type = 6;
+  /* your link speed here */
+  netif->link_speed = ;
+  netif->ts = 0;
+  netif->ifinoctets = 0;
+  netif->ifinucastpkts = 0;
+  netif->ifinnucastpkts = 0;
+  netif->ifindiscards = 0;
+  netif->ifoutoctets = 0;
+  netif->ifoutucastpkts = 0;
+  netif->ifoutnucastpkts = 0;
+  netif->ifoutdiscards = 0;
+#endif
   
   netif->state = ethernetif;
   netif->name[0] = IFNAME0;

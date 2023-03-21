@@ -67,7 +67,9 @@
 void
 ip_init(void)
 {
-  /* no initializations as of yet */
+#if IP_FRAG
+  ip_frag_init();
+#endif
 }
 
 /**
@@ -112,14 +114,14 @@ ip_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
   if (netif == NULL) {
     LWIP_DEBUGF(IP_DEBUG, ("ip_forward: no forwarding route for 0x%"X32_F" found\n",
                       iphdr->dest.addr));
-    snmp_inc_ipnoroutes();
+    snmp_inc_ipoutnoroutes();
     return (struct netif *)NULL;
   }
   /* Do not forward packets onto the same network interface on which
    * they arrived. */
   if (netif == inp) {
     LWIP_DEBUGF(IP_DEBUG, ("ip_forward: not bouncing packets back on incoming interface.\n"));
-    snmp_inc_ipnoroutes();
+    snmp_inc_ipoutnoroutes();
     return (struct netif *)NULL;
   }
 
@@ -127,10 +129,10 @@ ip_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
   IPH_TTL_SET(iphdr, IPH_TTL(iphdr) - 1);
   /* send ICMP if TTL == 0 */
   if (IPH_TTL(iphdr) == 0) {
+    snmp_inc_ipinhdrerrors();
     /* Don't send ICMP messages in response to ICMP messages */
     if (IPH_PROTO(iphdr) != IP_PROTO_ICMP) {
       icmp_time_exceeded(p, ICMP_TE_TTL);
-      snmp_inc_icmpouttimeexcds();
     }
     return (struct netif *)NULL;
   }
@@ -147,7 +149,7 @@ ip_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
 
   IP_STATS_INC(ip.fw);
   IP_STATS_INC(ip.xmit);
-    snmp_inc_ipforwdatagrams();
+  snmp_inc_ipforwdatagrams();
 
   PERF_STOP("ip_forward");
   /* transmit pbuf on chosen interface */
@@ -186,7 +188,7 @@ ip_input(struct pbuf *p, struct netif *inp) {
     pbuf_free(p);
     IP_STATS_INC(ip.err);
     IP_STATS_INC(ip.drop);
-    snmp_inc_ipunknownprotos();
+    snmp_inc_ipinhdrerrors();
     return ERR_OK;
   }
   /* obtain IP header length in number of 32-bit words */
@@ -215,7 +217,7 @@ ip_input(struct pbuf *p, struct netif *inp) {
     pbuf_free(p);
     IP_STATS_INC(ip.chkerr);
     IP_STATS_INC(ip.drop);
-    snmp_inc_ipindiscards();
+    snmp_inc_ipinhdrerrors();
     return ERR_OK;
   }
 #endif
@@ -277,6 +279,7 @@ ip_input(struct pbuf *p, struct netif *inp) {
     else
 #endif /* IP_FORWARD */
     {
+      snmp_inc_ipinaddrerrors();
       snmp_inc_ipindiscards();
     }
     pbuf_free(p);
@@ -300,7 +303,8 @@ ip_input(struct pbuf *p, struct netif *inp) {
       ntohs(IPH_OFFSET(iphdr))));
     IP_STATS_INC(ip.opterr);
     IP_STATS_INC(ip.drop);
-    snmp_inc_ipunknownprotos();
+    /* unsupported protocol feature */
+    snmp_inc_ipinunknownprotos();
     return ERR_OK;
 #endif /* IP_REASSEMBLY */
   }
@@ -311,7 +315,8 @@ ip_input(struct pbuf *p, struct netif *inp) {
     pbuf_free(p);
     IP_STATS_INC(ip.opterr);
     IP_STATS_INC(ip.drop);
-    snmp_inc_ipunknownprotos();
+    /* unsupported protocol feature */
+    snmp_inc_ipinunknownprotos();
     return ERR_OK;
   }
 #endif /* IP_OPTIONS == 0 */
@@ -357,7 +362,7 @@ ip_input(struct pbuf *p, struct netif *inp) {
 
     IP_STATS_INC(ip.proterr);
     IP_STATS_INC(ip.drop);
-    snmp_inc_ipunknownprotos();
+    snmp_inc_ipinunknownprotos();
   }
 #if LWIP_RAW
   } /* LWIP_RAW */
@@ -370,6 +375,9 @@ ip_input(struct pbuf *p, struct netif *inp) {
  * the IP header and calculates the IP header checksum. If the source
  * IP address is NULL, the IP address of the outgoing network
  * interface is filled in as source address.
+ *
+ * @note ip_id: RFC791 "some host may be able to simply use
+ *  unique identifiers independent of destination"
  */
 
 err_t
@@ -450,7 +458,7 @@ ip_output(struct pbuf *p, struct ip_addr *src, struct ip_addr *dest,
     LWIP_DEBUGF(IP_DEBUG | 2, ("ip_output: No route to 0x%"X32_F"\n", dest->addr));
 
     IP_STATS_INC(ip.rterr);
-    snmp_inc_ipoutdiscards();
+    snmp_inc_ipoutnoroutes();
     return ERR_RTE;
   }
 

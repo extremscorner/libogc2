@@ -43,12 +43,13 @@
  * This file is part of the lwIP TCP/IP stack.
  *
  */
-
+#include <string.h>
 #include "lwip/opt.h"
 #include "lwip/inet.h"
 #include "netif/etharp.h"
 #include "lwip/ip.h"
 #include "lwip/stats.h"
+#include "lwip/snmp.h"
 
 /* ARP needs to inform DHCP of any ARP replies? */
 #if (LWIP_DHCP && DHCP_DOES_ARP_CHECK)
@@ -98,6 +99,7 @@ struct etharp_entry {
   struct eth_addr ethaddr;
   enum etharp_state state;
   u8_t ctime;
+  struct netif *netif;
 };
 
 static const struct eth_addr ethbroadcast = {{0xff,0xff,0xff,0xff,0xff,0xff}};
@@ -124,6 +126,7 @@ etharp_init(void)
     arp_table[i].p = NULL;
 #endif
     arp_table[i].ctime = 0;
+    arp_table[i].netif = NULL;
   }
 }
 
@@ -162,6 +165,8 @@ etharp_tmr(void)
     }
     /* clean up entries that have just been expired */
     if (arp_table[i].state == ETHARP_STATE_EXPIRED) {
+      /* remove from SNMP ARP index tree */
+      snmp_delete_arpidx_tree(arp_table[i].netif, &arp_table[i].ipaddr);
 #if ARP_QUEUEING
       /* and empty packet queue */
       if (arp_table[i].p != NULL) {
@@ -275,7 +280,7 @@ static s8_t find_entry(struct ip_addr *ipaddr, u8_t flags)
   /* no empty entry found and not allowed to recycle? */
   if ((empty == ARP_TABLE_SIZE) && ((flags & ETHARP_TRY_HARD) == 0))
   {
-  	return (s8_t)ERR_MEM;
+    return (s8_t)ERR_MEM;
   }
   
   /* b) choose the least destructive entry to recycle:
@@ -323,6 +328,10 @@ static s8_t find_entry(struct ip_addr *ipaddr, u8_t flags)
   /* { empty or recyclable entry found } */
   LWIP_ASSERT("i < ARP_TABLE_SIZE", i < ARP_TABLE_SIZE);
 
+  if (arp_table[i].state != ETHARP_STATE_EMPTY)
+  {
+    snmp_delete_arpidx_tree(arp_table[i].netif, &arp_table[i].ipaddr);
+  }
   /* recycle entry (no-op for an already empty entry) */
   arp_table[i].state = ETHARP_STATE_EMPTY;
 
@@ -357,7 +366,8 @@ static s8_t find_entry(struct ip_addr *ipaddr, u8_t flags)
 static err_t
 update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struct eth_addr *ethaddr, u8_t flags)
 {
-  s8_t i, k;
+  s8_t i;
+  u8_t k;
   LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE | 3, ("update_arp_entry()\n"));
   LWIP_ASSERT("netif->hwaddr_len != 0", netif->hwaddr_len != 0);
   LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("update_arp_entry: %"U16_F".%"U16_F".%"U16_F".%"U16_F" - %02"X16_F":%02"X16_F":%02"X16_F":%02"X16_F":%02"X16_F":%02"X16_F"\n",
@@ -378,10 +388,17 @@ update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struct eth_addr *e
   
   /* mark it stable */
   arp_table[i].state = ETHARP_STATE_STABLE;
+  /* record network interface */
+  arp_table[i].netif = netif;
+
+  /* insert in SNMP ARP index tree */
+  snmp_insert_arpidx_tree(netif, &arp_table[i].ipaddr);
 
   LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("update_arp_entry: updating stable entry %"S16_F"\n", (s16_t)i));
   /* update address */
-  for (k = 0; k < netif->hwaddr_len; ++k) {
+  k = netif->hwaddr_len;
+  while (k > 0) {
+    k--;
     arp_table[i].ethaddr.addr[k] = ethaddr->addr[k];
   }
   /* reset time stamp */
@@ -397,7 +414,9 @@ update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struct eth_addr *e
     /* note: this will also terminate the p pbuf chain */
     arp_table[i].p = pbuf_dequeue(p);
     /* fill-in Ethernet header */
-    for (k = 0; k < netif->hwaddr_len; ++k) {
+    k = netif->hwaddr_len;
+    while(k > 0) {
+      k--;
       ethhdr->dest.addr[k] = ethaddr->addr[k];
       ethhdr->src.addr[k] = netif->hwaddr[k];
     }
@@ -410,6 +429,39 @@ update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struct eth_addr *e
   }
 #endif
   return ERR_OK;
+}
+
+/**
+ * Finds (stable) ethernet/IP address pair from ARP table
+ * using interface and IP address index.
+ * @note the addresses in the ARP table are in network order!
+ *
+ * @param netif points to interface index
+ * @param ipaddr points to the (network order) IP address index
+ * @param eth_ret points to return pointer
+ * @param ip_ret points to return pointer
+ * @return table index if found, -1 otherwise
+ */
+s8_t
+etharp_find_addr(struct netif *netif, struct ip_addr *ipaddr,
+         struct eth_addr **eth_ret, struct ip_addr **ip_ret)
+{
+  s8_t i;
+
+  i = 0;
+  while (i < ARP_TABLE_SIZE)
+  {
+    if ((arp_table[i].state == ETHARP_STATE_STABLE) &&
+        (arp_table[i].netif == netif) && 
+        ip_addr_cmp(ipaddr, &arp_table[i].ipaddr) )
+    {
+      *eth_ret = &arp_table[i].ethaddr;
+      *ip_ret = &arp_table[i].ipaddr;
+      return i;
+    }
+    i++;
+  }
+  return -1;
 }
 
 /**
@@ -477,16 +529,17 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
   
   /* drop short ARP packets */
   if (p->tot_len < sizeof(struct etharp_hdr)) {
-    LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE | 1, ("etharp_arp_input: packet dropped, too short (%"S16_F"/%"S16_F")\n", p->tot_len, sizeof(struct etharp_hdr)));
+    LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE | 1, ("etharp_arp_input: packet dropped, too short (%"S16_F"/%"S16_F")\n", p->tot_len, (s16_t)sizeof(struct etharp_hdr)));
     pbuf_free(p);
     return;
   }
 
   hdr = p->payload;
  
-  /* get aligned copies of addresses */
-  *(struct ip_addr2 *)((void*)&sipaddr) = hdr->sipaddr;
-  *(struct ip_addr2 *)((void*)&dipaddr) = hdr->dipaddr;
+  /* Copy struct ip_addr2 to aligned ip_addr, to support compilers without
+   * structure packing (not using structure copy which breaks strict-aliasing rules). */
+  memcpy(&sipaddr, &hdr->sipaddr, sizeof(sipaddr));
+  memcpy(&dipaddr, &hdr->dipaddr, sizeof(dipaddr));
 
   /* this interface is not configured? */
   if (netif->ip_addr.addr == 0) {
@@ -524,9 +577,11 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
       hdr->opcode = htons(ARP_REPLY);
 
       hdr->dipaddr = hdr->sipaddr;
-      hdr->sipaddr = *(struct ip_addr2 *)((void*)&netif->ip_addr);
+      hdr->sipaddr = *(struct ip_addr2 *)&netif->ip_addr;
 
-      for(i = 0; i < netif->hwaddr_len; ++i) {
+      i = netif->hwaddr_len;
+      while(i > 0) {
+        i--;
         hdr->dhwaddr.addr[i] = hdr->shwaddr.addr[i];
         hdr->shwaddr.addr[i] = ethaddr->addr[i];
         hdr->ethhdr.dest.addr[i] = hdr->dhwaddr.addr[i];
@@ -647,7 +702,9 @@ etharp_output(struct netif *netif, struct ip_addr *ipaddr, struct pbuf *q)
   /* obtain source Ethernet address of the given interface */
   srcaddr = (struct eth_addr *)netif->hwaddr;
   ethhdr = q->payload;
-  for (i = 0; i < netif->hwaddr_len; i++) {
+  i = netif->hwaddr_len;
+  while(i > 0) {
+    i--;
     ethhdr->dest.addr[i] = dest->addr[i];
     ethhdr->src.addr[i] = srcaddr->addr[i];
   }
@@ -736,7 +793,9 @@ err_t etharp_query(struct netif *netif, struct ip_addr *ipaddr, struct pbuf *q)
       /* we have a valid IP->Ethernet address mapping,
        * fill in the Ethernet header for the outgoing packet */
       struct eth_hdr *ethhdr = q->payload;
-      for(k = 0; k < netif->hwaddr_len; k++) {
+      k = netif->hwaddr_len;
+      while(k > 0) {
+        k--;
         ethhdr->dest.addr[k] = arp_table[i].ethaddr.addr[k];
         ethhdr->src.addr[k]  = srcaddr->addr[k];
       }
@@ -756,12 +815,12 @@ err_t etharp_query(struct netif *netif, struct ip_addr *ipaddr, struct pbuf *q)
       if (p != NULL) {
         /* queue packet ... */
         if (arp_table[i].p == NULL) {
-        	/* ... in the empty queue */
-        	pbuf_ref(p);
-        	arp_table[i].p = p;
+          /* ... in the empty queue */
+          pbuf_ref(p);
+          arp_table[i].p = p;
 #if 0 /* multi-packet-queueing disabled, see bug #11400 */
         } else {
-        	/* ... at tail of non-empty queue */
+          /* ... at tail of non-empty queue */
           pbuf_queue(arp_table[i].p, p);
 #endif
         }
@@ -795,23 +854,25 @@ err_t etharp_request(struct netif *netif, struct ip_addr *ipaddr)
     struct etharp_hdr *hdr = p->payload;
     LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("etharp_request: sending ARP request.\n"));
     hdr->opcode = htons(ARP_REQUEST);
-    for (k = 0; k < netif->hwaddr_len; k++)
-    {
+    k = netif->hwaddr_len;
+    while(k > 0) {
+      k--;
       hdr->shwaddr.addr[k] = srcaddr->addr[k];
       /* the hardware address is what we ask for, in
        * a request it is a don't-care value, we use zeroes */
       hdr->dhwaddr.addr[k] = 0x00;
     }
     hdr->dipaddr = *(struct ip_addr2 *)ipaddr;
-    hdr->sipaddr = *(struct ip_addr2 *)((void*)&netif->ip_addr);
+    hdr->sipaddr = *(struct ip_addr2 *)&netif->ip_addr;
 
     hdr->hwtype = htons(HWTYPE_ETHERNET);
     ARPH_HWLEN_SET(hdr, netif->hwaddr_len);
 
     hdr->proto = htons(ETHTYPE_IP);
     ARPH_PROTOLEN_SET(hdr, sizeof(struct ip_addr));
-    for (k = 0; k < netif->hwaddr_len; ++k)
-    {
+    k = netif->hwaddr_len;
+    while(k > 0) {
+      k--;
       /* broadcast to all network interfaces on the local network */
       hdr->ethhdr.dest.addr[k] = 0xff;
       hdr->ethhdr.src.addr[k] = srcaddr->addr[k];

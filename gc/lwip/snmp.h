@@ -34,29 +34,69 @@
 #define __LWIP_SNMP_H__
 
 #include "lwip/opt.h"
+#include "lwip/netif.h"
+#include "lwip/udp.h"
 
 /* SNMP support available? */
 #if defined(LWIP_SNMP) && (LWIP_SNMP > 0)
 
+/** fixed maximum length for object identifier type */
+#define LWIP_SNMP_OBJ_ID_LEN 32
+/** internal object identifier representation */
+struct snmp_obj_id
+{
+  u8_t len;
+  s32_t id[LWIP_SNMP_OBJ_ID_LEN];
+};
+
+/* system */
+void snmp_set_sysdesr(u8_t* str, u8_t* strlen);
+void snmp_set_sysobjid(struct snmp_obj_id *oid);
+void snmp_get_sysobjid_ptr(struct snmp_obj_id **oid);
+void snmp_inc_sysuptime(void);
+void snmp_get_sysuptime(u32_t *value);
+void snmp_set_syscontact(u8_t *ocstr, u8_t *ocstrlen);
+void snmp_set_sysname(u8_t *ocstr, u8_t *ocstrlen);
+void snmp_set_syslocation(u8_t *ocstr, u8_t *ocstrlen);
+
 /* network interface */
-void snmp_add_ifinoctets(unsigned long value); 
-void snmp_inc_ifinucastpkts(void);
-void snmp_inc_ifinnucastpkts(void);
-void snmp_inc_ifindiscards(void);
-void snmp_add_ifoutoctets(unsigned long value);
-void snmp_inc_ifoutucastpkts(void);
-void snmp_inc_ifoutnucastpkts(void);
-void snmp_inc_ifoutdiscards(void);
+void snmp_add_ifinoctets(struct netif *ni, u32_t value); 
+void snmp_inc_ifinucastpkts(struct netif *ni);
+void snmp_inc_ifinnucastpkts(struct netif *ni);
+void snmp_inc_ifindiscards(struct netif *ni);
+void snmp_add_ifoutoctets(struct netif *ni, u32_t value);
+void snmp_inc_ifoutucastpkts(struct netif *ni);
+void snmp_inc_ifoutnucastpkts(struct netif *ni);
+void snmp_inc_ifoutdiscards(struct netif *ni);
+void snmp_inc_iflist(void);
+void snmp_dec_iflist(void);
+
+/* ARP (for atTable and ipNetToMediaTable) */
+void snmp_insert_arpidx_tree(struct netif *ni, struct ip_addr *ip);
+void snmp_delete_arpidx_tree(struct netif *ni, struct ip_addr *ip);
 
 /* IP */
 void snmp_inc_ipinreceives(void);
-void snmp_inc_ipindelivers(void);
-void snmp_inc_ipindiscards(void);
-void snmp_inc_ipoutdiscards(void);
-void snmp_inc_ipoutrequests(void);
-void snmp_inc_ipunknownprotos(void);
-void snmp_inc_ipnoroutes(void);
+void snmp_inc_ipinhdrerrors(void);
+void snmp_inc_ipinaddrerrors(void);
 void snmp_inc_ipforwdatagrams(void);
+void snmp_inc_ipinunknownprotos(void);
+void snmp_inc_ipindiscards(void);
+void snmp_inc_ipindelivers(void);
+void snmp_inc_ipoutrequests(void);
+void snmp_inc_ipoutdiscards(void);
+void snmp_inc_ipoutnoroutes(void);
+void snmp_inc_ipreasmreqds(void);
+void snmp_inc_ipreasmoks(void);
+void snmp_inc_ipreasmfails(void);
+void snmp_inc_ipfragoks(void);
+void snmp_inc_ipfragfails(void);
+void snmp_inc_ipfragcreates(void);
+void snmp_inc_iproutingdiscards(void);
+void snmp_insert_ipaddridx_tree(struct netif *ni);
+void snmp_delete_ipaddridx_tree(struct netif *ni);
+void snmp_insert_iprteidx_tree(u8_t dflt, struct netif *ni);
+void snmp_delete_iprteidx_tree(u8_t dflt, struct netif *ni);
 
 /* ICMP */
 void snmp_inc_icmpinmsgs(void);
@@ -91,7 +131,6 @@ void snmp_inc_tcpactiveopens(void);
 void snmp_inc_tcppassiveopens(void);
 void snmp_inc_tcpattemptfails(void);
 void snmp_inc_tcpestabresets(void);
-void snmp_inc_tcpcurrestab(void);
 void snmp_inc_tcpinsegs(void);
 void snmp_inc_tcpoutsegs(void);
 void snmp_inc_tcpretranssegs(void);
@@ -103,30 +142,89 @@ void snmp_inc_udpindatagrams(void);
 void snmp_inc_udpnoports(void);
 void snmp_inc_udpinerrors(void);
 void snmp_inc_udpoutdatagrams(void);
+void snmp_insert_udpidx_tree(struct udp_pcb *pcb);
+void snmp_delete_udpidx_tree(struct udp_pcb *pcb);
+
+/* SNMP */
+void snmp_inc_snmpinpkts(void);
+void snmp_inc_snmpoutpkts(void);
+void snmp_inc_snmpinbadversions(void);
+void snmp_inc_snmpinbadcommunitynames(void);
+void snmp_inc_snmpinbadcommunityuses(void);
+void snmp_inc_snmpinasnparseerrs(void);
+void snmp_inc_snmpintoobigs(void);
+void snmp_inc_snmpinnosuchnames(void);
+void snmp_inc_snmpinbadvalues(void);
+void snmp_inc_snmpinreadonlys(void);
+void snmp_inc_snmpingenerrs(void);
+void snmp_add_snmpintotalreqvars(u8_t value);
+void snmp_add_snmpintotalsetvars(u8_t value);
+void snmp_inc_snmpingetrequests(void);
+void snmp_inc_snmpingetnexts(void);
+void snmp_inc_snmpinsetrequests(void);
+void snmp_inc_snmpingetresponses(void);
+void snmp_inc_snmpintraps(void);
+void snmp_inc_snmpouttoobigs(void);
+void snmp_inc_snmpoutnosuchnames(void);
+void snmp_inc_snmpoutbadvalues(void);
+void snmp_inc_snmpoutgenerrs(void);
+void snmp_inc_snmpoutgetrequests(void);
+void snmp_inc_snmpoutgetnexts(void);
+void snmp_inc_snmpoutsetrequests(void);
+void snmp_inc_snmpoutgetresponses(void);
+void snmp_inc_snmpouttraps(void);
+void snmp_get_snmpgrpid_ptr(struct snmp_obj_id **oid);
+void snmp_set_snmpenableauthentraps(u8_t *value);
+void snmp_get_snmpenableauthentraps(u8_t *value);
 
 /* LWIP_SNMP support not available */
 /* define everything to be empty */
 #else
 
+/* system */
+#define snmp_set_sysdesr(str, strlen)
+#define snmp_get_sysobjid_ptr(oid)
+#define snmp_inc_sysuptime()
+#define snmp_get_sysuptime(value)
+
 /* network interface */
-#define snmp_add_ifinoctets(value) 
-#define snmp_inc_ifinucastpkts()
-#define snmp_inc_ifinnucastpkts()
-#define snmp_inc_ifindiscards()
-#define snmp_add_ifoutoctets(value)
-#define snmp_inc_ifoutucastpkts()
-#define snmp_inc_ifoutnucastpkts()
-#define snmp_inc_ifoutdiscards()
+#define snmp_add_ifinoctets(ni,value) 
+#define snmp_inc_ifinucastpkts(ni)
+#define snmp_inc_ifinnucastpkts(ni)
+#define snmp_inc_ifindiscards(ni)
+#define snmp_add_ifoutoctets(ni,value)
+#define snmp_inc_ifoutucastpkts(ni)
+#define snmp_inc_ifoutnucastpkts(ni)
+#define snmp_inc_ifoutdiscards(ni)
+#define snmp_inc_iflist()
+#define snmp_dec_iflist()
+
+/* ARP */
+#define snmp_insert_arpidx_tree(ni,ip)
+#define snmp_delete_arpidx_tree(ni,ip)
 
 /* IP */
 #define snmp_inc_ipinreceives()
-#define snmp_inc_ipindelivers()
-#define snmp_inc_ipindiscards()
-#define snmp_inc_ipoutdiscards()
-#define snmp_inc_ipoutrequests()
-#define snmp_inc_ipunknownprotos()
-#define snmp_inc_ipnoroutes()
+#define snmp_inc_ipinhdrerrors()
+#define snmp_inc_ipinaddrerrors()
 #define snmp_inc_ipforwdatagrams()
+#define snmp_inc_ipinunknownprotos()
+#define snmp_inc_ipindiscards()
+#define snmp_inc_ipindelivers()
+#define snmp_inc_ipoutrequests()
+#define snmp_inc_ipoutdiscards()
+#define snmp_inc_ipoutnoroutes()
+#define snmp_inc_ipreasmreqds()
+#define snmp_inc_ipreasmoks()
+#define snmp_inc_ipreasmfails()
+#define snmp_inc_ipfragoks()
+#define snmp_inc_ipfragfails()
+#define snmp_inc_ipfragcreates()
+#define snmp_inc_iproutingdiscards()
+#define snmp_insert_ipaddridx_tree(ni)
+#define snmp_delete_ipaddridx_tree(ni)
+#define snmp_insert_iprteidx_tree(dflt, ni)
+#define snmp_delete_iprteidx_tree(dflt, ni)
 
 /* ICMP */
 #define snmp_inc_icmpinmsgs()
@@ -160,7 +258,6 @@ void snmp_inc_udpoutdatagrams(void);
 #define snmp_inc_tcppassiveopens()
 #define snmp_inc_tcpattemptfails()
 #define snmp_inc_tcpestabresets()
-#define snmp_inc_tcpcurrestab()
 #define snmp_inc_tcpinsegs()
 #define snmp_inc_tcpoutsegs()
 #define snmp_inc_tcpretranssegs()
@@ -172,6 +269,40 @@ void snmp_inc_udpoutdatagrams(void);
 #define snmp_inc_udpnoports()
 #define snmp_inc_udpinerrors()
 #define snmp_inc_udpoutdatagrams()
+#define snmp_insert_udpidx_tree(pcb)
+#define snmp_delete_udpidx_tree(pcb)
+
+/* SNMP */
+#define snmp_inc_snmpinpkts()
+#define snmp_inc_snmpoutpkts()
+#define snmp_inc_snmpinbadversions()
+#define snmp_inc_snmpinbadcommunitynames()
+#define snmp_inc_snmpinbadcommunityuses()
+#define snmp_inc_snmpinasnparseerrs()
+#define snmp_inc_snmpintoobigs()
+#define snmp_inc_snmpinnosuchnames()
+#define snmp_inc_snmpinbadvalues()
+#define snmp_inc_snmpinreadonlys()
+#define snmp_inc_snmpingenerrs()
+#define snmp_add_snmpintotalreqvars(value)
+#define snmp_add_snmpintotalsetvars(value)
+#define snmp_inc_snmpingetrequests()
+#define snmp_inc_snmpingetnexts()
+#define snmp_inc_snmpinsetrequests()
+#define snmp_inc_snmpingetresponses()
+#define snmp_inc_snmpintraps()
+#define snmp_inc_snmpouttoobigs()
+#define snmp_inc_snmpoutnosuchnames()
+#define snmp_inc_snmpoutbadvalues()
+#define snmp_inc_snmpoutgenerrs()
+#define snmp_inc_snmpoutgetrequests()
+#define snmp_inc_snmpoutgetnexts()
+#define snmp_inc_snmpoutsetrequests()
+#define snmp_inc_snmpoutgetresponses()
+#define snmp_inc_snmpouttraps()
+#define snmp_get_snmpgrpid_ptr(oid)
+#define snmp_set_snmpenableauthentraps(value)
+#define snmp_get_snmpenableauthentraps(value)
 
 #endif
 

@@ -33,11 +33,13 @@
 #ifndef __LWIP_IP_FRAG_H__
 #define __LWIP_IP_FRAG_H__
 
+#include "lwip/opt.h"
 #include "lwip/err.h"
 #include "lwip/pbuf.h"
 #include "lwip/netif.h"
 #include "lwip/ip_addr.h"
 
+void ip_frag_init(void);
 void ip_reass_tmr(void);
 struct pbuf * ip_reass(struct pbuf *p);
 err_t ip_frag(struct pbuf *p, struct netif *netif, struct ip_addr *dest);
