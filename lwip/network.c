@@ -2507,6 +2507,28 @@ s32 net_ioctl(s32 s, u32 cmd, void *argp)
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, FIONBIO, %d)\n", s, !!(sock->flags&O_NONBLOCK)));
 			return 0;
 
+		case SIOCGARP:
+			if(argp && ((struct arpreq*)argp)->arp_pa.sa_family==AF_INET) {
+				struct arpreq *arpreq = (struct arpreq*)argp;
+				struct netif *netif;
+				struct ip_addr ip_addr,*ip_ret;
+				struct eth_addr *eth_ret;
+
+				netif = netif_find(arpreq->arp_dev);
+				if(!netif) return -ENODEV;
+
+				ip_addr.addr = ((struct sockaddr_in*)&arpreq->arp_pa)->sin_addr.s_addr;
+
+				if(etharp_find_addr(netif,&ip_addr,&eth_ret,&ip_ret)<0) {
+					return -ENOENT;
+				} else {
+					arpreq->arp_ha.sa_family = AF_UNSPEC;
+					memcpy(arpreq->arp_ha.sa_data,eth_ret,sizeof(struct eth_addr));
+					return 0;
+				}
+			}
+			return -EINVAL;
+
 		default:
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, UNIMPL: 0x%lx, %p)\n", s, cmd, argp));
 			return -ENOSYS;

@@ -125,6 +125,8 @@ struct linger {
 #define _IOR(x,y,t)     (IOC_OUT|(((long)sizeof(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
 
 #define _IOW(x,y,t)     (IOC_IN|(((long)sizeof(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
+
+#define _IOWR(x,y,t)    (IOC_INOUT|(((long)sizeof(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
 #endif
 
 #ifndef FIONREAD
@@ -141,6 +143,12 @@ struct linger {
 #define SIOCSLOWAT  _IOW('s',  2, unsigned long)  /* set low watermark */
 #define SIOCGLOWAT  _IOR('s',  3, unsigned long)  /* get low watermark */
 #define SIOCATMARK  _IOR('s',  7, unsigned long)  /* at oob mark? */
+#endif
+
+#ifndef SIOCSARP
+#define SIOCSARP    _IOW('i', 30, struct arpreq)  /* set arp entry */
+#define SIOCGARP    _IOWR('i',31, struct arpreq)  /* get arp entry */
+#define SIOCDARP    _IOW('i', 32, struct arpreq)  /* delete arp entry */
 #endif
 
 #ifndef O_NONBLOCK
@@ -231,6 +239,14 @@ struct sockaddr {
   u8 sa_len;
   u8 sa_family;
   s8 sa_data[14];
+};
+
+struct arpreq {
+  struct sockaddr arp_pa;
+  struct sockaddr arp_ha;
+  int arp_flags;
+  struct sockaddr arp_netmask;
+  char arp_dev[16];
 };
 
 struct hostent {

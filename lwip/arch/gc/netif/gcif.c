@@ -23,7 +23,7 @@
 //#define _BBA_DEBUG
 
 #define IFNAME0		'e'
-#define IFNAME1		'0'
+#define IFNAME1		'n'
 
 #define GCIF_TX_TQ				8
 #define GCIF_EXI_TQ				9
