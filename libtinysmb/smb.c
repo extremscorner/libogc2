@@ -623,13 +623,13 @@ static s32 SMBCheck(u8 command,SMBHANDLE *handle)
 
 	/*** Do basic SMB Header checks ***/
 	ret = getUInt(ptr,SMB_OFFSET_PROTO);
-	if(ret!=SMB_PROTO) goto failed;
+	if(ret!=SMB_PROTO) return SMB_BAD_PROTOCOL;
 
 	ret = getUChar(ptr, SMB_OFFSET_CMD);
-	if(ret!=command) goto failed;
+	if(ret!=command) return SMB_BAD_COMMAND;
 
 	ret = getUInt(ptr,SMB_OFFSET_NTSTATUS);
-	if(ret) goto failed;
+	if(ret) return SMB_ERROR;
 
 	return SMB_SUCCESS;
 failed:
