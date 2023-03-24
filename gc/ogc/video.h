@@ -100,7 +100,7 @@ u32 VIDEO_GetRetraceCount(void);
 
 /*! 
  * \fn u32 VIDEO_GetNextField(void)
- * \brief Get the next field in DS mode.
+ * \brief Get the next field
  *
  * \return \ref vi_fielddef "field"
  */
@@ -220,8 +220,8 @@ u32 VIDEO_HaveComponentCable(void);
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode);
 
-void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver);
 void VIDEO_SetAdjustingValues(s16 hor,s16 ver);
+void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver);
 
 #ifdef __cplusplus
    }
