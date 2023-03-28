@@ -2926,7 +2926,8 @@ GXRModeObj *rmode = NULL;
 	}
 #else
 	u32 tvmode = SYS_GetVideoMode();
-	if (SYS_GetProgressiveScan() && VIDEO_HaveComponentCable()) {
+	if (SYS_GetProgressiveScan() &&
+		(VIDEO_HaveComponentCable() || VIDEO_GetScanMode() == VI_PROGRESSIVE)) {
 		switch (tvmode) {
 			case SYS_VIDEO_PAL:
 				if (SYS_GetEuRGB60())
