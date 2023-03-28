@@ -2880,9 +2880,10 @@ u32 VIDEO_GetScanMode(void)
 	u32 nonint;
 
 	_CPU_ISR_Disable(level);
-	if(_viReg[54]&0x0001) nonint = VI_PROGRESSIVE;
-	else if(_SHIFTR(_viReg[1],2,1)) nonint = VI_NON_INTERLACE;
-	else nonint = VI_INTERLACE;
+	if(_SHIFTR(_viReg[1],2,1)) {
+		if(_viReg[54]&0x0001) nonint = VI_PROGRESSIVE;
+		else nonint = VI_NON_INTERLACE;
+	} else nonint = VI_INTERLACE;
 	_CPU_ISR_Restore(level);
 
 	return nonint;
