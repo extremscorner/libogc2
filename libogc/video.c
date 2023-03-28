@@ -2926,8 +2926,7 @@ GXRModeObj *rmode = NULL;
 	}
 #else
 	u32 tvmode = SYS_GetVideoMode();
-	if (SYS_GetProgressiveScan() &&
-		(VIDEO_HaveComponentCable() || VIDEO_GetScanMode() == VI_PROGRESSIVE)) {
+	if (SYS_GetProgressiveScan() && VIDEO_HaveComponentCable()) {
 		switch (tvmode) {
 			case SYS_VIDEO_PAL:
 				if (SYS_GetEuRGB60())
@@ -3023,7 +3022,17 @@ void VIDEO_ClearFrameBuffer(GXRModeObj *rmode,void *fb,u32 color)
 
 u32 VIDEO_HaveComponentCable(void)
 {
-	return (_viReg[55]&0x01);
+	u32 level;
+	u32 dtv;
+
+	_CPU_ISR_Disable(level);
+	dtv = (_viReg[55]&0x0001);
+#if defined(HW_DOL)
+	dtv |= (_viReg[54]&0x0001);
+#endif
+	_CPU_ISR_Restore(level);
+
+	return dtv;
 }
 
 void VIDEO_SetAdjustingValues(s16 hor,s16 ver)
