@@ -18,12 +18,22 @@ jobs:
         repository: extremscorner/libfat
         path: libfat
 
+    - name: Checkout libntfs
+      uses: actions/checkout@main
+      with:
+        repository: extremscorner/libntfs
+        path: libntfs
+
     - name: Build libogc2
       run: make install
 
     - name: Build libfat
       run: make ogc-install
       working-directory: libfat
+
+    - name: Build libntfs
+      run: make install
+      working-directory: libntfs
 
     - name: Upload artifacts
       uses: actions/upload-artifact@main
