@@ -1057,9 +1057,9 @@ static void _ES_fillstat(u64 titleID, tmd_content *content, struct stat *st) {
 	st->st_gid = 0;
 	// content size
 	st->st_size = content->size;
-	st->st_blocks = (st->st_size + 511) / 512;
 	// NAND fs cluster size (not like anyone cares, but...)
 	st->st_blksize = 16384;
+	st->st_blocks = ((st->st_size + st->st_blksize - 1) & ~(st->st_blksize - 1)) / S_BLKSIZE;
 }
 
 static int _ES_fstat_r (struct _reent *r, void *fd, struct stat *st) {
@@ -1109,7 +1109,15 @@ static const devoptab_t dotab_es = {
 	NULL,
 	NULL,
 	NULL,
-	NULL
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	_ES_stat_r,
+	NULL,
 };
 
 static void __ES_InitFS(void) {

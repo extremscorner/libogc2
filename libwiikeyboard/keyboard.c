@@ -459,8 +459,7 @@ static ssize_t _keyboardRead(struct _reent *r, void *unused, char *ptr, size_t l
 	return len;
 }
 
-static const devoptab_t std_in =
-{
+static const devoptab_t std_in = {
 	"stdin",
 	0,
 	NULL,
@@ -472,7 +471,23 @@ static const devoptab_t std_in =
 	NULL,
 	NULL,
 	NULL,
-	NULL
+	NULL,
+	NULL,
+	NULL,
+	0,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 //Initialize USB and USB_KEYBOARD and the event queue

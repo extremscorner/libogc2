@@ -42,7 +42,12 @@ const devoptab_t dotab_stdout = {
 	NULL,		// device statvfs_r
 	NULL,		// device ftrunctate_r
 	NULL,		// device fsync_r
-	NULL,		// deviceData;
+	NULL,		// device data
+	NULL,		// device chmod_r
+	NULL,		// device fchmod_r
+	NULL,		// device rmdir_r
+	NULL,		// device lstat_r
+	NULL,		// device utimes_r
 };
 
 //color table

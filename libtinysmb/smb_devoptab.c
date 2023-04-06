@@ -1042,11 +1042,14 @@ static int dentry_to_stat(SMBDIRENTRY *dentry, struct stat *st)
 	st->st_rdev = st->st_dev;
 	st->st_gid = 2; // Faked
 	st->st_size = dentry->size;
-	st->st_atime = dentry->atime/10000000.0 - 11644473600LL;
-	st->st_mtime = dentry->mtime/10000000.0 - 11644473600LL;
-	st->st_ctime = dentry->ctime/10000000.0 - 11644473600LL;
-	st->st_blksize = 1024;
-	st->st_blocks = (st->st_size + st->st_blksize - 1) / st->st_blksize; // File size in blocks
+	st->st_atim.tv_nsec = dentry->atime%10000000*100;
+	st->st_atim.tv_sec = dentry->atime/10000000 - 11644473600LL;
+	st->st_mtim.tv_nsec = dentry->mtime%10000000*100;
+	st->st_mtim.tv_sec = dentry->mtime/10000000 - 11644473600LL;
+	st->st_ctim.tv_nsec = dentry->ctime%10000000*100;
+	st->st_ctim.tv_sec = dentry->ctime/10000000 - 11644473600LL;
+	st->st_blksize = S_BLKSIZE;
+	st->st_blocks = (st->st_size + S_BLKSIZE - 1) / S_BLKSIZE; // File size in blocks
 
 	return 0;
 }
@@ -1268,19 +1271,10 @@ static int __smb_mkdir(struct _reent *r, const char *name, int mode)
 	return ret;
 }
 
-static int __smb_unlink(struct _reent *r, const char *name)
+static int __smb_rmdir(struct _reent *r, const char *name)
 {
 	char fixedName[SMB_MAXPATH];
 	smb_env *env;
-	bool isDir = false;
-
-	DIR *dir = NULL;
-	dir = opendir(name);
-	if(dir)
-    {
-        closedir(dir);
-        isDir = true;
-	}
 
 	ExtractDevice(name,fixedName);
 	if(fixedName[0]=='\0')
@@ -1304,16 +1298,45 @@ static int __smb_unlink(struct _reent *r, const char *name)
 
 	s32 ret = 0;
 	_SMB_lock(env->pos);
-        if(isDir)
-            ret = SMB_DeleteDirectory(fixedName, env->smbconn);
-        else
-            ret = SMB_DeleteFile(fixedName, env->smbconn);
+        if(SMB_DeleteDirectory(fixedName, env->smbconn) != SMB_SUCCESS)
+            ret = -1;
 	_SMB_unlock(env->pos);
 
-	if(ret != SMB_SUCCESS)
-        return -1;
+	return ret;
+}
 
-	return 0;
+static int __smb_unlink(struct _reent *r, const char *name)
+{
+	char fixedName[SMB_MAXPATH];
+	smb_env *env;
+
+	ExtractDevice(name,fixedName);
+	if(fixedName[0]=='\0')
+	{
+		getcwd(fixedName,SMB_MAXPATH);
+		ExtractDevice(fixedName,fixedName);
+	}
+
+	env=FindSMBEnv(fixedName);
+	if(env==NULL)
+	{
+		r->_errno = ENODEV;
+		return -1;
+	}
+
+	if (smb_absolute_path_no_device(name, fixedName, env->pos) == NULL)
+	{
+		r->_errno = EINVAL;
+		return -1;
+	}
+
+	s32 ret = 0;
+	_SMB_lock(env->pos);
+        if(SMB_DeleteFile(fixedName, env->smbconn) != SMB_SUCCESS)
+            ret = -1;
+	_SMB_unlock(env->pos);
+
+	return ret;
 }
 
 static int __smb_rename(struct _reent *r, const char *oldName, const char *newName)
@@ -1364,7 +1387,7 @@ static int __smb_rename(struct _reent *r, const char *oldName, const char *newNa
 	return ret;
 }
 
-static int __smb_statvfs_r(struct _reent *r, const char *name, struct statvfs *buf)
+static int __smb_statvfs(struct _reent *r, const char *name, struct statvfs *buf)
 {
 	char fixedName[SMB_MAXPATH];
 	smb_env *env;
@@ -1430,10 +1453,15 @@ static void MountDevice(const char *name,SMBCONN smbconn, int env)
 	dotab_smb->dirreset_r=__smb_dirreset; // device dirreset_r
 	dotab_smb->dirnext_r=__smb_dirnext; // device dirnext_r
 	dotab_smb->dirclose_r=__smb_dirclose; // device dirclose_r
-	dotab_smb->statvfs_r=__smb_statvfs_r;			// device statvfs_r
-	dotab_smb->ftruncate_r=NULL;               // device ftruncate_r
-	dotab_smb->fsync_r=NULL;           // device fsync_r
-	dotab_smb->deviceData=NULL;       	/* Device data */
+	dotab_smb->statvfs_r=__smb_statvfs; // device statvfs_r
+	dotab_smb->ftruncate_r=NULL; // device ftruncate_r
+	dotab_smb->fsync_r=NULL; // device fsync_r
+	dotab_smb->deviceData=NULL; // device data
+	dotab_smb->chmod_r=NULL; // device chmod_r
+	dotab_smb->fchmod_r=NULL; // device fchmod_r
+	dotab_smb->rmdir_r=__smb_rmdir; // device rmdir_r
+	dotab_smb->lstat_r=__smb_stat; // device lstat_r
+	dotab_smb->utimes_r=NULL; // device utimes_r
 
 	AddDevice(dotab_smb);
 

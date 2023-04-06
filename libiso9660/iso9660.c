@@ -171,7 +171,7 @@ static void stat_entry(DIR_ENTRY *entry, struct stat *st)
 	st->st_mtime = 0;
 	st->st_ctime = 0;
 	st->st_blksize = SECTOR_SIZE;
-	st->st_blocks = (entry->size + SECTOR_SIZE - 1) / SECTOR_SIZE;
+	st->st_blocks = ((st->st_size + st->st_blksize - 1) & ~(st->st_blksize - 1)) / S_BLKSIZE;
 }
 
 static char* basename(char *path)
@@ -722,8 +722,8 @@ static int _ISO9660_dirclose_r(struct _reent *r, DIR_ITER *dirState)
 static int _ISO9660_statvfs_r(struct _reent *r, const char *path, struct statvfs *buf)
 {
 	// FAT clusters = POSIX blocks
-	buf->f_bsize = 0x800; // File system block size. 
-	buf->f_frsize = 0x800; // Fundamental file system block size. 
+	buf->f_bsize = SECTOR_SIZE; // File system block size.
+	buf->f_frsize = SECTOR_SIZE; // Fundamental file system block size.
 
 	//buf->f_blocks	= totalsectors; // Total number of blocks on file system in units of f_frsize. 
 	buf->f_bfree = 0; // Total number of free blocks. 
@@ -769,7 +769,12 @@ static const devoptab_t dotab_iso9660 =
 	_ISO9660_statvfs_r,
 	NULL, // device ftruncate_r
 	NULL, // device fsync_r
-	NULL // device data
+	NULL, // device data
+	NULL, // device chmod_r
+	NULL, // device fchmod_r
+	NULL, // device rmdir_r
+	_ISO9660_stat_r,
+	NULL, // device utimes_r
 };
 
 static MOUNT_DESCR* _ISO9660_getMountDescrFromPath(const char *path, devoptab_t **pdevops)
