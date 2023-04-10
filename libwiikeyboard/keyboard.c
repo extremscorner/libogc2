@@ -459,6 +459,13 @@ static ssize_t _keyboardRead(struct _reent *r, void *unused, char *ptr, size_t l
 	return len;
 }
 
+static int _keyboardStat(struct _reent *r, void *unused, struct stat *st)
+{
+	memset(st, 0, sizeof(struct stat));
+	st->st_mode = S_IFCHR;
+	return 0;
+}
+
 static const devoptab_t std_in = {
 	"stdin",
 	0,
@@ -467,7 +474,7 @@ static const devoptab_t std_in = {
 	NULL,
 	_keyboardRead,
 	NULL,
-	NULL,
+	_keyboardStat,
 	NULL,
 	NULL,
 	NULL,

@@ -17,8 +17,10 @@
 #include <stdio.h>
 #include <sys/iosupport.h>
 
+static int __console_fstat(struct _reent *r,void *fd,struct stat *st);
+
 //---------------------------------------------------------------------------------
-const devoptab_t dotab_stdout = {
+static const devoptab_t dotab_stdout = {
 //---------------------------------------------------------------------------------
 	"stdout",	// device name
 	0,			// size of file structure
@@ -27,7 +29,7 @@ const devoptab_t dotab_stdout = {
 	__console_write,	// device write
 	NULL,		// device read
 	NULL,		// device seek
-	NULL,		// device fstat
+	__console_fstat,	// device fstat
 	NULL,		// device stat
 	NULL,		// device link
 	NULL,		// device unlink
@@ -504,7 +506,7 @@ static int __console_parse_escsequence(const char *pchr)
 	return(i);
 }
 
-int __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
+ssize_t __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
 {
 	size_t i = 0;
 	const char *tmp = ptr;
@@ -592,6 +594,13 @@ int __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
 	}
 
 	return i;
+}
+
+static int __console_fstat(struct _reent *r,void *fd,struct stat *st)
+{
+	memset(st, 0, sizeof(struct stat));
+	st->st_mode = S_IFCHR;
+	return 0;
 }
 
 void CON_Init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride)
