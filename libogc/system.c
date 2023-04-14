@@ -172,7 +172,6 @@ extern void __exi_init(void);
 extern void __si_init(void);
 extern void __irq_init(void);
 extern void __lwp_start_multitasking(void);
-extern void __timesystem_init(void);
 extern void __memlock_init(void);
 extern void __libc_init(int);
 
@@ -193,8 +192,6 @@ extern u32 __IPC_ClntInit(void);
 extern u32 __PADDisableRecalibration(s32 disable);
 
 extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride);
-
-extern void timespec_subtract(const struct timespec *tp_start,const struct timespec *tp_end,struct timespec *result);
 
 
 extern int __libogc_lock_init(int *lock,int recursive);
@@ -1162,7 +1159,6 @@ void SYS_Init(void)
 	__lwp_sema_init();
 	__lwp_mutex_init();
 	__lwp_cond_init();
-	__timesystem_init();
 	__dsp_bootstrap();
 
 	if(!__sys_inIPL)

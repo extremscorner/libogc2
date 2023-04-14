@@ -53,8 +53,6 @@ typedef struct _cond_st {
 
 lwp_objinfo _lwp_cond_objects;
 
-extern void timespec_subtract(const struct timespec *tp_start,const struct timespec *tp_end,struct timespec *result);
-
 void __lwp_cond_init(void)
 {
 	__lwp_objmgr_initinfo(&_lwp_cond_objects,LWP_MAX_CONDVARS,sizeof(cond_st));
