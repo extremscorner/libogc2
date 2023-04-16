@@ -195,9 +195,11 @@ extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int 
 
 
 const void *__libogc_lock_init = __syscall_lock_init;
+const void *__libogc_lock_init_recursive = __syscall_lock_init_recursive;
 const void *__libogc_lock_close = __syscall_lock_close;
-const void *__libogc_lock_release = __syscall_lock_release;
 const void *__libogc_lock_acquire = __syscall_lock_acquire;
+const void *__libogc_lock_try_acquire = __syscall_lock_try_acquire;
+const void *__libogc_lock_release = __syscall_lock_release;
 const void *__libogc_exit = __syscall_exit;
 const void *__libogc_sbrk_r = _sbrk_r;
 const void *__libogc_gettod_r = __syscall_gettod_r;
