@@ -1462,6 +1462,10 @@ static void MountDevice(const char *name,SMBCONN smbconn, int env)
 	dotab_smb->rmdir_r=__smb_rmdir; // device rmdir_r
 	dotab_smb->lstat_r=__smb_stat; // device lstat_r
 	dotab_smb->utimes_r=NULL; // device utimes_r
+	dotab_smb->fpathconf_r=NULL; // device fpathconf_r
+	dotab_smb->pathconf_r=NULL; // device pathconf_r
+	dotab_smb->symlink_r=NULL; // device symlink_r
+	dotab_smb->readlink_r=NULL; // device readlink_r
 
 	AddDevice(dotab_smb);
 

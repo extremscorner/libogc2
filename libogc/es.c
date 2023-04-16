@@ -1118,6 +1118,10 @@ static const devoptab_t dotab_es = {
 	NULL,
 	_ES_stat_r,
 	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 static void __ES_InitFS(void) {

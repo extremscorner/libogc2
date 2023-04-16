@@ -50,6 +50,10 @@ static const devoptab_t dotab_stdout = {
 	NULL,		// device rmdir_r
 	NULL,		// device lstat_r
 	NULL,		// device utimes_r
+	NULL,		// device fpathconf_r
+	NULL,		// device pathconf_r
+	NULL,		// device symlink_r
+	NULL,		// device readlink_r
 };
 
 //color table

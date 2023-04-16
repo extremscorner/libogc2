@@ -495,6 +495,10 @@ static const devoptab_t std_in = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 //Initialize USB and USB_KEYBOARD and the event queue

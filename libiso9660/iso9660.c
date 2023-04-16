@@ -775,6 +775,10 @@ static const devoptab_t dotab_iso9660 =
 	NULL, // device rmdir_r
 	_ISO9660_stat_r,
 	NULL, // device utimes_r
+	NULL, // device fpathconf_r
+	NULL, // device pathconf_r
+	NULL, // device symlink_r
+	NULL, // device readlink_r
 };
 
 static MOUNT_DESCR* _ISO9660_getMountDescrFromPath(const char *path, devoptab_t **pdevops)
