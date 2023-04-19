@@ -208,8 +208,6 @@ const void *__libogc_clock_settime = __syscall_clock_settime;
 const void *__libogc_clock_getres = __syscall_clock_getres;
 const void *__libogc_nanosleep = __syscall_nanosleep;
 
-extern u8 __gxregs[];
-extern u8 __text_start[];
 extern u8 __isIPL[];
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
@@ -447,24 +445,20 @@ void * __attribute__ ((weak)) __myArena1Hi = 0;
 
 static void __lowmem_init(void)
 {
-	u32 *_gx = (u32*)__gxregs;
-
 #if defined(HW_DOL)
 	void *ram_start = (void*)0x80000000;
 	void *ram_end = (void*)(0x80000000|SYSMEM1_SIZE);
 	void *arena_start = (void*)0x80003000;
-#elif defined(HW_RVL)
-	void *arena_start = (void*)0x80003F00;
 #endif
 
-	memset(_gx,0,2048);
-	memset(arena_start,0,0x100);
 	if ( __argvArena1Lo == (u8*)0xdeadbeef ) __argvArena1Lo = __Arena1Lo;
 	if (__myArena1Lo == 0) __myArena1Lo = __argvArena1Lo;
 	if (__myArena1Hi == 0) __myArena1Hi = __Arena1Hi;
 
 #if defined(HW_DOL)
 	memset(ram_start,0,0x100);
+	memset(arena_start,0,0x100);
+
 	*((u32*)(ram_start+0x20))	= 0x0d15ea5e;   // magic word "disease"
 	*((u32*)(ram_start+0x24))	= 1;            // version
 	*((u32*)(ram_start+0x28))	= SYSMEM1_SIZE;	// physical memory size
@@ -482,11 +476,9 @@ static void __lowmem_init(void)
 	*((u32*)(arena_start+0xE4))	= 0xC0008000;
 
 	DCFlushRangeNoSync(ram_start, 0x100);
-#endif
-
 	DCFlushRangeNoSync(arena_start, 0x100);
-	DCFlushRangeNoSync(_gx, 2048);
 	_sync();
+#endif
 
 	SYS_SetArenaLo((void*)__myArena1Lo);
 	SYS_SetArenaHi((void*)__myArena1Hi);

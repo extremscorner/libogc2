@@ -131,7 +131,7 @@ static const u32 _gxtexregionaddrtable[48] =
 #endif
 
 
-extern u8 __gxregs[];
+static u8 __gxregs[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
 static struct __gx_regdef* const __gx = (struct __gx_regdef*)__gxregs;
 static u8 _gx_saved_data[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
 
@@ -805,20 +805,20 @@ static void __GX_SendFlushPrim(void)
 		cnt = tmp2/8;
 		while(cnt) {
 			wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					wgPipe->U32 = 0;
-					cnt--;
+			wgPipe->U32 = 0;
+			wgPipe->U32 = 0;
+			wgPipe->U32 = 0;
+			wgPipe->U32 = 0;
+			wgPipe->U32 = 0;
+			wgPipe->U32 = 0;
+			wgPipe->U32 = 0;
+			cnt--;
 		}
 		tmp2 &= 0x0007;
 		if(tmp2) {
 			while(tmp2) {
 				wgPipe->U32 = 0;
-							tmp2--;
+				tmp2--;
 			}
 		}
 	}
