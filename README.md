@@ -9,6 +9,7 @@
 - [Swiss](https://github.com/emukidid/swiss-gc) - The swiss army knife of GameCube homebrew
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
+- [WiiStation](https://github.com/xjsxjs197/WiiSXRX_2022) - PlayStation 1 emulator
 
 ## Installing
 
