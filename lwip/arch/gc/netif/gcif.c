@@ -163,7 +163,7 @@
 
 #define BBA_INIT_TLBP	0x00
 #define BBA_INIT_BP		0x01
-#define BBA_INIT_RHBP	0x0f
+#define BBA_INIT_RHBP	0x10
 #define BBA_INIT_RWP	BBA_INIT_BP
 #define BBA_INIT_RRP	BBA_INIT_BP
 
@@ -679,7 +679,7 @@ static err_t __bba_start_tx(struct netif *dev,struct pbuf *p,struct ip_addr *ipa
 static err_t bba_start_rx(struct netif *dev,u32 budget)
 {
 	s32 size;
-	u16 top,pos,rrp,rwp;
+	u16 pos,rrp,rwp;
 	u32 pkt_status,recvd;
 	struct pbuf *tmp,*p = NULL;
 	struct bba_priv *priv = (struct bba_priv*)dev->state;
@@ -710,8 +710,7 @@ static err_t bba_start_rx(struct netif *dev,u32 budget)
 		}
 
 		pos = ((rrp<<8)+4);
-		top = ((BBA_INIT_RHBP+1)<<8);
-		LWIP_DEBUGF(NETIF_DEBUG,("bba_start_rx(%04x,%d,%04x)\n",pos,size,top));
+		LWIP_DEBUGF(NETIF_DEBUG,("bba_start_rx(%04x,%d)\n",pos,size));
 
 		p = pbuf_alloc(PBUF_RAW,size,PBUF_POOL);
 		if(p) {
@@ -720,19 +719,7 @@ static err_t bba_start_rx(struct netif *dev,u32 budget)
 
 				bba_select();
 				bba_insregister(pos);
-				if((pos+size)<top) {
-					bba_insdata_fast(tmp->payload,size);
-				} else {
-					s32 chunk_size = (top-pos);
-
-					size -= chunk_size;
-					pos = (BBA_INIT_RRP<<8);
-					bba_insdata_fast(tmp->payload,chunk_size);
-					bba_deselect();
-					bba_select();
-					bba_insregister(pos);
-					bba_insdata_fast(tmp->payload+chunk_size,size);
-				}
+				bba_insdata_fast(tmp->payload,size);
 				bba_deselect();
 				pos += size;
 			}
