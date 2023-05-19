@@ -168,7 +168,7 @@
 #define BBA_INIT_RRP	BBA_INIT_BP
 
 #define BBA_TX_MAX_PACKET_SIZE	(1518)									/* 14+1500+4 */
-#define BBA_RX_MAX_PACKET_SIZE	(1536)									/* 6 pages * 256 bytes */
+#define BBA_RX_MAX_PACKET_SIZE	(2048)									/* 8 pages * 256 bytes */
 
 #define BBA_NAPI_WEIGHT 16
 
@@ -696,7 +696,7 @@ static err_t bba_start_rx(struct netif *dev,u32 budget)
 
 		size = (cur_descr.packet_len-4);
 		pkt_status = cur_descr.status;
-		if(size>(BBA_RX_MAX_PACKET_SIZE+4)) {
+		if(size>(BBA_RX_MAX_PACKET_SIZE-4)) {
 			LWIP_DEBUGF(NETIF_DEBUG|2,("bba_start_rx(size>BBA_RX_MAX_PACKET_SIZE)\n"));
 			continue;
 		}
