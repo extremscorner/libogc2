@@ -85,13 +85,13 @@ MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffun
 ifeq ($(PLATFORM),wii)
 INCLUDES	+=	-I$(BASEDIR)/wii \
 				-I$(PORTLIBS_PATH)/wii/include
-MACHDEP		+=	-DHW_RVL
+MACHDEP		+=	-DHW_RVL -Wa,-mbroadway
 endif
 
 ifeq ($(PLATFORM),cube)
 INCLUDES	+=	-I$(BASEDIR)/cube \
 				-I$(PORTLIBS_PATH)/gamecube/include
-MACHDEP		+=	-DHW_DOL
+MACHDEP		+=	-DHW_DOL -Wa,-mgekko
 endif
 
 INCLUDES	+=	-I$(PORTLIBS_PATH)/ppc/include

@@ -35,16 +35,16 @@ static inline void CAST_Init(void)
 	__asm__ __volatile__ (
 		"li		3,0x0004\n\
 		 oris	3,3,0x0004\n\
-		 mtspr	914,3\n\
+		 mtgqr	2,3\n\
 		 li		3,0x0005\n\
 		 oris	3,3,0x0005\n\
-		 mtspr	915,3\n\
+		 mtgqr	3,3\n\
 		 li		3,0x0006\n\
 		 oris	3,3,0x0006\n\
-		 mtspr	916,3\n\
+		 mtgqr	4,3\n\
 		 li		3,0x0007\n\
 		 oris	3,3,0x0007\n\
-		 mtspr	917,3\n"
+		 mtgqr	5,3\n"
 		 : : : "r3"
 	);
 }

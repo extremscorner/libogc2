@@ -80,7 +80,7 @@ void __lwp_getthreadlist(lwp_obj **thrs)
 u32 __lwp_isr_in_progress(void)
 {
 	register u32 isr_nest_level;
-	isr_nest_level = mfspr(272);
+	isr_nest_level = mfspr(SPRG0);
 	return isr_nest_level;
 }
 

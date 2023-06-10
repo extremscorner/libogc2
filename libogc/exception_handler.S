@@ -31,21 +31,21 @@ distribution.
 #include <asm.h>
 
 #define EXCEPTION_PROLOG			\
-	mfspr    r0,912;				\
+	mfgqr    r0,0;					\
 	stw      r0,GQR0_OFFSET(sp);    \
-	mfspr    r0,913;				\
+	mfgqr    r0,1;					\
 	stw      r0,GQR1_OFFSET(sp);    \
-	mfspr    r0,914;				\
+	mfgqr    r0,2;					\
 	stw      r0,GQR2_OFFSET(sp);    \
-	mfspr    r0,915;				\
+	mfgqr    r0,3;					\
 	stw      r0,GQR3_OFFSET(sp);    \
-	mfspr    r0,916;				\
+	mfgqr    r0,4;					\
 	stw      r0,GQR4_OFFSET(sp);    \
-	mfspr    r0,917;				\
+	mfgqr    r0,5;					\
 	stw      r0,GQR5_OFFSET(sp);    \
-	mfspr    r0,918;				\
+	mfgqr    r0,6;					\
 	stw      r0,GQR6_OFFSET(sp);    \
-	mfspr    r0,919;				\
+	mfgqr    r0,7;					\
 	stw      r0,GQR7_OFFSET(sp);	\
 	stw      r6,GPR6_OFFSET(sp);	\
 	stw      r7,GPR7_OFFSET(sp);	\
@@ -60,21 +60,21 @@ distribution.
 	
 #define EXCEPTION_EPILOG			\
 	lwz		r4,GQR0_OFFSET(sp);		\
-	mtspr	912,r4;					\
+	mtgqr	0,r4;					\
 	lwz		r4,GQR1_OFFSET(sp);		\
-	mtspr	913,r4;					\
+	mtgqr	1,r4;					\
 	lwz		r4,GQR2_OFFSET(sp);		\
-	mtspr	914,r4;					\
+	mtgqr	2,r4;					\
 	lwz		r4,GQR3_OFFSET(sp);		\
-	mtspr	915,r4;					\
+	mtgqr	3,r4;					\
 	lwz		r4,GQR4_OFFSET(sp);		\
-	mtspr	916,r4;					\
+	mtgqr	4,r4;					\
 	lwz		r4,GQR5_OFFSET(sp);		\
-	mtspr	917,r4;					\
+	mtgqr	5,r4;					\
 	lwz		r4,GQR6_OFFSET(sp);		\
-	mtspr	918,r4;					\
+	mtgqr	6,r4;					\
 	lwz		r4,GQR7_OFFSET(sp);		\
-	mtspr	919,r4;					\
+	mtgqr	7,r4;					\
 	lwz		r15,GPR15_OFFSET(sp);	\
 	lwz		r14,GPR14_OFFSET(sp);	\
 	lwz		r13,GPR13_OFFSET(sp);	\
@@ -90,14 +90,14 @@ distribution.
 
 	.globl exceptionhandler_start,exceptionhandler_end,exceptionhandler_patch
 exceptionhandler_start:
-	mtspr		SPRG3,r4
+	mtsprg		3,r4
 	clrlwi		r4,sp,2			//make sp physical and move new value to r4
 	stwu		r4,-EXCEPTION_FRAME_END(r4)
 	stw			r0,GPR0_OFFSET(r4)
 	stw			sp,GPR1_OFFSET(r4)
 	stw			toc,GPR2_OFFSET(r4)
 	stw			r3,GPR3_OFFSET(r4)
-	mfspr		r3,SPRG3
+	mfsprg		r3,3
 	stw			r3,GPR4_OFFSET(r4)
 	stw			r5,GPR5_OFFSET(r4)
 	mfcr		r3
@@ -225,16 +225,16 @@ fpu_exceptionhandler:
 
 	.global systemcallhandler_start,systemcallhandler_end
 systemcallhandler_start:
-	mtspr	SPRG2,r9
-	mtspr	SPRG3,r10
-	mfspr	r9,HID0
+	mtsprg	2,r9
+	mtsprg	3,r10
+	mfhid0	r9
 	ori		r10,r9,0x0008
-	mtspr	HID0,r10
+	mthid0	r10
 	isync
 	sync
-	mtspr	HID0,r9
-	mfspr	r9,SPRG2
-	mfspr	r10,SPRG3
+	mthid0	r9
+	mfsprg	r9,2
+	mfsprg	r10,3
 	rfi
 systemcallhandler_end:
 	nop

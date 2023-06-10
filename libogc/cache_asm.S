@@ -33,40 +33,40 @@ distribution.
 
 	.globl DCFlashInvalidate
 DCFlashInvalidate:
-	mfspr	r3,HID0
+	mfhid0	r3
 	ori		r3,r3,0x0400
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl DCEnable
 DCEnable:
 	sync
-	mfspr	r3,HID0
+	mfhid0	r3
 	ori		r3,r3,0x4000
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl DCDisable
 DCDisable:
 	sync
-	mfspr	r3,HID0
+	mfhid0	r3
 	rlwinm	r3,r3,0,18,16
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl DCFreeze
 DCFreeze:
 	sync
-	mfspr	r3,HID0
+	mfhid0	r3
 	ori		r3,r3,0x1000
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl DCUnfreeze
 DCUnfreeze:
-	mfspr	r3,HID0
+	mfhid0	r3
 	rlwinm	r3,r3,0,20,18
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl DCTouchLoad
@@ -212,40 +212,40 @@ ICInvalidateRange:
 
 	.globl ICFlashInvalidate
 ICFlashInvalidate:
-	mfspr	r3,HID0
+	mfhid0	r3
 	ori		r3,r3,0x0800
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl ICEnable
 ICEnable:
 	isync
-	mfspr	r3,HID0
+	mfhid0	r3
 	ori		r3,r3,0x8000
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl ICDisable
 ICDisable:
 	isync
-	mfspr	r3,HID0
+	mfhid0	r3
 	rlwinm	r3,r3,0,17,15
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl ICFreeze
 ICFreeze:
 	isync
-	mfspr	r3,HID0
+	mfhid0	r3
 	ori		r3,r3,0x2000
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl ICUnfreeze
 ICUnfreeze:
-	mfspr	r3,HID0
+	mfhid0	r3
 	rlwinm	r3,r3,0,19,17
-	mtspr	HID0,r3
+	mthid0	r3
 	blr
 
 	.globl ICBlockInvalidate
@@ -280,18 +280,18 @@ L2Init:
 
 	.globl L2Enable
 L2Enable:
-	mfspr	r3,L2CR
+	mfl2cr	r3
 	oris	r0,r3,0x8000
 	rlwinm	r3,r0,0,11,9
-	mtspr	L2CR,r3
+	mtl2cr	r3
 	blr
 
 	.globl L2Disable
 L2Disable:
 	sync
-	mfspr	r3,L2CR
+	mfl2cr	r3
 	clrlwi	r3,r3,1
-	mtspr	L2CR,r3
+	mtl2cr	r3
 	sync
 	blr
 
@@ -301,16 +301,16 @@ L2GlobalInvalidate:
 	stw		r0,4(sp)
 	stwu	sp,-8(sp)
 	bl		L2Disable
-	mfspr	r3,L2CR
+	mfl2cr	r3
 	oris	r3,r3,0x0020
-	mtspr	L2CR,r3
-1:	mfspr	r3,L2CR
+	mtl2cr	r3
+1:	mfl2cr	r3
 	clrlwi.	r0,r3,31
 	bne		1b
-	mfspr	r3,L2CR
+	mfl2cr	r3
 	rlwinm	r3,r3,0,11,9
-	mtspr	L2CR,r3
-2:	mfspr	r3,L2CR
+	mtl2cr	r3
+2:	mfl2cr	r3
 	clrlwi.	r0,r3,31
 	bne		2b
 	lwz		r0,12(sp)
@@ -322,26 +322,26 @@ L2GlobalInvalidate:
 L2SetDataOnly:
 	cmpwi	r3,0
 	beq		1f
-	mfspr	r3,L2CR
+	mfl2cr	r3
 	oris	r3,r3,0x0040
-	mtspr	L2CR,r3
+	mtl2cr	r3
 	blr
-1:	mfspr	r3,L2CR
+1:	mfl2cr	r3
 	rlwinm	r3,r3,0,10,8
-	mtspr	L2CR,r3
+	mtl2cr	r3
 	blr
 
 	.globl L2SetWriteThrough
 L2SetWriteThrough:
 	cmpwi	r3,0
 	beq		1f
-	mfspr	r3,L2CR
+	mfl2cr	r3
 	oris	r3,r3,0x0008
-	mtspr	L2CR,r3
+	mtl2cr	r3
 	blr
-1:	mfspr	r3,L2CR
+1:	mfl2cr	r3
 	rlwinm	r3,r3,0,13,11
-	mtspr	L2CR,r3
+	mtl2cr	r3
 	blr
 
 	.globl __LCEnable
@@ -356,9 +356,9 @@ __LCEnable:
 	dcbst	r0,r3
 	addi	r3,r3,32
 	bdnz	1b
-	mfspr	r4,HID2
+	mfhid2	r4
 	oris	r4,r4,0x100f
-	mtspr	HID2,r4
+	mthid2	r4
 	nop
 	nop
 	nop
@@ -373,9 +373,9 @@ __LCEnable:
 	nop
 	lis		r3,0xe000
 	ori		r3,r3,0x0002
-	mtspr	DBAT3L,r3
+	mtdbatl	3,r3
 	ori		r3,r3,0x01fe
-	mtspr	DBAT3U,r3
+	mtdbatu	3,r3
 	isync
 	lis		r3,0xe000
 	li		r6,512
@@ -406,14 +406,14 @@ LCDisable:
 1:	dcbi	r0,r3
 	addi	r3,r3,32
 	bdnz	1b
-	mfspr	r4,HID2
+	mfhid2	r4
 	rlwinm	r4,r4,0,4,2
-	mtspr	HID2,r4
+	mthid2	r4
 	blr
 
 	.globl LCIsEnable
 LCIsEnable:
-	mfspr	r4,HID2
+	mfhid2	r4
 	extrwi	r3,r4,1,3
 	blr
 
@@ -449,11 +449,11 @@ LCLoadBlocks:
 	extrwi		r6,r5,5,25
 	clrlwi		r4,r4,3
 	or			r6,r6,r4
-	mtspr		DMAU,r6
+	mtdmau		r6
 	clrlslwi	r6,r5,30,2
 	or			r6,r6,r3
 	ori			r6,r6,0x0012
-	mtspr		DMAL,r6
+	mtdmal		r6
 	blr
 
 	.globl LCStoreBlocks
@@ -461,9 +461,9 @@ LCStoreBlocks:
 	extrwi		r6,r5,5,25
 	clrlwi		r3,r3,3
 	or			r6,r6,r3
-	mtspr		DMAU,r6
+	mtdmau		r6
 	clrlslwi	r6,r5,30,2
 	or			r6,r6,r4
 	ori			r6,r6,0x0002
-	mtspr		DMAL,r6
+	mtdmal		r6
 	blr

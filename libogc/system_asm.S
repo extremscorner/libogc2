@@ -21,22 +21,22 @@ __configBATS:
 	// enable branch history table
 	lis		r3,0x0091
 	ori		r3,r3,0x0c64
-	mtspr	HID0,r3
+	mthid0	r3
 	isync
 	
 #if defined(HW_RVL)
 	lis		r3,0x8200		//bits set: H4A(HID4 access), SBE(2nd BAT enabled)
-	mtspr	HID4,r3
+	mthid4	r3
 	isync
 #endif
 
 	// clear all BATs
 	li		r0,0
-	mtspr	IBAT0U,r0; mtspr	IBAT1U,r0; mtspr	IBAT2U,r0; mtspr	IBAT3U,r0		// IBAT0...3
-	mtspr	DBAT0U,r0; mtspr	DBAT1U,r0; mtspr	DBAT2U,r0; mtspr	DBAT3U,r0		// DBAT0...3
+	mtibatu	0,r0; mtibatu	1,r0; mtibatu	2,r0; mtibatu	3,r0		// IBAT0...3
+	mtdbatu	0,r0; mtdbatu	1,r0; mtdbatu	2,r0; mtdbatu	3,r0		// DBAT0...3
 #if defined(HW_RVL)
-	mtspr	IBAT4U,r0; mtspr	IBAT5U,r0; mtspr	IBAT6U,r0; mtspr	IBAT7U,r0		// IBAT4...7
-	mtspr	DBAT4U,r0; mtspr	DBAT5U,r0; mtspr	DBAT6U,r0; mtspr	DBAT7U,r0		// DBAT4...7
+	mtibatu	4,r0; mtibatu	5,r0; mtibatu	6,r0; mtibatu	7,r0		// IBAT4...7
+	mtdbatu	4,r0; mtdbatu	5,r0; mtdbatu	6,r0; mtdbatu	7,r0		// DBAT4...7
 #endif
 	isync
 
@@ -52,10 +52,10 @@ __configBATS:
 	li		r3,2
 	lis		r4,0x8000
 	ori		r4,r4,0x1fff
-	mtspr	IBAT0L,r3
-	mtspr	IBAT0U,r4
-	mtspr	DBAT0L,r3
-	mtspr	DBAT0U,r4
+	mtibatl	0,r3
+	mtibatu	0,r4
+	mtdbatl	0,r3
+	mtdbatu	0,r4
 	isync
 	
 #if defined(HW_RVL)
@@ -63,10 +63,10 @@ __configBATS:
 	// real 10000000, WIMG=0000, R/W
 	addis	r3,r3,0x1000
 	addis	r4,r4,0x1000
-	mtspr	IBAT4L,r3
-	mtspr	IBAT4U,r4
-	mtspr	DBAT4L,r3
-	mtspr	DBAT4U,r4
+	mtibatl	4,r3
+	mtibatu	4,r4
+	mtdbatl	4,r3
+	mtdbatu	4,r4
 	isync
 #endif
 	
@@ -75,8 +75,8 @@ __configBATS:
 	li		r3,0x2a
 	lis		r4,0xc000
 	ori		r4,r4,0x1fff
-	mtspr	DBAT1L,r3
-	mtspr	DBAT1U,r4
+	mtdbatl	1,r3
+	mtdbatu	1,r4
 	isync
 	
 #if defined(HW_RVL)
@@ -84,8 +84,8 @@ __configBATS:
 	// real 10000000, WIMG=0101, R/W
 	addis	r3,r3,0x1000
 	addis	r4,r4,0x1000
-	mtspr	DBAT5L,r3
-	mtspr	DBAT5U,r4
+	mtdbatl	5,r3
+	mtdbatu	5,r4
 	isync
 #endif
 
@@ -103,7 +103,7 @@ __InitFPRS:
 	mfmsr   r3
 	ori     r3,r3,MSR_FP
 	mtmsr   r3
-	mfspr	r3,920
+	mfhid2	r3
 	extrwi.	r3,r3,1,2
 	beq		1f
 
@@ -188,21 +188,21 @@ __InitPS:
 	mflr	r0
 	stw		r0,4(sp)
 	stwu	sp,-8(sp)
-	mfspr	r3,HID2
+	mfhid2	r3
 	oris	r3,r3,0xA000
-	mtspr	HID2,r3
+	mthid2	r3
 	isync
 	bl		ICFlashInvalidate
 	sync
 	li		r3,0
-	mtspr	GQR0,r3
-	mtspr	GQR1,r3
-	mtspr	GQR2,r3
-	mtspr	GQR3,r3
-	mtspr	GQR4,r3
-	mtspr	GQR5,r3
-	mtspr	GQR6,r3
-	mtspr	GQR7,r3
+	mtgqr	0,r3
+	mtgqr	1,r3
+	mtgqr	2,r3
+	mtgqr	3,r3
+	mtgqr	4,r3
+	mtgqr	5,r3
+	mtgqr	6,r3
+	mtgqr	7,r3
 	isync
 	lwz		r0,12(sp)
 	addi	sp,sp,8
@@ -220,13 +220,13 @@ __InitCache:
 	stw		r0,4(sp)
 	stwu	sp,-8(sp)
 
-	mfspr   r3,HID0
+	mfhid0  r3
 	rlwinm. r0,r3, 0, 16, 16	// Check if the Instruction Cache has been enabled or not.
 	bne     ICEnabled
 
 	bl		ICEnable
 ICEnabled:
-	mfspr   r3, HID0
+	mfhid0  r3
 	rlwinm. r0, r3, 0, 17, 17	// Check if the Data Cache has been enabled or not.
 	bne     DCEnabled
 	
@@ -258,34 +258,34 @@ __InitSystem:
 
 	# Clear various SPR's
 	li      r3,0
-	mtspr   952, r3
-	mtspr   956, r3
-	mtspr   953, r3
-	mtspr   954, r3
-	mtspr   957, r3
-	mtspr   958, r3
+	mtmmcr0 r3
+	mtmmcr1 r3
+	mtpmc1  r3
+	mtpmc2  r3
+	mtpmc3  r3
+	mtpmc4  r3
 	isync
 	
 #if defined(HW_RVL)
-	mfspr	r3,HID4
+	mfhid4	r3
 	oris	r3,r3,0x0190		//set additional bits in HID4: SR0(store 0), LPE(PS LE exception), L2CFI(L2 castout prior to L2 inv. flash)
-	mtspr	HID4,r3
+	mthid4	r3
 	isync
 #endif
 
 	# Disable Speculative Bus Accesses to non-guarded space from both caches.
-	mfspr   r3, HID0
+	mfhid0  r3
 	ori     r3, r3, 0x0200
-	mtspr   HID0, r3
+	mthid0  r3
 	isync
 	
 	# Set the Non-IEEE mode in the FPSCR
 	mtfsb1  29
 	
 	# Disable Write Gather Pipe
-	mfspr   r3,HID2 # (HID2)
+	mfhid2  r3
 	rlwinm  r3, r3, 0, 2, 0	
-	mtspr   HID2,r3 # (HID2)
+	mthid2  r3
 	isync
 	
 	# Restore the non-volatile registers to their previous values and return.
@@ -314,9 +314,9 @@ __flush_cache:
 	.globl __reset
 __reset:
 	b		1f
-9:	mfspr	r8,HID0
+9:	mfhid0	r8
 	ori		r8,r8,0x0008
-	mtspr	HID0,r8
+	mthid0	r8
 	isync
 	sync
 	nop

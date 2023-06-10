@@ -403,8 +403,8 @@ void __irq_init(void)
 	intrStack &= ~(CPU_STACK_ALIGNMENT-1);
 	*((u32*)intrStack) = 0;
 
-	mtspr(272,irqNestingLevel);
-	mtspr(273,intrStack);
+	mtspr(SPRG0,irqNestingLevel);
+	mtspr(SPRG1,intrStack);
 
 	prevIrqMask = 0;
 	currIrqMask = 0;

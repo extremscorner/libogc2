@@ -32,21 +32,21 @@ distribution.
 #include <asm.h>
 
 #define EXCEPTION_PROLOG			\
-	mfspr    r0,912;				\
+	mfgqr    r0,0;					\
 	stw      r0,GQR0_OFFSET(sp);    \
-	mfspr    r0,913;				\
+	mfgqr    r0,1;					\
 	stw      r0,GQR1_OFFSET(sp);    \
-	mfspr    r0,914;				\
+	mfgqr    r0,2;					\
 	stw      r0,GQR2_OFFSET(sp);    \
-	mfspr    r0,915;				\
+	mfgqr    r0,3;					\
 	stw      r0,GQR3_OFFSET(sp);    \
-	mfspr    r0,916;				\
+	mfgqr    r0,4;					\
 	stw      r0,GQR4_OFFSET(sp);    \
-	mfspr    r0,917;				\
+	mfgqr    r0,5;					\
 	stw      r0,GQR5_OFFSET(sp);    \
-	mfspr    r0,918;				\
+	mfgqr    r0,6;					\
 	stw      r0,GQR6_OFFSET(sp);    \
-	mfspr    r0,919;				\
+	mfgqr    r0,7;					\
 	stw      r0,GQR7_OFFSET(sp);	\
 	stw      r6,GPR6_OFFSET(sp);	\
 	stw      r7,GPR7_OFFSET(sp);	\
@@ -61,21 +61,21 @@ distribution.
 	
 #define EXCEPTION_EPILOG			\
 	lwz		r4,GQR0_OFFSET(sp);		\
-	mtspr	912,r4;					\
+	mtgqr	0,r4;					\
 	lwz		r4,GQR1_OFFSET(sp);		\
-	mtspr	913,r4;					\
+	mtgqr	1,r4;					\
 	lwz		r4,GQR2_OFFSET(sp);		\
-	mtspr	914,r4;					\
+	mtgqr	2,r4;					\
 	lwz		r4,GQR3_OFFSET(sp);		\
-	mtspr	915,r4;					\
+	mtgqr	3,r4;					\
 	lwz		r4,GQR4_OFFSET(sp);		\
-	mtspr	916,r4;					\
+	mtgqr	4,r4;					\
 	lwz		r4,GQR5_OFFSET(sp);		\
-	mtspr	917,r4;					\
+	mtgqr	5,r4;					\
 	lwz		r4,GQR6_OFFSET(sp);		\
-	mtspr	918,r4;					\
+	mtgqr	6,r4;					\
 	lwz		r4,GQR7_OFFSET(sp);		\
-	mtspr	919,r4;					\
+	mtgqr	7,r4;					\
 	lwz		r15,GPR15_OFFSET(sp);	\
 	lwz		r14,GPR14_OFFSET(sp);	\
 	lwz		r13,GPR13_OFFSET(sp);	\
@@ -103,26 +103,26 @@ dec_exceptionhandler:
 	addi	r14,sp,0
 	lis		r15,_thread_dispatch_disable_level@ha
 	
-	mfspr	r3,SPRG0
+	mfsprg	r3,0
 	cmpwi	r3,0
 	bne		nested
-	mfspr	sp,SPRG1
+	mfsprg	sp,1
 
 nested:
 	addi	r3,r3,1
 	lwz		r6,_thread_dispatch_disable_level@l(r15)
-	mtspr	SPRG0,r3
+	mtsprg	0,r3
 	addi	r6,r6,1
 	stw		r6,_thread_dispatch_disable_level@l(r15)
 
 	addi	r3,r14,0x08
 	bl		c_decrementer_handler
 	
-	mfspr	r4,SPRG0
+	mfsprg	r4,0
 	lwz		r3,_thread_dispatch_disable_level@l(r15)
 	addi	r4,r4,-1
 	addic.	r3,r3,-1
-	mtspr	SPRG0,r4
+	mtsprg	0,r4
 	stw		r3,_thread_dispatch_disable_level@l(r15)
 	addi	sp,r14,0
 	bne		easy_exit

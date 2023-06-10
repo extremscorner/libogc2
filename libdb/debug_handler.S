@@ -1,41 +1,41 @@
 #include <asm.h>
 
 #define EXCEPTION_PROLOG			\
-	mfspr    r0,912;				\
+	mfgqr    r0,0;					\
 	stw      r0,GQR0_OFFSET(sp);    \
-	mfspr    r0,913;				\
+	mfgqr    r0,1;					\
 	stw      r0,GQR1_OFFSET(sp);    \
-	mfspr    r0,914;				\
+	mfgqr    r0,2;					\
 	stw      r0,GQR2_OFFSET(sp);    \
-	mfspr    r0,915;				\
+	mfgqr    r0,3;					\
 	stw      r0,GQR3_OFFSET(sp);    \
-	mfspr    r0,916;				\
+	mfgqr    r0,4;					\
 	stw      r0,GQR4_OFFSET(sp);    \
-	mfspr    r0,917;				\
+	mfgqr    r0,5;					\
 	stw      r0,GQR5_OFFSET(sp);    \
-	mfspr    r0,918;				\
+	mfgqr    r0,6;					\
 	stw      r0,GQR6_OFFSET(sp);    \
-	mfspr    r0,919;				\
+	mfgqr    r0,7;					\
 	stw      r0,GQR7_OFFSET(sp);	\
 	stmw     r6,GPR6_OFFSET(sp)
 	
 #define EXCEPTION_EPILOG			\
 	lwz		r4,GQR0_OFFSET(sp);		\
-	mtspr	912,r4;					\
+	mtgqr	0,r4;					\
 	lwz		r4,GQR1_OFFSET(sp);		\
-	mtspr	913,r4;					\
+	mtgqr	1,r4;					\
 	lwz		r4,GQR2_OFFSET(sp);		\
-	mtspr	914,r4;					\
+	mtgqr	2,r4;					\
 	lwz		r4,GQR3_OFFSET(sp);		\
-	mtspr	915,r4;					\
+	mtgqr	3,r4;					\
 	lwz		r4,GQR4_OFFSET(sp);		\
-	mtspr	916,r4;					\
+	mtgqr	4,r4;					\
 	lwz		r4,GQR5_OFFSET(sp);		\
-	mtspr	917,r4;					\
+	mtgqr	5,r4;					\
 	lwz		r4,GQR6_OFFSET(sp);		\
-	mtspr	918,r4;					\
+	mtgqr	6,r4;					\
 	lwz		r4,GQR7_OFFSET(sp);		\
-	mtspr	919,r4;					\
+	mtgqr	7,r4;					\
 	lmw		r5,GPR5_OFFSET(sp)
 
 	.extern c_debug_handler
@@ -113,7 +113,7 @@ __set_iabr:
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
 	clrrwi	r3,r3,2
-	mtspr	IABR,r3
+	mtiabr	r3
 	isync
 	sync
 	mtmsr	r4
@@ -124,9 +124,9 @@ __enable_iabr:
 	mfmsr	r4
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
-	mfspr	r3,IABR
+	mfiabr	r3
 	ori		r3,r3,0x0003
-	mtspr	IABR,r3
+	mtiabr	r3
 	isync
 	sync
 	mtmsr	r4
@@ -137,9 +137,9 @@ __disable_iabr:
 	mfmsr	r4
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
-	mfspr	r3,IABR
+	mfiabr	r3
 	clrrwi	r3,r3,2
-	mtspr	IABR,r3
+	mtiabr	r3
 	isync
 	sync
 	mtmsr	r4
@@ -150,7 +150,7 @@ __clr_iabr:
 	mfmsr	r4
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
-	mtspr	IABR,0
+	mtiabr	0
 	isync
 	sync
 	mtmsr	r4

@@ -96,18 +96,18 @@ u32 LCStoreData(void *dstAddr,void *srcAddr,u32 nCount)
 
 u32 LCQueueLength(void)
 {
-	return _SHIFTR(mfspr(920),24,4);
+	return _SHIFTR(mfhid2(),24,4);
 }
 
 void LCQueueWait(u32 len)
 {
-	while(_SHIFTR(mfspr(920),24,4)>len);
+	while(_SHIFTR(mfhid2(),24,4)>len);
 }
 
 void LCFlushQueue(void)
 {
-	mtspr(922,0);
-	mtspr(923,1);
+	mtspr(DMAU,0);
+	mtspr(DMAL,1);
 	ppcsync();
 }
 
@@ -116,7 +116,7 @@ void LCAlloc(void *addr,u32 bytes)
 	u32 level,cnt,hid2;
 
 	cnt = bytes>>5;
-	hid2 = mfspr(920);
+	hid2 = mfhid2();
 	if(!(hid2&0x10000000)) {
 		_CPU_ISR_Disable(level);
 		__LCEnable();
@@ -130,7 +130,7 @@ void LCAllocNoInvalidate(void *addr,u32 bytes)
 	u32 level,cnt,hid2;
 
 	cnt = bytes>>5;
-	hid2 = mfspr(920);
+	hid2 = mfhid2();
 	if(!(hid2&0x10000000)) {
 		_CPU_ISR_Disable(level);
 		__LCEnable();
@@ -144,7 +144,7 @@ void L2Enhance(void)
 	u32 level, hid4;
 	u32 *stub = (u32*)0x80001800;
 	_CPU_ISR_Disable(level);
-	hid4 = mfspr(HID4);
+	hid4 = mfhid4();
 	// make sure H4A is set before doing anything
 	if (hid4 & 0x80000000) {
 		// There's no easy way to flush only L2, so just flush everything
@@ -156,7 +156,7 @@ void L2Enhance(void)
 		L2GlobalInvalidate();
 		// set bits: L2FM=01, BCO=1, L2MUM=1
 		hid4 |= 0x24200000;
-		mtspr(HID4, hid4);
+		mthid4(hid4);
 		// Re-enable L2
 		L2Enable();
 

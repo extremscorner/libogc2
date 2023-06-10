@@ -157,7 +157,7 @@ _cpu_context_save_fp:
 	mffs	fr0
 	stfd	fr0, FP_FPSCR(r3)
 	lfd		fr0, FP_0(r3)
-	mfspr	r4,920
+	mfhid2	r4
 	extrwi.	r4,r4,1,2
 	beq		1f
 	psq_st	fr0,PSFP_0(r3),0,0
@@ -202,7 +202,7 @@ _cpu_context_restore_fp:
 	beq		2f
 	lfd		fr0, FP_FPSCR(r3)
 	mtfsf	255, fr0
-	mfspr	r4,920
+	mfhid2	r4
 	extrwi.	r4,r4,1,2
 	beq		1f
 	psq_l	fr0,PSFP_0(r3),0,0
@@ -285,38 +285,38 @@ _cpu_context_switch:
 	stmw		r13,GP_13(r3)
 	lmw		r13,GP_13(r4)
 	
-	mfspr	r5,912
+	mfgqr	r5,0
 	stw		r5,GQ_0(r3)
 	lwz		r6,GQ_0(r4)
-	mtspr	912,r6
-	mfspr	r5,913
+	mtgqr	0,r6
+	mfgqr	r5,1
 	stw		r5,GQ_1(r3)
 	lwz		r6,GQ_1(r4)
-	mtspr	913,r6
-	mfspr	r5,914
+	mtgqr	1,r6
+	mfgqr	r5,2
 	stw		r5,GQ_2(r3)
 	lwz		r6,GQ_2(r4)
-	mtspr	914,r6
-	mfspr	r5,915
+	mtgqr	2,r6
+	mfgqr	r5,3
 	stw		r5,GQ_3(r3)
 	lwz		r6,GQ_3(r4)
-	mtspr	915,r6
-	mfspr	r5,916
+	mtgqr	3,r6
+	mfgqr	r5,4
 	stw		r5,GQ_4(r3)
 	lwz		r6,GQ_4(r4)
-	mtspr	916,r6
-	mfspr	r5,917
+	mtgqr	4,r6
+	mfgqr	r5,5
 	stw		r5,GQ_5(r3)
 	lwz		r6,GQ_5(r4)
-	mtspr	917,r6
-	mfspr	r5,918
+	mtgqr	5,r6
+	mfgqr	r5,6
 	stw		r5,GQ_6(r3)
 	lwz		r6,GQ_6(r4)
-	mtspr	918,r6
-	mfspr	r5,919
+	mtgqr	6,r6
+	mfgqr	r5,7
 	stw		r5,GQ_7(r3)
 	lwz		r6,GQ_7(r4)
-	mtspr	919,r6
+	mtgqr	7,r6
 
 	mfcr	r5
 	stw		r5, GP_CR(r3)
@@ -353,19 +353,19 @@ _cpu_context_save:
 	mfmsr	r8
 	stw	r8, MSR_OFFSET-8(r3)
 
-	mfspr	r6,913
+	mfgqr	r6,1
 	stw	r6,GQR1_OFFSET-8(r3)
-	mfspr	r6,914
+	mfgqr	r6,2
 	stw	r6,GQR2_OFFSET-8(r3)
-	mfspr	r6,915
+	mfgqr	r6,3
 	stw	r6,GQR3_OFFSET-8(r3)
-	mfspr	r6,916
+	mfgqr	r6,4
 	stw	r6,GQR4_OFFSET-8(r3)
-	mfspr	r6,917
+	mfgqr	r6,5
 	stw	r6,GQR5_OFFSET-8(r3)
-	mfspr	r6,918
+	mfgqr	r6,6
 	stw	r6,GQR6_OFFSET-8(r3)
-	mfspr	r6,919
+	mfgqr	r6,7
 	stw	r6,GQR7_OFFSET-8(r3)
 
 	blr
@@ -388,19 +388,19 @@ _cpu_context_restore:
 	mtmsr	r8
 
 	lwz	r6, GQR1_OFFSET-8(r3)
-	mtspr	913,r6
+	mtgqr	1,r6
 	lwz	r6, GQR2_OFFSET-8(r3)
-	mtspr	914,r6
+	mtgqr	2,r6
 	lwz	r6, GQR3_OFFSET-8(r3)
-	mtspr	915,r6
+	mtgqr	3,r6
 	lwz	r6, GQR4_OFFSET-8(r3)
-	mtspr	916,r6
+	mtgqr	4,r6
 	lwz	r6, GQR5_OFFSET-8(r3)
-	mtspr	917,r6
+	mtgqr	5,r6
 	lwz	r6, GQR6_OFFSET-8(r3)
-	mtspr	918,r6
+	mtgqr	6,r6
 	lwz	r6, GQR7_OFFSET-8(r3)
-	mtspr	919,r6
+	mtgqr	7,r6
 
 	blr
 
@@ -418,38 +418,38 @@ _cpu_context_switch_ex:
 
 	stmw	r5,GP_5(r3)
 
-	mfspr	r5,912
+	mfgqr	r5,0
 	stw		r5,GQ_0(r3)
 	lwz		r5,GQ_0(r4)
-	mfspr	r6,913
-	mtspr	912,r5
+	mfgqr	r6,1
+	mtgqr	0,r5
 	stw		r6,GQ_1(r3)
 	lwz		r6,GQ_1(r4)
-	mfspr	r5,914
-	mtspr	913,r6
+	mfgqr	r5,2
+	mtgqr	1,r6
 	stw		r5,GQ_2(r3)
 	lwz		r5,GQ_2(r4)
-	mfspr	r6,915
-	mtspr	914,r5
+	mfgqr	r6,3
+	mtgqr	2,r5
 	stw		r6,GQ_3(r3)
 	lwz		r6,GQ_3(r4)
-	mfspr	r5,916
-	mtspr	915,r6
+	mfgqr	r5,4
+	mtgqr	3,r6
 	stw		r5,GQ_4(r3)
 	lwz		r5,GQ_4(r4)
-	mfspr	r6,917
-	mtspr	916,r5
+	mfgqr	r6,5
+	mtgqr	4,r5
 	stw		r6,GQ_5(r3)
 	lwz		r6,GQ_5(r4)
-	mfspr	r5,918
-	mtspr	917,r6
+	mfgqr	r5,6
+	mtgqr	5,r6
 	stw		r5,GQ_6(r3)
 	lwz		r5,GQ_6(r4)
-	mfspr	r6,919
-	mtspr	918,r5
+	mfgqr	r6,7
+	mtgqr	6,r5
 	stw		r6,GQ_7(r3)
 	lwz		r6,GQ_7(r4)
-	mtspr	919,r6
+	mtgqr	7,r6
 
 	mfsrr0	r5
 	stw		r5, GP_SRR0(r3)
@@ -505,19 +505,19 @@ _cpu_context_save_ex:
 	mfsrr1	r8
 	stw		r8, SRR1_OFFSET-8(r3)
 
-	mfspr	r6,913
+	mfgqr	r6,1
 	stw	r6,GQR1_OFFSET-8(r3)
-	mfspr	r6,914
+	mfgqr	r6,2
 	stw	r6,GQR2_OFFSET-8(r3)
-	mfspr	r6,915
+	mfgqr	r6,3
 	stw	r6,GQR3_OFFSET-8(r3)
-	mfspr	r6,916
+	mfgqr	r6,4
 	stw	r6,GQR4_OFFSET-8(r3)
-	mfspr	r6,917
+	mfgqr	r6,5
 	stw	r6,GQR5_OFFSET-8(r3)
-	mfspr	r6,918
+	mfgqr	r6,6
 	stw	r6,GQR6_OFFSET-8(r3)
-	mfspr	r6,919
+	mfgqr	r6,7
 	stw	r6,GQR7_OFFSET-8(r3)
 
 	blr
@@ -542,19 +542,19 @@ _cpu_context_restore_ex:
 	mtsrr1	r8
 
 	lwz	r6, GQR1_OFFSET-8(r3)
-	mtspr	913,r6
+	mtgqr	1,r6
 	lwz	r6, GQR2_OFFSET-8(r3)
-	mtspr	914,r6
+	mtgqr	2,r6
 	lwz	r6, GQR3_OFFSET-8(r3)
-	mtspr	915,r6
+	mtgqr	3,r6
 	lwz	r6, GQR4_OFFSET-8(r3)
-	mtspr	916,r6
+	mtgqr	4,r6
 	lwz	r6, GQR5_OFFSET-8(r3)
-	mtspr	917,r6
+	mtgqr	5,r6
 	lwz	r6, GQR6_OFFSET-8(r3)
-	mtspr	918,r6
+	mtgqr	6,r6
 	lwz	r6, GQR7_OFFSET-8(r3)
-	mtspr	919,r6
+	mtgqr	7,r6
 
 	lwz		sp,GPR1_OFFSET-8(r3)
 	lwz		toc,GPR2_OFFSET-8(r3)

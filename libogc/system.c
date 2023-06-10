@@ -654,7 +654,7 @@ void __sram_init(void)
 
 static void DisableWriteGatherPipe(void)
 {
-	mtspr(920,(mfspr(920)&~0x40000000));
+	mthid2((mfhid2()&~0x40000000));
 }
 
 static void __buildchecksum(u16 *buffer,u16 *c1,u16 *c2)
