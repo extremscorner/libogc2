@@ -6,9 +6,10 @@
 
 - [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
 - [iplboot](https://github.com/redolution/iplboot) - Minimal GameCube IPL
-- [Swiss](https://github.com/emukidid/swiss-gc) - The swiss army knife of GameCube homebrew
+- [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
+- [Xeno Crisis](https://shop.bitmapbureau.com/products/xeno-crisis-nintendo-gamecube) - Retro-style arena shooter
 
 ## Installing
 
