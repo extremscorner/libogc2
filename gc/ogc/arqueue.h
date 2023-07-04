@@ -65,6 +65,7 @@ struct _arq_request {
 };
 
 void ARQ_Init(void);
+BOOL ARQ_CheckInit(void);
 void ARQ_Reset(void);
 
 

@@ -146,6 +146,11 @@ void ARQ_Init(void)
 	_CPU_ISR_Restore(level);
 }
 
+BOOL ARQ_CheckInit(void)
+{
+	return __ARQInitFlag;
+}
+
 void ARQ_Reset(void)
 {
 	u32 level;
@@ -183,7 +188,6 @@ void ARQ_FlushQueue(void)
 void ARQ_PostRequestAsync(ARQRequest *req,u32 owner,u32 dir,u32 prio,u32 aram_addr,u32 mram_addr,u32 len,ARQCallback cb)
 {
 	u32 level;
-	ARQRequest *p;
 
 	req->state = ARQ_TASK_READY;
 	req->dir = dir;
@@ -200,16 +204,7 @@ void ARQ_PostRequestAsync(ARQRequest *req,u32 owner,u32 dir,u32 prio,u32 aram_ad
 	else __lwp_queue_appendI(&__ARQReqQueueHi,&req->node);
 
 	if(!__ARQReqPendingLo && !__ARQReqPendingHi) {
-		p = (ARQRequest*)__lwp_queue_getI(&__ARQReqQueueHi);
-		if(p) {
-			p->state = ARQ_TASK_RUNNING;
-#ifdef _ARQ_DEBUG
-			printf("ARQ_PostRequest(%02x,%08x,%08x,%d)\n",p->dir,p->aram_addr,p->mram_addr,p->len);
-#endif
-			AR_StartDMA(p->dir,p->mram_addr,p->aram_addr,p->len);
-			__ARQCallbackHi = p->callback;
-			__ARQReqPendingHi = p;
-		}
+		__ARQPopTaskQueueHi();
 		if(!__ARQReqPendingHi) __ARQServiceQueueLo();
 	}
 	_CPU_ISR_Restore(level);

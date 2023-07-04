@@ -61,6 +61,7 @@ distribution.
 
 #define AR_ARAMINTALL		0		/*!< use all the internal ARAM memory */
 #define AR_ARAMINTUSER		1		/*!< use only the internal user space of the ARAM memory */
+#define AR_ARAMEXPANSION	2		/*!< use all the expansion ARAM memory */
 
 /*!
  * @}

@@ -52,8 +52,6 @@ distribution.
 #define DSPCR_PIINT         0x0002        // assert DSP PI interrupt
 #define DSPCR_RES           0x0001        // reset DSP
 
-#define AR_ARAMEXPANSION	2
-
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
 #define _SHIFTR(v, s, w)	\
@@ -327,35 +325,35 @@ static void __ARCheckSize(void)
 	_dspReg[9] = (_dspReg[9]&~0x3f)|0x23;
 
 	for(i=0;i<8;i++) {
-		test_data[i] = 0xBAD1BAD0;
-		dummy_data[i] = 0xDEADBEEF;
+		test_data[i] = 0xDEADBEEF;
+		dummy_data[i] = 0xBAD0BAD0;
 	}
 	DCFlushRange(test_data,32);
 	DCFlushRange(dummy_data,32);
 
 	__ARExpansionSize = 0;
-	__ARWriteDMA((u32)test_data,0x1000000,32);
-	__ARWriteDMA((u32)test_data,0x1200000,32);
-	__ARWriteDMA((u32)test_data,0x2000000,32);
-	__ARWriteDMA((u32)test_data,0x1000200,32);
-	__ARWriteDMA((u32)test_data,0x1400000,32);
+	__ARWriteDMA((u32)dummy_data,0x1000000,32);
+	__ARWriteDMA((u32)dummy_data,0x1200000,32);
+	__ARWriteDMA((u32)dummy_data,0x2000000,32);
+	__ARWriteDMA((u32)dummy_data,0x1000200,32);
+	__ARWriteDMA((u32)dummy_data,0x1400000,32);
 
 	memset(buffer,0,32);
 	DCFlushRange(buffer,32);
 
-	__ARWriteDMA((u32)dummy_data,0x1000000,32);
+	__ARWriteDMA((u32)test_data,0x1000000,32);
 
 	DCInvalidateRange(buffer,32);
 	__ARReadDMA((u32)buffer,0x1000000,32);
-	_nop();
+	ppcsync();
 
 	arszflag = 0x03;
-	if(buffer[0]==dummy_data[0]) {
+	if(buffer[0]==test_data[0]) {
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x1200000,32);
-		_nop();
-		if(buffer[0]==dummy_data[0]) {
+		ppcsync();
+		if(buffer[0]==test_data[0]) {
 			__ARExpansionSize = 0x200000;
 			arsize +=  0x200000;
 			goto end_check;				//not nice but fast
@@ -364,8 +362,8 @@ static void __ARCheckSize(void)
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x2000000,32);
-		_nop();
-		if(buffer[0]==dummy_data[0]) {
+		ppcsync();
+		if(buffer[0]==test_data[0]) {
 			__ARExpansionSize = 0x400000;
 			arsize +=  0x400000;
 			arszflag |= 0x08;
@@ -374,9 +372,20 @@ static void __ARCheckSize(void)
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
+		__ARReadDMA((u32)buffer,0x1000200,32);
+		ppcsync();
+		if(buffer[0]==test_data[0]) {
+			__ARExpansionSize = 0x800000;
+			arsize +=  0x800000;
+			arszflag |= 0x10;
+			goto end_check;				//not nice but fast
+		}
+
+		memset(buffer,0,32);
+		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x1400000,32);
-		_nop();
-		if(buffer[0]==dummy_data[0]) {
+		ppcsync();
+		if(buffer[0]==test_data[0]) {
 			__ARExpansionSize = 0x1000000;
 			arsize +=  0x1000000;
 			arszflag |= 0x18;
