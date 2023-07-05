@@ -314,6 +314,11 @@ static void __ARCheckSize(void)
 	static u32 test_data[8] ATTRIBUTE_ALIGN(32);
 	static u32 dummy_data[8] ATTRIBUTE_ALIGN(32);
 	static u32 buffer[8] ATTRIBUTE_ALIGN(32);
+	static u32 save1[8] ATTRIBUTE_ALIGN(32);
+	static u32 save2[8] ATTRIBUTE_ALIGN(32);
+	static u32 save3[8] ATTRIBUTE_ALIGN(32);
+	static u32 save4[8] ATTRIBUTE_ALIGN(32);
+	static u32 save5[8] ATTRIBUTE_ALIGN(32);
 
 #ifdef _AR_DEBUG
 	printf("__ARCheckSize()\n");
@@ -333,12 +338,9 @@ static void __ARCheckSize(void)
 
 	_dspReg[9] = (_dspReg[9]&~0x3f)|0x24;
 
-	__ARWriteDMA((u32)dummy_data,0x0000000,32);
-	__ARWriteDMA((u32)dummy_data,0x0200000,32);
-	__ARWriteDMA((u32)dummy_data,0x1000000,32);
-	__ARWriteDMA((u32)dummy_data,0x0000200,32);
-	__ARWriteDMA((u32)dummy_data,0x0400000,32);
-
+	DCInvalidateRange(save1,32);
+	__ARReadDMA((u32)save1,0x0000000,32);
+	ppcsync();
 	__ARWriteDMA((u32)test_data,0x0000000,32);
 
 	memset(buffer,0,32);
@@ -346,44 +348,82 @@ static void __ARCheckSize(void)
 	__ARReadDMA((u32)buffer,0x0000000,32);
 	ppcsync();
 	if(buffer[0]==test_data[0]) {
+		DCInvalidateRange(save2,32);
+		__ARReadDMA((u32)save2,0x0200000,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,0x0200000,32);
+		__ARWriteDMA((u32)test_data,0x0000000,32);
+
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x0200000,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,0x0000000,32);
+
 			arsize = 0x0200000;
 			arszflag = 0x00;
 			goto end_internal_check;	//not nice but fast
 		}
+		__ARWriteDMA((u32)save2,0x0200000,32);
+
+		DCInvalidateRange(save3,32);
+		__ARReadDMA((u32)save3,0x1000000,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,0x1000000,32);
+		__ARWriteDMA((u32)test_data,0x0000000,32);
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x1000000,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,0x0000000,32);
+
 			arsize = 0x0400000;
 			arszflag = 0x01;
 			goto end_internal_check;	//not nice but fast
 		}
+		__ARWriteDMA((u32)save3,0x1000000,32);
+
+		DCInvalidateRange(save4,32);
+		__ARReadDMA((u32)save4,0x0000200,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,0x0000200,32);
+		__ARWriteDMA((u32)test_data,0x0000000,32);
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x0000200,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,0x0000000,32);
+
 			arsize = 0x0800000;
 			arszflag = 0x02;
 			goto end_internal_check;	//not nice but fast
 		}
+		__ARWriteDMA((u32)save4,0x0000200,32);
+
+		DCInvalidateRange(save5,32);
+		__ARReadDMA((u32)save5,0x0400000,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,0x0400000,32);
+		__ARWriteDMA((u32)test_data,0x0000000,32);
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,0x0400000,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,0x0000000,32);
+
 			arsize = 0x1000000;
 			arszflag = 0x03;
 		} else {
+			__ARWriteDMA((u32)save5,0x0400000,32);
+			__ARWriteDMA((u32)save1,0x0000000,32);
+
 			arsize = 0x2000000;
 			arszflag = 0x04;
 		}
@@ -394,12 +434,9 @@ end_internal_check:
 	__ARInternalSize = arsize;
 	__ARExpansionSize = 0;
 
-	__ARWriteDMA((u32)dummy_data,arsize+0x0000000,32);
-	__ARWriteDMA((u32)dummy_data,arsize+0x0200000,32);
-	__ARWriteDMA((u32)dummy_data,arsize+0x1000000,32);
-	__ARWriteDMA((u32)dummy_data,arsize+0x0000200,32);
-	__ARWriteDMA((u32)dummy_data,arsize+0x0400000,32);
-
+	DCInvalidateRange(save1,32);
+	__ARReadDMA((u32)save1,arsize+0x0000000,32);
+	ppcsync();
 	__ARWriteDMA((u32)test_data,arsize+0x0000000,32);
 
 	memset(buffer,0,32);
@@ -407,49 +444,87 @@ end_internal_check:
 	__ARReadDMA((u32)buffer,arsize+0x0000000,32);
 	ppcsync();
 	if(buffer[0]==test_data[0]) {
+		DCInvalidateRange(save2,32);
+		__ARReadDMA((u32)save2,arsize+0x0200000,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,arsize+0x0200000,32);
+		__ARWriteDMA((u32)test_data,arsize+0x0000000,32);
+
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,arsize+0x0200000,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,arsize+0x0000000,32);
+
 			__ARExpansionSize = 0x0200000;
-			arsize += 0x0200000;
+			arsize += __ARExpansionSize;
 			goto end_expansion_check;	//not nice but fast
 		}
+		__ARWriteDMA((u32)save2,arsize+0x0200000,32);
+
+		DCInvalidateRange(save3,32);
+		__ARReadDMA((u32)save3,arsize+0x1000000,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,arsize+0x1000000,32);
+		__ARWriteDMA((u32)test_data,arsize+0x0000000,32);
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,arsize+0x1000000,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,arsize+0x0000000,32);
+
 			__ARExpansionSize = 0x0400000;
-			arsize += 0x0400000;
+			arsize += __ARExpansionSize;
 			arszflag |= 0x08;
 			goto end_expansion_check;	//not nice but fast
 		}
+		__ARWriteDMA((u32)save3,arsize+0x1000000,32);
+
+		DCInvalidateRange(save4,32);
+		__ARReadDMA((u32)save4,arsize+0x0000200,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,arsize+0x0000200,32);
+		__ARWriteDMA((u32)test_data,arsize+0x0000000,32);
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,arsize+0x0000200,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,arsize+0x0000000,32);
+
 			__ARExpansionSize = 0x0800000;
-			arsize += 0x0800000;
+			arsize += __ARExpansionSize;
 			arszflag |= 0x10;
 			goto end_expansion_check;	//not nice but fast
 		}
+		__ARWriteDMA((u32)save4,arsize+0x0000200,32);
+
+		DCInvalidateRange(save5,32);
+		__ARReadDMA((u32)save5,arsize+0x0400000,32);
+		ppcsync();
+		__ARWriteDMA((u32)dummy_data,arsize+0x0400000,32);
+		__ARWriteDMA((u32)test_data,arsize+0x0000000,32);
 
 		memset(buffer,0,32);
 		DCFlushRange(buffer,32);
 		__ARReadDMA((u32)buffer,arsize+0x0400000,32);
 		ppcsync();
 		if(buffer[0]==test_data[0]) {
+			__ARWriteDMA((u32)save1,arsize+0x0000000,32);
+
 			__ARExpansionSize = 0x1000000;
-			arsize += 0x1000000;
+			arsize += __ARExpansionSize;
 			arszflag |= 0x18;
 		} else {
+			__ARWriteDMA((u32)save5,arsize+0x0400000,32);
+			__ARWriteDMA((u32)save1,arsize+0x0000000,32);
+
 			__ARExpansionSize = 0x2000000;
-			arsize += 0x2000000;
+			arsize += __ARExpansionSize;
 			arszflag |= 0x20;
 		}
 end_expansion_check:
