@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __MESSAGE_H__
-#define __MESSAGE_H__
+#ifndef __OGC_MESSAGE_H__
+#define __OGC_MESSAGE_H__
 
 /*! \file message.h 
 \brief Thread subsystem II

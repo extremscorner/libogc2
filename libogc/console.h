@@ -1,5 +1,5 @@
-#ifndef __CONSOLE_H__
-#define __CONSOLE_H__
+#ifndef __OGC_CONSOLE_H__
+#define __OGC_CONSOLE_H__
 
 
 #define FONT_XSIZE		8

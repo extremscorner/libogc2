@@ -1,5 +1,5 @@
-#ifndef __ISFS_H__
-#define __ISFS_H__
+#ifndef __OGC_ISFS_H__
+#define __OGC_ISFS_H__
 
 #if defined(HW_RVL)
 

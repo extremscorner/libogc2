@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __DSP_H__
-#define __DSP_H__
+#ifndef __OGC_DSP_H__
+#define __OGC_DSP_H__
 
 /*! \file dsp.h 
 \brief DSP subsystem

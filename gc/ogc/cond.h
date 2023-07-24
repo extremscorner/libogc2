@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __COND_H__
-#define __COND_H__
+#ifndef __OGC_COND_H__
+#define __OGC_COND_H__
 
 /*! \file cond.h 
 \brief Thread subsystem V

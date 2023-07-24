@@ -1,5 +1,5 @@
-#ifndef __SPINLOCK_H__
-#define __SPINLOCK_H__
+#ifndef __OGC_MACHINE_SPINLOCK_H__
+#define __OGC_MACHINE_SPINLOCK_H__
 
 #include <gctypes.h>
 #include <lwp_threads.h>

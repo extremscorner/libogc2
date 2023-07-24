@@ -26,8 +26,8 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __CONF_H__
-#define __CONF_H__
+#ifndef __OGC_CONF_H__
+#define __OGC_CONF_H__
 
 #if defined(HW_RVL)
 

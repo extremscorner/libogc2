@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __TEXCONV_H__
-#define __TEXCONV_H__
+#ifndef __OGC_TEXCONV_H__
+#define __OGC_TEXCONV_H__
 
 /*!
 \file texconv.h

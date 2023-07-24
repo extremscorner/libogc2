@@ -1,5 +1,5 @@
-#ifndef __SI_H__
-#define __SI_H__
+#ifndef __OGC_SI_H__
+#define __OGC_SI_H__
 
 #include <gctypes.h>
 

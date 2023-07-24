@@ -1,5 +1,5 @@
-#ifndef __LWP_SEMA_H__
-#define __LWP_SEMA_H__
+#ifndef __OGC_LWP_SEMA_H__
+#define __OGC_LWP_SEMA_H__
 
 #include <gctypes.h>
 #include <lwp_threadq.h>

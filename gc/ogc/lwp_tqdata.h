@@ -1,5 +1,5 @@
-#ifndef __LWP_TQDATA_H__
-#define __LWP_TQDATA_H__
+#ifndef __OGC_LWP_TQDATA_H__
+#define __OGC_LWP_TQDATA_H__
 
 #define LWP_THREADQ_NUM_PRIOHEADERS		4
 #define LWP_THREADQ_PRIOPERHEADER		64

@@ -1,5 +1,5 @@
-#ifndef __LWP_MUTEX_H__
-#define __LWP_MUTEX_H__
+#ifndef __OGC_LWP_MUTEX_H__
+#define __OGC_LWP_MUTEX_H__
 
 #include <gctypes.h>
 #include <lwp_threadq.h>

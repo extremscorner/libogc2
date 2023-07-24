@@ -30,8 +30,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __LWP_H__
-#define __LWP_H__
+#ifndef __OGC_LWP_H__
+#define __OGC_LWP_H__
 
 /*! \file lwp.h 
 \brief Thread subsystem I

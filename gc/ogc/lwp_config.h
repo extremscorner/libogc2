@@ -1,5 +1,5 @@
-#ifndef __LWP_CONFIG_H__
-#define __LWP_CONFIG_H__
+#ifndef __OGC_LWP_CONFIG_H__
+#define __OGC_LWP_CONFIG_H__
 
 
 #define LWP_MAX_MQUEUES				64

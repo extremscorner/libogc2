@@ -1,5 +1,5 @@
-#ifndef __CONSOL_H__
-#define __CONSOL_H__
+#ifndef __OGC_CONSOL_H__
+#define __OGC_CONSOL_H__
 
 /*!
  * \file consol.h

@@ -1,5 +1,5 @@
-#ifndef __LWP_PRIORITY_H__
-#define __LWP_PRIORITY_H__
+#ifndef __OGC_LWP_PRIORITY_H__
+#define __OGC_LWP_PRIORITY_H__
 
 #include <gctypes.h>
 #include "machine/processor.h"

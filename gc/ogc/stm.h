@@ -28,8 +28,8 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __STM_H__
-#define __STM_H__
+#ifndef __OGC_STM_H__
+#define __OGC_STM_H__
 
 #if defined(HW_RVL)
 

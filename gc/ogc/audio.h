@@ -30,8 +30,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __AUDIO_H__
-#define __AUDIO_H__
+#ifndef __OGC_AUDIO_H__
+#define __OGC_AUDIO_H__
 
 /*! \file audio.h 
 \brief AUDIO subsystem

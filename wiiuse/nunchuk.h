@@ -1,5 +1,5 @@
-#ifndef __NUNCHUK_H__
-#define __NUNCHUK_H__
+#ifndef NUNCHUK_H_INCLUDED
+#define NUNCHUK_H_INCLUDED
 
 #include "wiiuse_internal.h"
 

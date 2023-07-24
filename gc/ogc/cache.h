@@ -30,8 +30,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __CACHE_H__
-#define __CACHE_H__
+#ifndef __OGC_CACHE_H__
+#define __OGC_CACHE_H__
 
 /*! \file cache.h
 \brief Cache subsystem

@@ -1,5 +1,5 @@
-#ifndef __ASM_H__
-#define __ASM_H__
+#ifndef __OGC_MACHINE_ASM_H__
+#define __OGC_MACHINE_ASM_H__
 
 #ifdef _LANGUAGE_ASSEMBLY
 /* Condition Register Bit Fields */
@@ -344,4 +344,4 @@
 
 #define PPC_CACHE_ALIGNMENT	32
 
-#endif		//__ASM_H__
+#endif		//__OGC_MACHINE_ASM_H__

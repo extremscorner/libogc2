@@ -1,5 +1,5 @@
-#ifndef __PAD_H__
-#define __PAD_H__
+#ifndef __OGC_PAD_H__
+#define __OGC_PAD_H__
 
 #include <gctypes.h>
 

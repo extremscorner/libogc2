@@ -29,8 +29,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __IRQ_H__
-#define __IRQ_H__
+#ifndef __OGC_IRQ_H__
+#define __OGC_IRQ_H__
 
 /*! \file irq.h
 \brief Interrupt subsystem

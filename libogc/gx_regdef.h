@@ -1,5 +1,5 @@
-#ifndef __GX_REGDEF_H__
-#define __GX_REGDEF_H__
+#ifndef __OGC_GX_REGDEF_H__
+#define __OGC_GX_REGDEF_H__
 
 #include <gctypes.h>
 

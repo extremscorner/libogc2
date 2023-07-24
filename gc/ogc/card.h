@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __CARD_H__
-#define __CARD_H__
+#ifndef __OGC_CARD_H__
+#define __OGC_CARD_H__
 
 /*! 
 \file card.h 

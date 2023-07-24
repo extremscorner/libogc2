@@ -1,5 +1,5 @@
-#ifndef __GX_H__
-#define __GX_H__
+#ifndef __OGC_GX_H__
+#define __OGC_GX_H__
 
 /*!
  * \file gx.h

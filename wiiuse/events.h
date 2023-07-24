@@ -1,5 +1,5 @@
-#ifndef __EVENTS_H__
-#define __EVENTS_H__
+#ifndef EVENTS_H_INCLUDED
+#define EVENTS_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {

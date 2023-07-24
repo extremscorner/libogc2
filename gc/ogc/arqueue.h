@@ -29,8 +29,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __ARQUEUE_H__
-#define __ARQUEUE_H__
+#ifndef __OGC_ARQUEUE_H__
+#define __OGC_ARQUEUE_H__
 
 #include <gctypes.h>
 #include <ogc/lwp_queue.h>

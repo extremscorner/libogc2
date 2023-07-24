@@ -1,5 +1,5 @@
-#ifndef __USBMOUSE_H__
-#define __USBMOUSE_H__
+#ifndef __OGC_USBMOUSE_H__
+#define __OGC_USBMOUSE_H__
 
 #if defined(HW_RVL)
 

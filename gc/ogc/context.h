@@ -1,5 +1,5 @@
-#ifndef __EXCONTEXT_H__
-#define __EXCONTEXT_H__
+#ifndef __OGC_CONTEXT_H__
+#define __OGC_CONTEXT_H__
 
 #define NUM_EXCEPTIONS		15
 

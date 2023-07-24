@@ -1,5 +1,5 @@
-#ifndef __LWP_HEAP_H__
-#define __LWP_HEAP_H__
+#ifndef __OGC_LWP_HEAP_H__
+#define __OGC_LWP_HEAP_H__
 
 #include <gctypes.h>
 #include "machine/asm.h"

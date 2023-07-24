@@ -30,8 +30,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __ARQMGR_H__
-#define __ARQMGR_H__
+#ifndef __OGC_ARQMGR_H__
+#define __OGC_ARQMGR_H__
 
 
 /*!

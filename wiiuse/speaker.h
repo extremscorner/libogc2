@@ -1,5 +1,5 @@
-#ifndef __SPEAKER_H__
-#define __SPEAKER_H__
+#ifndef SPEAKER_H_INCLUDED
+#define SPEAKER_H_INCLUDED
 
 #include "wiiuse_internal.h"
 

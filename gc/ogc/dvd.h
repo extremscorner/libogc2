@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __DVD_H__
-#define __DVD_H__
+#ifndef __OGC_DVD_H__
+#define __OGC_DVD_H__
 
 /*! 
  * \file dvd.h 

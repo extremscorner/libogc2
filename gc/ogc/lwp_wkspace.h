@@ -1,5 +1,5 @@
-#ifndef __LWP_WKSPACE_H__
-#define __LWP_WKSPACE_H__
+#ifndef __OGC_LWP_WKSPACE_H__
+#define __OGC_LWP_WKSPACE_H__
 
 #include <gctypes.h>
 #include <lwp_heap.h>

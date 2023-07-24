@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __VIDEO_TYPES_H__
-#define __VIDEO_TYPES_H__
+#ifndef __OGC_VIDEO_TYPES_H__
+#define __OGC_VIDEO_TYPES_H__
 
 /*!
 \file video_types.h

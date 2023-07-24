@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __VIDEO_H__
-#define __VIDEO_H__
+#ifndef __OGC_VIDEO_H__
+#define __OGC_VIDEO_H__
 
 /*! 
  * \file video.h 

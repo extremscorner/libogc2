@@ -29,8 +29,8 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __ES_H__
-#define __ES_H__
+#ifndef __OGC_ES_H__
+#define __OGC_ES_H__
 
 #if defined(HW_RVL)
 

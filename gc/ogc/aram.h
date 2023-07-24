@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __ARAM_H__
-#define __ARAM_H__
+#ifndef __OGC_ARAM_H__
+#define __OGC_ARAM_H__
 
 /*! 
  * \file aram.h 
@@ -270,4 +270,4 @@ u32 AR_GetInternalSize(void);
    }
 #endif /* __cplusplus */
 
-#endif //__ARAM_H__
+#endif //__OGC_ARAM_H__

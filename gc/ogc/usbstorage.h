@@ -1,5 +1,5 @@
-#ifndef __USBSTORAGE_H__
-#define __USBSTORAGE_H__
+#ifndef __OGC_USBSTORAGE_H__
+#define __OGC_USBSTORAGE_H__
 
 #if defined(HW_RVL)
 
@@ -91,4 +91,4 @@ extern DISC_INTERFACE __io_usbstorage;
 
 #endif /* HW_RVL */
 
-#endif /* __USBSTORAGE_H__ */
+#endif /* __OGC_USBSTORAGE_H__ */

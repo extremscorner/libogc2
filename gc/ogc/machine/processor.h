@@ -1,5 +1,5 @@
-#ifndef __PROCESSOR_H__
-#define __PROCESSOR_H__
+#ifndef __OGC_MACHINE_PROCESSOR_H__
+#define __OGC_MACHINE_PROCESSOR_H__
 
 #include <gctypes.h>
 #include "asm.h"

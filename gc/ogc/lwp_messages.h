@@ -1,5 +1,5 @@
-#ifndef __LWP_MESSAGES_H__
-#define __LWP_MESSAGES_H__
+#ifndef __OGC_LWP_MESSAGES_H__
+#define __OGC_LWP_MESSAGES_H__
 
 #include <gctypes.h>
 #include <limits.h>

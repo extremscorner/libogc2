@@ -1,5 +1,5 @@
-#ifndef __TPL_H__
-#define __TPL_H__
+#ifndef __OGC_TPL_H__
+#define __OGC_TPL_H__
 
 #include <stdio.h>
 #include "gx.h"

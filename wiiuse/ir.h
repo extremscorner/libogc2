@@ -1,5 +1,5 @@
-#ifndef __IR_H__
-#define __IR_H__
+#ifndef IR_H_INCLUDED
+#define IR_H_INCLUDED
 
 #include "wiiuse_internal.h"
 

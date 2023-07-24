@@ -1,5 +1,5 @@
-#ifndef __USB_H__
-#define __USB_H__
+#ifndef __OGC_USB_H__
+#define __OGC_USB_H__
 
 #if defined(HW_RVL)
 

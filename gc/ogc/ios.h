@@ -28,8 +28,8 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __IOS_H__
-#define __IOS_H__
+#ifndef __OGC_IOS_H__
+#define __OGC_IOS_H__
 
 #if defined(HW_RVL)
 

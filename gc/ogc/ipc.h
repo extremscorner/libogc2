@@ -28,8 +28,8 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __IPC_H__
-#define __IPC_H__
+#ifndef __OGC_IPC_H__
+#define __OGC_IPC_H__
 
 #include <gctypes.h>
 

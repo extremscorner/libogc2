@@ -1,5 +1,5 @@
-#ifndef __COLOR_H__
-#define __COLOR_H__
+#ifndef __OGC_COLOR_H__
+#define __OGC_COLOR_H__
 
 // luminance is stored twice, thus one of the lum. is
 // redundant, but this way we can fill the screen.
@@ -25,4 +25,4 @@
 #define COLOR_CREAM        (0xE87BE883)
 #define COLOR_MEDGRAY      (0x9A829A80)
 
-#endif /* COLOR_H */
+#endif /* __OGC_COLOR_H__ */

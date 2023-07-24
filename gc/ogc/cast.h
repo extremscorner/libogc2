@@ -1,5 +1,5 @@
-#ifndef __CAST_H__
-#define __CAST_H__
+#ifndef __OGC_CAST_H__
+#define __OGC_CAST_H__
 
 #include <gctypes.h>
 

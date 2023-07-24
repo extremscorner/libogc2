@@ -1,5 +1,5 @@
-#ifndef __LWP_HEAP_INL__
-#define __LWP_HEAP_INL__
+#ifndef __OGC_LWP_HEAP_INL__
+#define __OGC_LWP_HEAP_INL__
 
 static __inline__ heap_block* __lwp_heap_head(heap_cntrl *theheap)
 {

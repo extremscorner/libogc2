@@ -1,5 +1,5 @@
-#ifndef __USBGECKO_H___
-#define __USBGECKO_H___
+#ifndef __OGC_USBGECKO_H__
+#define __OGC_USBGECKO_H__
 
 #include <gctypes.h>
 

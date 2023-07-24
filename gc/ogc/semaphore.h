@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __SEMAPHORE_H__
-#define __SEMAPHORE_H__
+#ifndef __OGC_SEMAPHORE_H__
+#define __OGC_SEMAPHORE_H__
 
 /*! \file semaphore.h 
 \brief Thread subsystem IV

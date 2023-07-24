@@ -1,5 +1,5 @@
-#ifndef __DEFINITIONS_H__
-#define __DEFINITIONS_H__
+#ifndef DEFINITIONS_H_INCLUDED
+#define DEFINITIONS_H_INCLUDED
 
 #include "os.h"
 

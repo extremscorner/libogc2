@@ -28,8 +28,8 @@ distribution.
 
 #if defined(HW_RVL)
 
-#ifndef __WIILAUNCH_H__
-#define __WIILAUNCH_H__
+#ifndef __OGC_WIILAUNCH_H__
+#define __OGC_WIILAUNCH_H__
 
 #include <gctypes.h>
 #include <gcutil.h>

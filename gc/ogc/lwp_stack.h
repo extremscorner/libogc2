@@ -1,5 +1,5 @@
-#ifndef __LWP_STACK_H__
-#define __LWP_STACK_H__
+#ifndef __OGC_LWP_STACK_H__
+#define __OGC_LWP_STACK_H__
 
 #include <gctypes.h>
 #include <lwp_threads.h>

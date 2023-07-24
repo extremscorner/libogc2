@@ -1,5 +1,5 @@
-#ifndef __OS_H__
-#define __OS_H__
+#ifndef OS_H_INCLUDED
+#define OS_H_INCLUDED
 
 #ifdef WIN32
 	/* windows */

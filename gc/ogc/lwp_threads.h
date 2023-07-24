@@ -1,5 +1,5 @@
-#ifndef __LWP_THREADS_H__
-#define __LWP_THREADS_H__
+#ifndef __OGC_LWP_THREADS_H__
+#define __OGC_LWP_THREADS_H__
 
 #include <gctypes.h>
 #include <stdlib.h>

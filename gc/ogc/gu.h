@@ -1,5 +1,5 @@
-#ifndef __GU_H__
-#define __GU_H__
+#ifndef __OGC_GU_H__
+#define __OGC_GU_H__
 
 /*!
  * \file gu.h

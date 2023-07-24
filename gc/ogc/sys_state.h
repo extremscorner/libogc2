@@ -1,5 +1,5 @@
-#ifndef __SYS_STATE_H__
-#define __SYS_STATE_H__
+#ifndef __OGC_SYS_STATE_H__
+#define __OGC_SYS_STATE_H__
 
 #define SYS_STATE_BEFORE_INIT		0
 #define SYS_STATE_BEFORE_MT			1

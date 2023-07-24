@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __GX_STRUCT_H__
-#define __GX_STRUCT_H__
+#ifndef __OGC_GX_STRUCT_H__
+#define __OGC_GX_STRUCT_H__
 
 /*!
 \file gx_struct.h

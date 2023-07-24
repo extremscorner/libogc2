@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __EXI_H__
-#define __EXI_H__
+#ifndef __OGC_EXI_H__
+#define __OGC_EXI_H__
 
 /*! 
 \file exi.h 

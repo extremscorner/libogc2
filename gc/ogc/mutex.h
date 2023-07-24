@@ -28,8 +28,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __MUTEX_H__
-#define __MUTEX_H__
+#ifndef __OGC_MUTEX_H__
+#define __OGC_MUTEX_H__
 
 /*! \file mutex.h 
 \brief Thread subsystem III

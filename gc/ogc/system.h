@@ -29,8 +29,8 @@ distribution.
 -------------------------------------------------------------*/
 
 
-#ifndef __SYSTEM_H__
-#define __SYSTEM_H__
+#ifndef __OGC_SYSTEM_H__
+#define __OGC_SYSTEM_H__
 
 
 /*! \file system.h

@@ -1,5 +1,5 @@
-#ifndef ___LWP_STATES_H__
-#define ___LWP_STATES_H__
+#ifndef __OGC_LWP_STATES_H__
+#define __OGC_LWP_STATES_H__
 
 #include <gctypes.h>
 
