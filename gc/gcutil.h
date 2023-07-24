@@ -8,5 +8,5 @@
 # define ATTRIBUTE_PACKED					__attribute__((packed))
 #endif
 
-#endif /* _GCUTIL_H */
+#endif /* __GCUTIL_H__ */
 

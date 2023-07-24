@@ -1,5 +1,5 @@
-#ifndef __LWP_OBJMGR_INL__
-#define __LWP_OBJMGR_INL__
+#ifndef __OGC_LWP_OBJMGR_INL__
+#define __OGC_LWP_OBJMGR_INL__
 
 static __inline__ void __lwp_objmgr_setlocal(lwp_objinfo *info,u32 idx,lwp_obj *object)
 {

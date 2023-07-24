@@ -1,5 +1,5 @@
-#ifndef __LWP_STACK_INL__
-#define __LWP_STACK_INL__
+#ifndef __OGC_LWP_STACK_INL__
+#define __OGC_LWP_STACK_INL__
 
 static __inline__ u32 __lwp_stack_isenough(u32 size)
 {

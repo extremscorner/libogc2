@@ -1,5 +1,5 @@
-#ifndef __LWP_STATES_INL__
-#define __LWP_STATES_INL__
+#ifndef __OGC_LWP_STATES_INL__
+#define __OGC_LWP_STATES_INL__
 
 static __inline__ u32 __lwp_setstate(u32 curr_state,u32 stateset)
 {

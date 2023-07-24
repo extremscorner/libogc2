@@ -1,5 +1,5 @@
-#ifndef __LWP_QUEUE_INL__
-#define __LWP_QUEUE_INL__
+#ifndef __OGC_LWP_QUEUE_INL__
+#define __OGC_LWP_QUEUE_INL__
 
 static __inline__ lwp_node* __lwp_queue_head(lwp_queue *queue)
 {

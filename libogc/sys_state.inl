@@ -1,5 +1,5 @@
-#ifndef __SYS_STATE_INL__
-#define __SYS_STATE_INL__
+#ifndef __OGC_SYS_STATE_INL__
+#define __OGC_SYS_STATE_INL__
 
 static __inline__ void __sys_state_init(void)
 {

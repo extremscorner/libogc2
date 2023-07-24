@@ -1,5 +1,5 @@
-#ifndef __MESSAGE_INL__
-#define __MESSAGE_INL__
+#ifndef __OGC_LWP_MESSAGES_INL__
+#define __OGC_LWP_MESSAGES_INL__
 
 static __inline__ void __lwpmq_set_notify(mq_cntrl *mqueue,mq_notifyhandler handler,void *arg)
 {

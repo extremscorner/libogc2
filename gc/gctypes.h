@@ -104,7 +104,7 @@ extern struct __argv *__system_argv;
    }
 #endif /* __cplusplus */
 
-#endif /* TYPES_H */
+#endif /* __GCTYPES_H__ */
 
 
 /* END OF FILE */

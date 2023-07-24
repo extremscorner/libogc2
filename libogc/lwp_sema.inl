@@ -1,5 +1,5 @@
-#ifndef __LWP_SEMA_INL__
-#define __LWP_SEMA_INL__
+#ifndef __OGC_LWP_SEMA_INL__
+#define __OGC_LWP_SEMA_INL__
 
 static __inline__ u32 __lwp_sema_ispriority(lwp_semattr *attr)
 {

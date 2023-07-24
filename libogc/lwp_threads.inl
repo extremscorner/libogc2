@@ -1,5 +1,5 @@
-#ifndef __LWP_INL__
-#define __LWP_INL__
+#ifndef __OGC_LWP_THREADS_INL__
+#define __OGC_LWP_THREADS_INL__
 
 static __inline__ u32 __lwp_thread_isexec(lwp_cntrl *thethread)
 {

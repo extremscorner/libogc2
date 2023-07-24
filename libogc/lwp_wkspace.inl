@@ -1,5 +1,5 @@
-#ifndef __LWP_WKSPACE_INL__
-#define __LWP_WKSPACE_INL__
+#ifndef __OGC_LWP_WKSPACE_INL__
+#define __OGC_LWP_WKSPACE_INL__
 
 static __inline__ void* __lwp_wkspace_allocate(u32 size)
 {

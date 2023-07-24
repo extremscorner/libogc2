@@ -1,5 +1,5 @@
-#ifndef __LWP_WATCHDOG_INL__
-#define __LWP_WATCHDOG_INL__
+#ifndef __OGC_LWP_WATCHDOG_INL__
+#define __OGC_LWP_WATCHDOG_INL__
 
 static __inline__ void __lwp_wd_initialize(wd_cntrl *wd,wd_service_routine routine,u32 id,void *usr_data)
 {

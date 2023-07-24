@@ -1,5 +1,5 @@
-#ifndef __LWP_MUTEX_INL__
-#define __LWP_MUTEX_INL__
+#ifndef __OGC_LWP_MUTEX_INL__
+#define __OGC_LWP_MUTEX_INL__
 
 static __inline__ u32 __lwp_mutex_locked(lwp_mutex *mutex)
 {

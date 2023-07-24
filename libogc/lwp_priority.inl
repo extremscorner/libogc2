@@ -1,5 +1,5 @@
-#ifndef __LWP_PRIORITY_INL__
-#define __LWP_PRIORITY_INL__
+#ifndef __OGC_LWP_PRIORITY_INL__
+#define __OGC_LWP_PRIORITY_INL__
 
 static __inline__ void __lwp_priomap_init(prio_cntrl *theprio,u32 prio)
 {

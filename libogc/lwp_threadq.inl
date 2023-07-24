@@ -1,5 +1,5 @@
-#ifndef __LWP_THREADQ_INL__
-#define __LWP_THREADQ_INL__
+#ifndef __OGC_LWP_THREADQ_INL__
+#define __OGC_LWP_THREADQ_INL__
 
 static __inline__ void __lwp_threadqueue_csenter(lwp_thrqueue *queue)
 {
