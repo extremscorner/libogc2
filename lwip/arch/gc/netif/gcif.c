@@ -495,16 +495,8 @@ static u32 __bba_get_linkstate()
 
 static u32 __bba_read_cid()
 {
-	u16 cmd = 0;
 	u32 cid = 0;
-
-	bba_select();
-	EXI_Imm(EXI_CHANNEL_0,&cmd,2,EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
-	EXI_Imm(EXI_CHANNEL_0,&cid,4,EXI_READ,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
-	bba_deselect();
-
+	EXI_GetIDEx(EXI_CHANNEL_0,EXI_DEVICE_2,&cid);
 	return cid;
 }
 

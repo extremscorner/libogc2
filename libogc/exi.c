@@ -574,7 +574,7 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 {
 	u64 idtime = 0;
 	s32 ret,lck;
-	u32 reg,level;
+	u32 level;
 	exibus_priv *exi = &eximap[nChn];
 
 	if(nChn==EXI_CHANNEL_0 && nDev==EXI_DEVICE_2 && exi_id_serport1!=0) {
@@ -605,37 +605,50 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 	lck = 0;
 	if(nChn<EXI_CHANNEL_2 && nDev==EXI_DEVICE_0) lck = 1;
 
-	if(lck)  ret = EXI_Lock(nChn,nDev,__unlocked_handler);
+	if(lck) ret = EXI_Lock(nChn,nDev,__unlocked_handler);
 	else ret = EXI_Lock(nChn,nDev,NULL);
 
 	if(ret) {
-		if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==1) {
-			reg = 0;
-			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
-			EXI_Sync(nChn);
-			EXI_Imm(nChn,nId,4,EXI_READ,NULL);
-			EXI_Sync(nChn);
-			EXI_Deselect(nChn);
-		}
+		ret = EXI_GetIDEx(nChn,nDev,nId);
 		EXI_Unlock(nChn);
 	}
 
 	if(nChn<EXI_CHANNEL_2 && nDev==EXI_DEVICE_0) {
-		ret = 0;
 		EXI_Detach(nChn);
 
-		_CPU_ISR_Disable(level);
-		if(idtime==last_exi_idtime[nChn]) {
-			exi->exi_idtime = idtime;
-			exi->exi_id = *nId;
-			ret = 1;
+		if(ret) {
+			_CPU_ISR_Disable(level);
+			if(idtime==last_exi_idtime[nChn]) {
+				exi->exi_idtime = idtime;
+				exi->exi_id = *nId;
+			} else
+				ret = 0;
+			_CPU_ISR_Restore(level);
 		}
-		_CPU_ISR_Restore(level);
 #ifdef _EXI_DEBUG
 		printf("EXI_GetID(exi_id = %d)\n",exi->exi_id);
 #endif
 	}
 	return ret;
+}
+
+s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
+{
+	s32 ret;
+	u32 reg;
+
+	if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==0) return 0;
+
+	ret = 0;
+	reg = 0;
+	if(EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL)==0) ret |= 0x01;
+	if(EXI_Sync(nChn)==0) ret |= 0x02;
+	if(EXI_Imm(nChn,nId,4,EXI_READ,NULL)==0) ret |= 0x04;
+	if(EXI_Sync(nChn)==0) ret |= 0x08;
+	if(EXI_Deselect(nChn)==0) ret |= 0x10;
+
+	if(ret) return 0;
+	return 1;
 }
 
 s32 EXI_GetType(s32 nChn,s32 nDev,u32 *nType)
