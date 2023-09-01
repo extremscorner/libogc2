@@ -663,6 +663,7 @@ s32 EXI_GetType(s32 nChn,s32 nDev,u32 *nType)
 		case 0x04020200:
 		case 0x04020300:
 		case 0x04060000:
+		case 0x49444500:
 			*nType = nId&~0xff;
 			return ret;
 	}
@@ -730,11 +731,14 @@ char *EXI_GetTypeString(u32 nType)
 		case 0x04020300:
 			return "Broadband Adapter";
 		case 0x04060000:
+		case 0x0a000000:
 			return "Mic";
 		case 0x04130000:
 			return "Stream Hanger";
 		case 0x05070000:
 			return "IS-DOL-VIEWER";
+		case 0x49444500:
+			return "IDE-EXI";
 		default:
 			return "Unknown";
 	}
