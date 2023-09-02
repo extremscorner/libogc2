@@ -1068,12 +1068,11 @@ void SYS_Init(void)
 {
 	u32 level;
 
-	_CPU_ISR_Disable(level);
-
-	__SYS_PreInit();
-
 	if(system_initialized) return;
 	system_initialized = 1;
+
+	_CPU_ISR_Disable(level);
+	__SYS_PreInit();
 
 	_V_EXPORTNAME();
 

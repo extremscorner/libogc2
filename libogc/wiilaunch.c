@@ -278,6 +278,7 @@ s32 WII_LaunchTitle(u64 titleID)
 		nandboot.checksum = __CalcChecksum((u32*)&nandboot,sizeof(NANDBootInfo));
 		__WII_WriteNANDBootInfo();
 	}
+	VIDEO_Init();
 	VIDEO_SetBlack(1);
 	VIDEO_Flush();
 
