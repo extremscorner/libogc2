@@ -26,6 +26,7 @@
 #include <lwip/api.h>
 #include <lwip/api_msg.h>
 #include <lwip/tcpip.h>
+#include <netif/enc28j60if.h>
 #include <netif/etharp.h>
 #include <netif/loopif.h>
 #include <netif/gcif/gcif.h>
@@ -1517,7 +1518,9 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 			gw.addr = gateway->s_addr;
 	}
 	hbba = bba_create(&g_hNetIF);
-	pnet = netif_add(&g_hNetIF,&loc_ip, &mask, &gw, hbba, bba_init, net_input);
+	pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,hbba,bba_init,net_input);
+	if(!pnet)
+		pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,NULL,enc28j60if_init,net_input);
 	if(pnet) {
 		netif_set_up(pnet);
 		netif_set_default(pnet);

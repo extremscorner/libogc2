@@ -597,7 +597,6 @@ static u32 __bba_rx_err(u8 status,struct bba_priv *priv)
 void bba_process(struct pbuf *p,struct netif *dev)
 {
 	struct eth_hdr *ethhdr = NULL;
-	struct bba_priv *priv = (struct bba_priv*)dev->state;
 	const s32 hlen = sizeof(struct eth_hdr);
 
 	if(p) {
@@ -613,7 +612,7 @@ void bba_process(struct pbuf *p,struct netif *dev)
 			case ETHTYPE_ARP:
 				/* pass p to ARP module, get ARP reply or ARP queued packet */
 				LWIP_DEBUGF(NETIF_DEBUG,("bba_process: passing packet up to ARP layer\n"));
-				etharp_arp_input(dev, priv->ethaddr, p);
+				etharp_arp_input(dev,(struct eth_addr*)dev->hwaddr,p);
 				break;
 			/* unsupported Ethernet packet type */
 			default:

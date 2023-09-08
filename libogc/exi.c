@@ -739,6 +739,8 @@ char *EXI_GetTypeString(u32 nType)
 			return "IS-DOL-VIEWER";
 		case 0x49444500:
 			return "IDE-EXI";
+		case 0xfa050000:
+			return "ENC28J60";
 		default:
 			return "Unknown";
 	}
