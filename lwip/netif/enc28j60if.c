@@ -384,6 +384,7 @@ static bool ENC28J60_WriteReg(s32 chan, ENC28J60Reg addr, u8 data)
 	return true;
 }
 
+#if 0
 static bool ENC28J60_ReadReg16(s32 chan, ENC28J60Reg addr, u16 *data)
 {
 	if (!ENC28J60_SelectBank(chan, addr) ||
@@ -393,6 +394,7 @@ static bool ENC28J60_ReadReg16(s32 chan, ENC28J60Reg addr, u16 *data)
 
 	return true;
 }
+#endif
 
 static bool ENC28J60_WriteReg16(s32 chan, ENC28J60Reg16 addr, u16 data)
 {
@@ -404,6 +406,7 @@ static bool ENC28J60_WriteReg16(s32 chan, ENC28J60Reg16 addr, u16 data)
 	return true;
 }
 
+#if 0
 static bool ENC28J60_ReadPHYReg(s32 chan, ENC28J60PHYReg addr, u16 *data)
 {
 	u8 mistat;
@@ -418,11 +421,12 @@ static bool ENC28J60_ReadPHYReg(s32 chan, ENC28J60PHYReg addr, u16 *data)
 	} while (mistat & ENC28J60_MISTAT_BUSY);
 
 	if (!ENC28J60_WriteReg(chan, ENC28J60_MICMD, 0) ||
-		!ENC28J60_ReadReg16(chan, ENC28J60_MIWR, data))
+		!ENC28J60_ReadReg16(chan, ENC28J60_MIRD, data))
 		return false;
 
 	return true;
 }
+#endif
 
 static bool ENC28J60_WritePHYReg(s32 chan, ENC28J60PHYReg addr, u16 data)
 {
@@ -438,6 +442,38 @@ static bool ENC28J60_WritePHYReg(s32 chan, ENC28J60PHYReg addr, u16 data)
 	} while (mistat & ENC28J60_MISTAT_BUSY);
 
 	return true;
+}
+
+static void ENC28J60_GetMACAddr(s32 chan, u8 macaddr[6])
+{
+	union {
+		u32 cid[4];
+		u8 data[18 + 1];
+	} ecid = {
+		mfspr(ECID0),
+		mfspr(ECID1),
+		mfspr(ECID2),
+		mfspr(ECID3)
+	};
+
+	u32 sum = chan;
+
+	ecid.data[15] ^= 0x00;
+	ecid.data[16] ^= 0x04;
+	ecid.data[17] ^= 0xA3;
+
+	for (int i = 0; i < 18; i += 3) {
+		sum += *(u32 *)&ecid.data[i] >> 8;
+		sum = (sum & 0xFFFFFF) + (sum >> 24);
+	}
+
+	macaddr[0] = 0x00;
+	macaddr[1] = 0x09;
+	macaddr[2] = 0xBF;
+
+	macaddr[3] = sum >> 16;
+	macaddr[4] = sum >> 8;
+	macaddr[5] = sum;
 }
 
 static s32 ExiHandler(s32 chan, s32 dev)
@@ -564,6 +600,7 @@ static bool enc28j60_init(struct netif *netif)
 		ENC28J60_WriteReg(chan, ENC28J60_MABBIPG, 0x12);
 		ENC28J60_WriteReg16(chan, ENC28J60_MAIPG, 0x0C12);
 
+		ENC28J60_GetMACAddr(chan, enc28j60if->ethaddr->addr);
 		ENC28J60_WriteReg(chan, ENC28J60_MAADR1, enc28j60if->ethaddr->addr[0]);
 		ENC28J60_WriteReg(chan, ENC28J60_MAADR2, enc28j60if->ethaddr->addr[1]);
 		ENC28J60_WriteReg(chan, ENC28J60_MAADR3, enc28j60if->ethaddr->addr[2]);
@@ -639,12 +676,6 @@ err_t enc28j60if_init(struct netif *netif)
 	netif->linkoutput = enc28j60_output;
 
 	netif->hwaddr_len = 6;
-	netif->hwaddr[0] = 0x00;
-	netif->hwaddr[1] = 0x09;
-	netif->hwaddr[2] = 0xBF;
-	netif->hwaddr[3] = 0x00;
-	netif->hwaddr[4] = 0x04;
-	netif->hwaddr[5] = 0xA3;
 	netif->mtu = 1500;
 	netif->flags = NETIF_FLAG_BROADCAST;
 
