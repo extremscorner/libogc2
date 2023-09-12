@@ -240,35 +240,6 @@ static u16 __make_crc16(void *buffer,u32 len)
 }
 */
 
-static s32 __card_writedata_fast(s32 drv_no,void *buf,s32 len)
-{
-	u32 roundlen;
-	s32 missalign;
-	u8 *ptr = buf;
-
-	if(!ptr || len<=0) return 0;
-
-	missalign = -((u32)ptr)&0x1f;
-	if((len-missalign)<32) return EXI_ImmEx(drv_no,ptr,len,EXI_WRITE);
-
-	if(missalign>0) {
-		if(EXI_ImmEx(drv_no,ptr,missalign,EXI_WRITE)==0) return 0;
-		len -= missalign;
-		ptr += missalign;
-	}
-
-	roundlen = (len&~0x1f);
-	DCStoreRange(ptr,roundlen);
-	if(EXI_Dma(drv_no,ptr,roundlen,EXI_WRITE,NULL)==0) return 0;
-	if(EXI_Sync(drv_no)==0) return 0;
-
-	len -= roundlen;
-	ptr += roundlen;
-	if(len>0) return EXI_ImmEx(drv_no,ptr,len,EXI_WRITE);
-
-	return 1;
-}
-
 static u32 __card_checktimeout(s32 drv_no,u32 startT,u32 timeout)
 {
 	u32 endT,diff;
@@ -788,7 +759,7 @@ static s32 __card_datawrite(s32 drv_no,void *buf,u32 len)
 		return CARDIO_ERROR_IOERROR;
 	}
 
-	if(__card_writedata_fast(drv_no,buf,len)==0) {
+	if(EXI_DmaEx(drv_no,buf,len,EXI_WRITE)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -832,7 +803,7 @@ static s32 __card_multidatawrite(s32 drv_no,void *buf,u32 len)
 		return CARDIO_ERROR_IOERROR;
 	}
 
-	if(__card_writedata_fast(drv_no,buf,len)==0) {
+	if(EXI_DmaEx(drv_no,buf,len,EXI_WRITE)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;

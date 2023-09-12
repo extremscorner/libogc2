@@ -257,12 +257,24 @@ s32 EXI_ImmEx(s32 nChn,void *pData,u32 nLen,u32 nMode);
 \param[in] nChn EXI channel to select
 \param[in,out] pData pointer to a buffer to read/copy from/to data.
 \param[in] nLen lenght of data to transfer.
-\param[in] nMode direction of transferoperation(EXI_READ,EXI_WRITE,EXI_READWRITE)
+\param[in] nMode direction of transferoperation(EXI_READ,EXI_WRITE)
 \param[in] tc_cb pointer to a callback to call when transfer has completed. May be NULL.
 
 \return 1 on success, <=0 on error
 */
 s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb);
+
+
+/*! \fn s32 EXI_DmaEx(s32 nChn,void *pData,u32 nLen,u32 nMode)
+\brief Initializes an extended DMA mode EXI transfer.
+\param[in] nChn EXI channel to select
+\param[in,out] pData pointer to a buffer to read/copy from/to data.
+\param[in] nLen lenght of data to transfer.
+\param[in] nMode direction of transferoperation(EXI_READ,EXI_WRITE)
+
+\return 1 on success, <=0 on error
+*/
+s32 EXI_DmaEx(s32 nChn,void *pData,u32 nLen,u32 nMode);
 
 
 /*! \fn s32 EXI_GetState(s32 nChn)

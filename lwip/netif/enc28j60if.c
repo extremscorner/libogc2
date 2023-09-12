@@ -316,7 +316,7 @@ static bool ENC28J60_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 
 	err |= !EXI_Imm(chan, &cmd, 1 + ENC28J60_EXI_DUMMY(cmd), EXI_WRITE, NULL);
 	err |= !EXI_Sync(chan);
-	err |= !EXI_ImmEx(chan, buf, len, EXI_READ);
+	err |= !EXI_DmaEx(chan, buf, len, EXI_READ);
 	err |= !EXI_Deselect(chan);
 	return !err;
 }
@@ -330,7 +330,7 @@ static bool ENC28J60_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 
 	err |= !EXI_Imm(chan, &cmd, 1, EXI_WRITE, NULL);
 	err |= !EXI_Sync(chan);
-	err |= !EXI_ImmEx(chan, (void *)buf, len, EXI_WRITE);
+	err |= !EXI_DmaEx(chan, (void *)buf, len, EXI_WRITE);
 	err |= !EXI_Deselect(chan);
 	return !err;
 }

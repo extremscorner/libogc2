@@ -272,42 +272,7 @@ static __inline__ void bba_insregister(u32 reg)
 
 static __inline__ void bba_insdata(void *val,u32 len)
 {
-	EXI_ImmEx(EXI_CHANNEL_0,val,len,EXI_READ);
-}
-
-static __inline__ void bba_insdmadata(void *val,u32 len,s32 (*dmasubrcv)(s32 chn,s32 dev))
-{
-	EXI_Dma(EXI_CHANNEL_0,val,len,EXI_READ,dmasubrcv);
-}
-
-static void bba_insdata_fast(void *val,s32 len)
-{
-	u32 roundlen;
-	s32 missalign;
-	u8 *ptr = val;
-
-	if(!val || len<=0) return;
-
-	missalign = -((u32)val)&0x1f;
-	if((s32)(len-missalign)<32) {
-		bba_insdata(val,len);
-		return;
-	}
-
-	if(missalign>0) {
-		bba_insdata(ptr,missalign);
-		len -= missalign;
-		ptr += missalign;
-	}
-
-	roundlen = (len&~0x1f);
-	DCInvalidateRange(ptr,roundlen);
-	bba_insdmadata(ptr,roundlen,NULL);
-	bba_sync();
-
-	len -= roundlen;
-	ptr += roundlen;
-	if(len>0) bba_insdata(ptr,len);
+	EXI_DmaEx(EXI_CHANNEL_0,val,len,EXI_READ);
 }
 
 static __inline__ void bba_outsregister(u32 reg)
@@ -320,42 +285,7 @@ static __inline__ void bba_outsregister(u32 reg)
 
 static __inline__ void bba_outsdata(void *val,u32 len)
 {
-	EXI_ImmEx(EXI_CHANNEL_0,val,len,EXI_WRITE);
-}
-
-static __inline__ void bba_outsdmadata(void *val,u32 len,s32 (*dmasubsnd)(s32 chn,s32 dev))
-{
-	EXI_Dma(EXI_CHANNEL_0,val,len,EXI_WRITE,dmasubsnd);
-}
-
-static void bba_outsdata_fast(void *val,s32 len)
-{
-	u32 roundlen;
-	s32 missalign;
-	u8 *ptr = val;
-
-	if(!val || len<=0) return;
-
-	missalign = -((u32)val)&0x1f;
-	if((s32)(len-missalign)<32) {
-		bba_outsdata(val,len);
-		return;
-	}
-
-	if(missalign>0) {
-		bba_outsdata(ptr,missalign);
-		len -= missalign;
-		ptr += missalign;
-	}
-
-	roundlen = (len&~0x1f);
-	DCStoreRange(ptr,roundlen);
-	bba_outsdmadata(ptr,roundlen,NULL);
-	bba_sync();
-
-	len -= roundlen;
-	ptr += roundlen;
-	if(len>0) bba_outsdata(ptr,len);
+	EXI_DmaEx(EXI_CHANNEL_0,val,len,EXI_WRITE);
 }
 
 static inline void bba_cmd_ins(u32 reg,void *val,u32 len)
@@ -651,7 +581,7 @@ static err_t __bba_link_tx(struct netif *dev,struct pbuf *p)
 	bba_select();
 	bba_outsregister(BBA_WRTXFIFOD);
 	for(tmp=p;tmp!=NULL;tmp=tmp->next) {
-		bba_outsdata_fast(tmp->payload,tmp->len);
+		bba_outsdata(tmp->payload,tmp->len);
 	}
 	if(p->tot_len<BBA_MINPKTSIZE) bba_outsdata(tmpbuf,(BBA_MINPKTSIZE-p->tot_len));
 	bba_deselect();
@@ -710,7 +640,7 @@ static err_t bba_start_rx(struct netif *dev,u32 budget)
 
 				bba_select();
 				bba_insregister(pos);
-				bba_insdata_fast(tmp->payload,size);
+				bba_insdata(tmp->payload,size);
 				bba_deselect();
 				pos += size;
 			}

@@ -35,6 +35,7 @@ distribution.
 #include "irq.h"
 #include "processor.h"
 #include "spinlock.h"
+#include "cache.h"
 #include "exi.h"
 
 //#define _EXI_DEBUG
@@ -498,23 +499,19 @@ s32 EXI_ImmEx(s32 nChn,void *pData,u32 nLen,u32 nMode)
 {
 	u8 *buf = pData;
 	u32 tc;
-	s32 ret = 0;
 #ifdef _EXI_DEBUG
 	printf("EXI_ImmEx(%d,%p,%d,%d)\n",nChn,pData,nLen,nMode);
 #endif
 	while(nLen) {
-		ret = 0;
 		tc = nLen;
 		if(tc>4) tc = 4;
 
-		if(!EXI_Imm(nChn,buf,tc,nMode,NULL)) break;
-		if(!EXI_Sync(nChn)) break;
+		if(!EXI_Imm(nChn,buf,tc,nMode,NULL)) return 0;
+		if(!EXI_Sync(nChn)) return 0;
 		nLen -= tc;
 		buf += tc;
-
-		ret = 1;
 	}
-	return ret;
+	return 1;
 }
 
 s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
@@ -551,6 +548,37 @@ s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 	_exiReg[nChn*5+3] = ((nMode&0x03)<<2)|0x03;
 
 	_CPU_ISR_Restore(level);
+	return 1;
+}
+
+s32 EXI_DmaEx(s32 nChn,void *pData,u32 nLen,u32 nMode)
+{
+	u32 roundlen;
+	s32 missalign;
+	s32 len = nLen;
+	u8 *ptr = pData;
+
+	if(!ptr || len<=0) return 0;
+
+	missalign = -((u32)ptr)&0x1f;
+	if((len-missalign)<32) return EXI_ImmEx(nChn,ptr,len,nMode);
+
+	if(missalign>0) {
+		if(!EXI_ImmEx(nChn,ptr,missalign,nMode)) return 0;
+		len -= missalign;
+		ptr += missalign;
+	}
+
+	roundlen = (len&~0x1f);
+	if(nMode==EXI_READ) DCInvalidateRange(ptr,roundlen);
+	else DCStoreRange(ptr,roundlen);
+	if(!EXI_Dma(nChn,ptr,roundlen,nMode,NULL)) return 0;
+	if(!EXI_Sync(nChn)) return 0;
+
+	len -= roundlen;
+	ptr += roundlen;
+	if(len>0) return EXI_ImmEx(nChn,ptr,len,nMode);
+
 	return 1;
 }
 
