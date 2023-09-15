@@ -151,7 +151,7 @@ void netif_remove(struct netif * netif);
    "et0", where the first two letters are the "name" field in the
    netif structure, and the digit is in the num field in the same
    structure. */
-struct netif *netif_find(char *name);
+struct netif *netif_find(const char *name);
 
 void netif_set_default(struct netif *netif);
 
@@ -161,5 +161,12 @@ void netif_set_gw(struct netif *netif, struct ip_addr *gw);
 void netif_set_up(struct netif *netif);
 void netif_set_down(struct netif *netif);
 u8_t netif_is_up(struct netif *netif);
+
+u8_t netif_name_to_index(const char *name);
+char *netif_index_to_name(u8_t index, char *name);
+
+/* Interface indexes always start at 1 per RFC 3493, section 4, num starts at 0 */
+#define netif_num_to_index(netif)   ((netif)->num + 1)
+#define netif_index_to_num(index)   ((index) - 1)
 
 #endif /* __LWIP_NETIF_H__ */

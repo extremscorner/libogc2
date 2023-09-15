@@ -270,6 +270,9 @@ char *inet_ntoa(struct in_addr addr); /* returns ptr to static buffer; not reent
 s32 if_config( char *local_ip, char *netmask, char *gateway,bool use_dhcp);
 s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr *gateway,bool use_dhcp);
 
+char *if_indextoname(unsigned ifindex,char *ifname);
+unsigned if_nametoindex(const char *ifname);
+
 s32 net_init(void);
 #ifdef HW_RVL
 typedef s32 (*netcallback)(s32 result, void *usrdata);

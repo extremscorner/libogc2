@@ -467,13 +467,9 @@ static void ENC28J60_GetMACAddr(s32 chan, u8 macaddr[6])
 		sum = (sum & 0xFFFFFF) + (sum >> 24);
 	}
 
-	macaddr[0] = 0x00;
-	macaddr[1] = 0x09;
-	macaddr[2] = 0xBF;
-
-	macaddr[3] = sum >> 16;
-	macaddr[4] = sum >> 8;
-	macaddr[5] = sum;
+	macaddr[0] = 0x00; macaddr[3] = sum >> 16;
+	macaddr[1] = 0x09; macaddr[4] = sum >> 8;
+	macaddr[2] = 0xBF; macaddr[5] = sum;
 }
 
 static s32 ExiHandler(s32 chan, s32 dev)
@@ -582,6 +578,8 @@ static bool enc28j60_init(struct netif *netif)
 			continue;
 		}
 
+		netif->name[0] = 'E';
+		netif->name[1] = '0' + chan;
 		enc28j60if->chan = chan;
 
 		enc28j60if->nextPacket = ENC28J60_INIT_ERXST;
@@ -670,8 +668,6 @@ err_t enc28j60if_init(struct netif *netif)
 	}
 
 	netif->state = enc28j60if;
-	netif->name[0] = 'e';
-	netif->name[1] = 'n';
 	netif->output = enc28j60if_output;
 	netif->linkoutput = enc28j60_output;
 

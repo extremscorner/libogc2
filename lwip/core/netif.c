@@ -81,7 +81,7 @@ netif_add(struct netif *netif, struct ip_addr *ipaddr, struct ip_addr *netmask,
 #endif
   /* remember netif specific state information data */
   netif->state = state;
-  netif->num = netifnum++;
+  netif->num = netifnum;
   netif->input = input;
 
   netif_set_addr(netif, ipaddr, netmask, gw);
@@ -90,6 +90,8 @@ netif_add(struct netif *netif, struct ip_addr *ipaddr, struct ip_addr *netmask,
   if (init(netif) != ERR_OK) {
     return NULL;
   }
+
+  netifnum = netif->num + 1;
 
   /* add this netif to the list */
   netif->next = netif_list;
@@ -147,8 +149,42 @@ void netif_remove(struct netif * netif)
   LWIP_DEBUGF( NETIF_DEBUG, ("netif_remove: removed netif\n") );
 }
 
+u8_t
+netif_name_to_index(const char *name)
+{
+  struct netif *netif = netif_find(name);
+  if (netif != NULL) {
+    return netif_num_to_index(netif);
+  }
+  /* No name found, return invalid index */
+  return 0;
+}
+
+char *
+netif_index_to_name(u8_t index, char *name)
+{
+  struct netif *netif;
+  u8_t num;
+  if (index == 0) {
+    return NULL; /* indexes start at 1 */
+  }
+  num = netif_index_to_num(index);
+
+  /* find netif from num */
+  for (netif = netif_list; netif != NULL; netif = netif->next) {
+    if (num == netif->num) {
+      name[0] = netif->name[0];
+      name[1] = netif->name[1];
+      name[2] = '0' + netif->num;
+      name[3] = '\0';
+      return name;
+    }
+  }
+  return NULL;
+}
+
 struct netif *
-netif_find(char *name)
+netif_find(const char *name)
 {
   struct netif *netif;
   u8_t num;
@@ -159,10 +195,10 @@ netif_find(char *name)
 
   num = name[2] - '0';
 
-  for(netif = netif_list; netif != NULL; netif = netif->next) {
+  for (netif = netif_list; netif != NULL; netif = netif->next) {
     if (num == netif->num &&
-       name[0] == netif->name[0] &&
-       name[1] == netif->name[1]) {
+        name[0] == netif->name[0] &&
+        name[1] == netif->name[1]) {
       LWIP_DEBUGF(NETIF_DEBUG, ("netif_find: found %c%c\n", name[0], name[1]));
       return netif;
     }

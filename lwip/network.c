@@ -1599,6 +1599,17 @@ s32 if_config(char *local_ip, char *netmask, char *gateway,bool use_dhcp)
 	return ret;
 }
 
+char *if_indextoname(unsigned ifindex,char *ifname)
+{
+	if((u8)ifindex!=ifindex) return NULL;
+	return netif_index_to_name(ifindex,ifname);
+}
+
+unsigned if_nametoindex(const char *ifname)
+{
+	return netif_name_to_index(ifname);
+}
+
 u32 net_gethostip(void)
 {
 	return g_hNetIF.ip_addr.addr;
