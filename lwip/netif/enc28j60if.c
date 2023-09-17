@@ -301,7 +301,6 @@ struct enc28j60if {
 	lwpq_t threadQueue;
 	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
-	u16 nextPacket;
 };
 
 static struct netif *enc28j60_netif;
@@ -449,12 +448,12 @@ static void ENC28J60_GetMACAddr(s32 chan, u8 macaddr[6])
 	union {
 		u32 cid[4];
 		u8 data[18 + 1];
-	} ecid = {
+	} ecid = {{
 		mfspr(ECID0),
 		mfspr(ECID1),
 		mfspr(ECID2),
 		mfspr(ECID3)
-	};
+	}};
 
 	u32 sum = chan;
 
@@ -493,8 +492,6 @@ static s32 ExiHandler(s32 chan, s32 dev)
 	eir &= eie;
 
 	if (eir & ENC28J60_EIR_PKTIF) {
-		ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, enc28j60if->nextPacket);
-
 		u8 rsv[6];
 		ENC28J60_ReadCmd(chan, ENC28J60_CMD_RBM, rsv, sizeof(rsv));
 		u16 nextPacket = __lhbrx(rsv, 0);
@@ -508,7 +505,7 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 		if (p) enc28j60_netif->input(p, enc28j60_netif);
 
-		enc28j60if->nextPacket = nextPacket;
+		ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, nextPacket);
 		ENC28J60_WriteReg16(chan, ENC28J60_ERXRDPT, nextPacket == ENC28J60_INIT_ERXST ? ENC28J60_INIT_ERXND : nextPacket - 1);
 
 		ENC28J60_SetBits(chan, ENC28J60_ECON2, ENC28J60_ECON2_PKTDEC);
@@ -582,10 +579,11 @@ static bool enc28j60_init(struct netif *netif)
 		netif->name[1] = '0' + chan;
 		enc28j60if->chan = chan;
 
-		enc28j60if->nextPacket = ENC28J60_INIT_ERXST;
+		ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, ENC28J60_INIT_ERXST);
 		ENC28J60_WriteReg16(chan, ENC28J60_ERXST, ENC28J60_INIT_ERXST);
 		ENC28J60_WriteReg16(chan, ENC28J60_ERXND, ENC28J60_INIT_ERXND);
 		ENC28J60_WriteReg16(chan, ENC28J60_ERXRDPT, ENC28J60_INIT_ERXND);
+		ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
 		ENC28J60_WriteReg16(chan, ENC28J60_ETXST, ENC28J60_INIT_ETXST);
 		ENC28J60_WriteReg16(chan, ENC28J60_ETXND, ENC28J60_INIT_ETXND);
 
