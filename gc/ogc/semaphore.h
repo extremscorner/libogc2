@@ -38,6 +38,7 @@ distribution.
 
 
 #include <gctypes.h>
+#include <time.h>
 
 #define LWP_SEM_NULL			0xffffffff
 
@@ -79,6 +80,25 @@ s32 LWP_SemDestroy(sem_t sem);
 \return 0 on success, <0 on error
 */
 s32 LWP_SemWait(sem_t sem);
+
+
+/*! \fn s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime)
+\brief Count down semaphore counter and try to enter lock if counter <=0 until timeout.
+\param[in] sem handle to the sem_t structure.
+\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+
+\return 0 on success, <0 on error
+*/
+s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime);
+
+
+/*! \fn s32 LWP_SemTryWait(sem_t sem)
+\brief Count down semaphore counter and try to enter lock if counter <=0
+\param[in] sem handle to the sem_t structure.
+
+\return 0 on success, <0 on error
+*/
+s32 LWP_SemTryWait(sem_t sem);
 
 
 /*! \fn s32 LWP_SemPost(sem_t sem)

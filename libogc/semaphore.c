@@ -85,6 +85,30 @@ static sema_st* __lwp_sema_allocate(void)
 	return NULL;
 }
 
+static s32 __lwp_sema_waitsupp(sem_t sem,u64 timeout,u8 block)
+{
+	sema_st *lwp_sem;
+
+	lwp_sem = __lwp_sema_open(sem);
+	if(!lwp_sem) return -1;
+
+	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,block,timeout);
+	__lwp_thread_dispatchenable();
+
+	switch(_thr_executing->wait.ret_code) {
+		case LWP_SEMA_SUCCESSFUL:
+			break;
+		case LWP_SEMA_UNSATISFIED_NOWAIT:
+			return EAGAIN;
+		case LWP_SEMA_DELETED:
+			return EAGAIN;
+		case LWP_SEMA_TIMEOUT:
+			return ETIMEDOUT;
+			
+	}
+	return 0;
+}
+
 s32 LWP_SemInit(sem_t *sem,u32 start,u32 max)
 {
 	lwp_semattr attr;
@@ -106,26 +130,20 @@ s32 LWP_SemInit(sem_t *sem,u32 start,u32 max)
 
 s32 LWP_SemWait(sem_t sem)
 {
-	sema_st *lwp_sem;
+	return __lwp_sema_waitsupp(sem,LWP_THREADQ_NOTIMEOUT,TRUE);
+}
 
-	lwp_sem = __lwp_sema_open(sem);
-	if(!lwp_sem) return -1;
+s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime)
+{
+	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
-	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,TRUE,LWP_THREADQ_NOTIMEOUT);
-	__lwp_thread_dispatchenable();
+	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	return __lwp_sema_waitsupp(sem,timeout,TRUE);
+}
 
-	switch(_thr_executing->wait.ret_code) {
-		case LWP_SEMA_SUCCESSFUL:
-			break;
-		case LWP_SEMA_UNSATISFIED_NOWAIT:
-			return EAGAIN;
-		case LWP_SEMA_DELETED:
-			return EAGAIN;
-		case LWP_SEMA_TIMEOUT:
-			return ETIMEDOUT;
-			
-	}
-	return 0;
+s32 LWP_SemTryWait(sem_t sem)
+{
+	return __lwp_sema_waitsupp(sem,LWP_THREADQ_NOTIMEOUT,FALSE);
 }
 
 s32 LWP_SemPost(sem_t sem)
