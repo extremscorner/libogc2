@@ -6,8 +6,6 @@
 #include <lwp.h>
 #include <video.h>
 #include <message.h>
-#include <mutex.h>
-#include <cond.h>
 #include <semaphore.h>
 #include <processor.h>
 #include <lwp_threads.h>
@@ -58,8 +56,7 @@ struct netselect_cb {
 	fd_set *writeset;
 	fd_set *exceptset;
 	u32 signaled;
-	mutex_t cond_lck;
-	cond_t cond;
+	sem_t sem;
 };
 
 typedef void (*apimsg_decode)(struct apimsg_msg *);
@@ -1465,9 +1462,7 @@ static void evt_callback(struct netconn *conn,enum netconn_evt evt,u32 len)
 		if(scb) {
 			scb->signaled = 1;
 			LWP_SemPost(sockselect_sem);
-			LWP_MutexLock(scb->cond_lck);
-			LWP_CondSignal(scb->cond);
-			LWP_MutexUnlock(scb->cond_lck);
+			LWP_SemPost(scb->sem);
 		} else {
 			LWP_SemPost(sockselect_sem);
 			break;
@@ -2087,8 +2082,7 @@ s32 net_select(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,st
 			return 0;
 		}
 
-		LWP_MutexInit(&sel_cb.cond_lck,FALSE);
-		LWP_CondInit(&sel_cb.cond);
+		LWP_SemInit(&sel_cb.sem,0,1);
 		sel_cb.next = selectcb_list;
 		selectcb_list = &sel_cb;
 
@@ -2101,9 +2095,7 @@ s32 net_select(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,st
 			p_tb = &tb;
 		}
 		
-		LWP_MutexLock(sel_cb.cond_lck);
-		i = LWP_CondTimedWait(sel_cb.cond,sel_cb.cond_lck,p_tb);
-		LWP_MutexUnlock(sel_cb.cond_lck);
+		i = LWP_SemTimedWait(sel_cb.sem,p_tb);
 
 		LWP_SemWait(sockselect_sem);
 		if(selectcb_list==&sel_cb)
@@ -2116,10 +2108,8 @@ s32 net_select(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,st
 				}
 			}
 		}
-		LWP_CondDestroy(sel_cb.cond);
-		LWP_MutexDestroy(sel_cb.cond_lck);
-
 		LWP_SemPost(sockselect_sem);
+		LWP_SemDestroy(sel_cb.sem);
 
 		if(i==ETIMEDOUT) {
 			if(readset)
