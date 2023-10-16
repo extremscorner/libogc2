@@ -47,6 +47,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#define MAX_VOICES     16
+#define SND_BUFFERSIZE 4096
+
 /*! \addtogroup sndretvals SND return values
  * @{
  */
@@ -265,7 +268,7 @@ s32 ASND_GetAudioRate(void);
  * \note \a callback is used to implement a double buffer. When the second buffer is empty, the callback function is called with the voice number
  * as an argument. You can use <tt>void <i>callback</i> (s32 voice)</tt> to call ASND_AddVoice() and add one voice to the second buffer. When the callback
  * is non-NULL the, the voice never stops and returns SND_WAITING if successful on timeout condition.
- * \param[in] voice Voice slot to use for this sound; valid values are 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice slot to use for this sound; valid values are 0 to (MAX_VOICES-1).
  * \param[in] format \ref sndsetvoiceformats to use for this sound.
  * \param[in] pitch Frequency to use, in Hz.
  * \param[in] delay Delay to wait before playing this voice; value is in milliseconds.
@@ -283,7 +286,7 @@ s32 ASND_SetInfiniteVoice(s32 voice, s32 format, s32 pitch,s32 delay, void *snd,
 
 /*! \brief Adds a PCM voice to play from the second buffer.
  * \note This function requires a call to ASND_SetVoice() and its subsequent return value to be a status other than SND_UNUSED prior to calling this one.
- * \param[in] voice Voice slot to attach this buffer to; value must be 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice slot to attach this buffer to; value must be 0 to (MAX_VOICES-1).
  * \param[in] snd Buffer containing the samples; it <b>must</b> be aligned and padded to 32 bytes AND have the same sample format as the first buffer.
  * \param[in] size_snd Size of the buffer samples, in bytes.
  * \return SND_OK or SND_INVALID; it may also return SND_BUSY if the second buffer is not empty and the voice cannot be added. */
@@ -292,35 +295,35 @@ s32 ASND_AddVoice(s32 voice, void *snd, s32 size_snd);
 /*! \brief Stops the selected voice.
  * \details If the voice is used in song mode, you need to assign the samples with ASND_SetSongSampleVoice() again. In this case, use ANS_PauseSongVoice()
  * to stop the voice without loss of samples.
- * \param[in] voice Voice to stop, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to stop, from 0 to (MAX_VOICES-1).
  * \return SND_OK or SND_INVALID. */
 s32 ASND_StopVoice(s32 voice);
 
 /*! \brief Pauses the selected voice.
- * \param[in] voice Voice to pause, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to pause, from 0 to (MAX_VOICES-1).
  * \return SND_OK or SND_INVALID. */
 s32 ASND_PauseVoice(s32 voice, s32 pause);
 
 /*! \brief Returns the status of the selected voice.
- * \param[in] voice Voice slot to get the status from, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice slot to get the status from, from 0 to (MAX_VOICES-1).
  * \return SND_INVALID if invalid, else a value from \ref sndiavretvals. */
 s32 ASND_StatusVoice(s32 voice);
 
 /*! \brief Returns the first unused voice.
  * \note Voice 0 is the last possible voice that can be returned. The idea is that this voice is reserved for a MOD/OGG/MP3/etc. player. With this in mind,
  * you can use this function to determine that the rest of the voices are working if the return value is < 1.
- * \return SND_INVALID or the first free voice from 0 to (MAX_SND_VOICES-1). */
+ * \return SND_INVALID or the first free voice from 0 to (MAX_VOICES-1). */
 s32 ASND_GetFirstUnusedVoice(void);
 
 /*! \brief Changes the voice pitch in real-time.
  * \details This function can be used to create audio effects such as Doppler effect emulation.
- * \param[in] voice Voice to change the pitch of, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to change the pitch of, from 0 to (MAX_VOICES-1).
  * \return SND_OK or SND_INVALID. */
 s32 ASND_ChangePitchVoice(s32 voice, s32 pitch);
 
 /*! \brief Changes the voice volume in real-time.
  * \details This function can be used to create audio effects like distance attenuation.
- * \param[in] voice Voice to change the volume of, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to change the volume of, from 0 to (MAX_VOICES-1).
  * \param[in] volume_l \ref voicevol to set the left channel to, from 0 to 256.
  * \param[in] volume_r \ref voicevol to set the right channel to, from 0 to 256.
  * \return SND_OK or SND_INVALID. */
@@ -331,7 +334,7 @@ s32 ASND_ChangeVolumeVoice(s32 voice, s32 volume_l, s32 volume_r);
  * sound buffer. For example, if the lib is initialized with INIT_RATE_48000, a return value of 24000 is equal to 0.5 seconds. This value can be used, for
  * example, to synchronize audio and video.
  * \note This function does not return error codes.
- * \param[in] voice Voice to retrieve the counter value from, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to retrieve the counter value from, from 0 to (MAX_VOICES-1).
  * \return Number of ticks since this voice started playing. */
 u32 ASND_GetTickCounterVoice(s32 voice);
 
@@ -339,12 +342,12 @@ u32 ASND_GetTickCounterVoice(s32 voice);
  * \details This value represents the time, in milliseconds, since this voice started playing, sans delay time. This value can be used, for example, to
  * synchronize audio and video.
  * \note This function does not return error codes.
- * \param[in] voice Voice to retrieve the time value from, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to retrieve the time value from, from 0 to (MAX_VOICES-1).
  * \return Amount of time since this voice has started playing. */
 u32 ASND_GetTimerVoice(s32 voice);
 
 /*! \brief Tests if \a pointer is in use by \a voice as a buffer.
- * \param[in] voice Voice to test, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to test, from 0 to (MAX_VOICES-1).
  * \param[in] pointer Address to test. This must be the same pointer sent to ASND_AddVoice() or ASND_SetVoice().
  * \return SND_INVALID if invalid
  * \return 0 if the pointer is unused
@@ -354,7 +357,7 @@ s32 ASND_TestPointer(s32 voice, void *pointer);
 /*! \brief Tests to determine if the \a voice is ready to receive a new buffer sample with ASND_AddVoice().
  * \details You can use this function to block a reader when double buffering is used. It works similarly to ASND_TestPointer() without needing to pass a
  * pointer.
- * \param[in] voice Voice to test, from 0 to (MAX_SND_VOICES-1).
+ * \param[in] voice Voice to test, from 0 to (MAX_VOICES-1).
  * \return SND_INVALID
  * \return 0 if voice is NOT ready to receive a new voice.
  * \return 1 if voice is ready to receive a new voice with ASND_AddVoice(). */
