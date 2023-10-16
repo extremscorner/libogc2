@@ -582,10 +582,10 @@ s32 ASND_AddVoice(s32 voice, void *snd, s32 size_snd)
 
 s32 ASND_TestVoiceBufferReady(s32 voice)
 {
-	if(voice<0 || voice>=MAX_VOICES) return 0; // invalid voice: not ready (of course XD)
-	if(sound_data[voice].start_addr && sound_data[voice].start_addr2) return 0; // not ready
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice: not ready (of course XD)
+	if(sound_data[voice].start_addr && sound_data[voice].start_addr2) return SND_BUSY; // not ready
 
-	return 1; // ready
+	return SND_OK; // ready
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------*/

@@ -349,18 +349,18 @@ u32 ASND_GetTimerVoice(s32 voice);
 /*! \brief Tests if \a pointer is in use by \a voice as a buffer.
  * \param[in] voice Voice to test, from 0 to (MAX_VOICES-1).
  * \param[in] pointer Address to test. This must be the same pointer sent to ASND_AddVoice() or ASND_SetVoice().
- * \return SND_INVALID if invalid
- * \return 0 if the pointer is unused
- * \return 1 if the pointer used as a buffer. */
+ * \return SND_INVALID if invalid.
+ * \return SND_OK if the pointer is unused.
+ * \return SND_BUSY if the pointer is used as a buffer. */
 s32 ASND_TestPointer(s32 voice, void *pointer);
 
 /*! \brief Tests to determine if the \a voice is ready to receive a new buffer sample with ASND_AddVoice().
  * \details You can use this function to block a reader when double buffering is used. It works similarly to ASND_TestPointer() without needing to pass a
  * pointer.
  * \param[in] voice Voice to test, from 0 to (MAX_VOICES-1).
- * \return SND_INVALID
- * \return 0 if voice is NOT ready to receive a new voice.
- * \return 1 if voice is ready to receive a new voice with ASND_AddVoice(). */
+ * \return SND_INVALID if invalid.
+ * \return SND_OK if voice is ready to receive a new buffer with ASND_AddVoice().
+ * \return SND_BUSY if voice is NOT ready to receive a new buffer. */
 s32 ASND_TestVoiceBufferReady(s32 voice);
 
 /*! @} */
