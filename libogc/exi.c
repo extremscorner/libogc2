@@ -628,6 +628,9 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 #endif
 		if(__exi_attach(nChn,NULL)==0) return 0;
 		idtime = last_exi_idtime[nChn];
+	} else if(nChn==EXI_CHANNEL_2 && nDev==EXI_DEVICE_0 && exi->exi_id!=0) {
+		*nId = exi->exi_id;
+		return 1;
 	}
 #ifdef _EXI_DEBUG
 	printf("EXI_GetID(interrupts set)\n");
@@ -658,7 +661,8 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 #ifdef _EXI_DEBUG
 		printf("EXI_GetID(exi_id = %d)\n",exi->exi_id);
 #endif
-	}
+	} else if(nChn==EXI_CHANNEL_2 && nDev==EXI_DEVICE_0 && ret)
+		exi->exi_id = *nId;
 	return ret;
 }
 
