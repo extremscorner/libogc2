@@ -37,6 +37,8 @@ distribution.
 #include "spinlock.h"
 #include "cache.h"
 #include "exi.h"
+#include "card_cmn.h"
+#include "card_io.h"
 
 //#define _EXI_DEBUG
 
@@ -665,6 +667,10 @@ s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
 	s32 ret;
 	u32 reg;
 
+	if(nDev==EXI_DEVICE_0 && sdgecko_isInitialized(nChn)) {
+		*nId = 0xffffffff;
+		return 1;
+	}
 	if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==0) return 0;
 
 	ret = 0;
