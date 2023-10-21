@@ -11,6 +11,8 @@ jobs:
     steps:
     - name: Checkout libogc2
       uses: actions/checkout@main
+      with:
+        path: libogc2
 
     - name: Checkout libfat
       uses: actions/checkout@main
@@ -26,6 +28,7 @@ jobs:
 
     - name: Build libogc2
       run: make install
+      working-directory: libogc2
 
     - name: Build libfat
       run: make ogc-install
@@ -40,3 +43,35 @@ jobs:
       with:
         name: libogc2
         path: /opt/devkitpro/libogc2
+
+    - name: Checkout gamecube-examples
+      uses: actions/checkout@main
+      with:
+        repository: extremscorner/gamecube-examples
+        path: gamecube-examples
+
+    - name: Checkout wii-examples
+      uses: actions/checkout@main
+      with:
+        repository: extremscorner/wii-examples
+        path: wii-examples
+
+    - name: Build gamecube-examples
+      run: make
+      working-directory: gamecube-examples
+
+    - name: Build wii-examples
+      run: make
+      working-directory: wii-examples
+
+    - name: Upload gamecube-examples
+      uses: actions/upload-artifact@main
+      with:
+        name: gamecube-examples
+        path: gamecube-examples/bin
+
+    - name: Upload wii-examples
+      uses: actions/upload-artifact@main
+      with:
+        name: wii-examples
+        path: wii-examples/bin
