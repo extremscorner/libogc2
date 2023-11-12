@@ -554,9 +554,11 @@ static bool enc28j60_init(struct netif *netif)
 	for (s32 chan = EXI_CHANNEL_0; chan < EXI_CHANNEL_MAX; chan++) {
 		u32 id;
 
-		if (sdgecko_isInitialized(chan))
-			continue;
-		if (chan < EXI_CHANNEL_2 && !EXI_Attach(chan, ExtHandler))
+		if (chan < EXI_CHANNEL_2) {
+			while (!EXI_ProbeEx(chan));
+			if (!EXI_Attach(chan, ExtHandler))
+				continue;
+		} else if (sdgecko_isInitialized(chan))
 			continue;
 
 		u32 level = IRQ_Disable();

@@ -159,6 +159,8 @@ int usb_isgeckoalive(s32 chn)
 	s32 ret;
 	u16 val;
 
+	while (EXI_ProbeEx(chn) == 0);
+
 	if (EXI_GetID(chn, EXI_DEVICE_0, &id) == 0)
 		return 0;
 
