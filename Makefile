@@ -102,7 +102,8 @@ endif
 INCLUDES	+=	-I$(PORTLIBS_PATH)/ppc/include
 
 
-CFLAGS		:= -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall -Wno-address-of-packed-member $(MACHDEP) $(INCLUDES)
+OPTLEVEL	?= 2
+CFLAGS		:= -DLIBOGC_INTERNAL -g -O$(OPTLEVEL) -fno-strict-aliasing -Wall -Wno-address-of-packed-member $(MACHDEP) $(INCLUDES)
 ASFLAGS		:=	$(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
 #---------------------------------------------------------------------------------
