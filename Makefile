@@ -2,9 +2,16 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
+ifeq ($(strip $(INSTALL_PREFIX)),)
 ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>devkitPro")
 endif
+# Prevent variable expansion so it stays as-is in the installable rules
+INSTALL_PREFIX	:= $$(DEVKITPRO)/libogc2
+endif
+
+INCDEST	?= include
+LIBDEST	?= lib
 
 ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
@@ -229,6 +236,16 @@ gc/ogc/libversion.h : $(CURFILE)
 	@echo "#endif // __OGC_LIBVERSION_H__" >> $@
 
 #---------------------------------------------------------------------------------
+RULES		:= wii_rules gamecube_rules
+%_rules: $(BASEDIR)/%_rules.in
+#---------------------------------------------------------------------------------
+	@sed \
+		-e "s|@PREFIX@|\$(INSTALL_PREFIX)|g" \
+		-e "s|@INCDIR@|$(INCDEST)|g" \
+		-e "s|@LIBDIR@|$(LIBDEST)|g" \
+		$< > $@
+
+#---------------------------------------------------------------------------------
 asndlib.o: asnd_dsp_mixer.h
 #---------------------------------------------------------------------------------
 aesndlib.o: aesnddspmixer.h
@@ -299,27 +316,31 @@ install-headers: gc/ogc/libversion.h
 	@cp $(BASEDIR)/gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
 
 #---------------------------------------------------------------------------------
-install: $(PLATFORMS) install-headers
+install: $(PLATFORMS) $(RULES) install-headers
 #---------------------------------------------------------------------------------
-	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv $(BASEDIR)/libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
+	@$(eval INSTALL_PREFIX := $(INSTALL_PREFIX)) # Expand
+	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)
+	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)/$(INCDEST)
+	@cp -frv include/* -t $(DESTDIR)$(INSTALL_PREFIX)/$(INCDEST)
+	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)/$(LIBDEST)
+	@cp -frv lib/* -t $(DESTDIR)$(INSTALL_PREFIX)/$(LIBDEST)
+	@cp -frv $(BASEDIR)/libogc_license.txt $(DESTDIR)$(INSTALL_PREFIX)
+	@cp -frv $(RULES) $(DESTDIR)$(INSTALL_PREFIX)
 
 #---------------------------------------------------------------------------------
 uninstall:
 #---------------------------------------------------------------------------------
-	@rm -frv $(DESTDIR)$(DEVKITPRO)/libogc2
+	@$(eval INSTALL_PREFIX := $(INSTALL_PREFIX)) # Expand
+	@rm -frv $(DESTDIR)$(INSTALL_PREFIX)
 
 #---------------------------------------------------------------------------------
-dist: $(PLATFORMS) install-headers
+dist: $(PLATFORMS) $(RULES) install-headers
 #---------------------------------------------------------------------------------
 	@tar -C $(BASEDIR) --exclude-vcs --exclude-vcs-ignores --exclude .github \
 		-cvjf $(BUILDDIR)/libogc2-src-$(VERSTRING).tar.bz2 .
 
-	@cp $(BASEDIR)/libogc_license.txt $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules .
-	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
+	@cp $(BASEDIR)/libogc_license.txt .
+	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt $(RULES)
 
 
 ifeq ($(strip $(LIBRARIES)),)
@@ -342,6 +363,7 @@ clean:
 #---------------------------------------------------------------------------------
 	rm -fr wii cube
 	rm -fr gc/ogc/libversion.h
+	rm -fr $(RULES)
 	rm -fr $(DEPS)
 	rm -fr $(LIBS)
 	rm -fr $(INCDIR)
