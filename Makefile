@@ -10,6 +10,8 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
+CURFILE		:=	$(abspath $(lastword $(MAKEFILE_LIST)))
+
 export PATH	:=	$(DEVKITPPC)/bin:$(PATH)
 
 export LIBOGC_MAJOR	:= 2
@@ -26,7 +28,8 @@ VERSTRING	:=	$(shell printf "r%s.%s" "$$(git rev-list --count HEAD)" "$$(git rev
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(PLATFORM)),)
 #---------------------------------------------------------------------------------
-export BASEDIR		:= $(CURDIR)
+export BUILDDIR		:= $(CURDIR)
+export BASEDIR		:= $(dir $(CURFILE))
 export LWIPDIR		:= $(BASEDIR)/lwip
 export OGCDIR		:= $(BASEDIR)/libogc
 export MODDIR		:= $(BASEDIR)/libmodplay
@@ -39,10 +42,10 @@ export LIBASNDDIR	:= $(BASEDIR)/libasnd
 export LIBAESNDDIR	:= $(BASEDIR)/libaesnd
 export LIBISODIR	:= $(BASEDIR)/libiso9660
 export LIBWIIKEYB	:= $(BASEDIR)/libwiikeyboard
-export DEPS			:=	$(BASEDIR)/deps
-export LIBS			:=	$(BASEDIR)/lib
+export DEPS			:=	$(BUILDDIR)/deps
+export LIBS			:=	$(BUILDDIR)/lib
 
-export INCDIR		:=	$(BASEDIR)/include
+export INCDIR		:=	$(BUILDDIR)/include
 
 #---------------------------------------------------------------------------------
 else
@@ -74,10 +77,12 @@ WIIKEYBLIB	:= $(LIBDIR)/libwiikeyboard
 DEFINCS		:= -I$(BASEDIR) -I$(BASEDIR)/gc
 INCLUDES	:=	$(DEFINCS) -I$(BASEDIR)/gc/netif -I$(BASEDIR)/gc/ipv4 \
 				-I$(BASEDIR)/gc/ogc -I$(BASEDIR)/gc/ogc/machine \
+				-I$(BUILDDIR)/gc/ogc \
 				-I$(BASEDIR)/gc/modplay \
 				-I$(BASEDIR)/gc/bte \
 				-I$(BASEDIR)/gc/sdcard -I$(BASEDIR)/gc/wiiuse \
-				-I$(BASEDIR)/gc/di
+				-I$(BASEDIR)/gc/di \
+				-I$(CURDIR)
 
 MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffunction-sections -fdata-sections
 
@@ -189,7 +194,7 @@ wii: gc/ogc/libversion.h
 	@[ -d $(LIBS)/wii ] || mkdir -p $(LIBS)/wii
 	@[ -d $(DEPS)/wii ] || mkdir -p $(DEPS)/wii
 	@[ -d wii ] || mkdir -p wii
-	@$(MAKE) PLATFORM=wii libs -C wii -f $(CURDIR)/Makefile
+	@$(MAKE) PLATFORM=wii libs -C wii -f $(CURFILE)
 
 #---------------------------------------------------------------------------------
 cube: gc/ogc/libversion.h
@@ -198,12 +203,13 @@ cube: gc/ogc/libversion.h
 	@[ -d $(LIBS)/cube ] || mkdir -p $(LIBS)/cube
 	@[ -d $(DEPS)/cube ] || mkdir -p $(DEPS)/cube
 	@[ -d cube ] || mkdir -p cube
-	@$(MAKE) PLATFORM=cube libs -C cube -f $(CURDIR)/Makefile
+	@$(MAKE) PLATFORM=cube libs -C cube -f $(CURFILE)
 
 
 #---------------------------------------------------------------------------------
-gc/ogc/libversion.h: .git/HEAD .git/index Makefile
+gc/ogc/libversion.h : $(CURFILE)
 #---------------------------------------------------------------------------------
+	@[ -d gc/ogc ] || mkdir -p gc/ogc
 	@echo "#ifndef __OGC_LIBVERSION_H__" > $@
 	@echo "#define __OGC_LIBVERSION_H__" >> $@
 	@echo >> $@
@@ -267,7 +273,7 @@ $(WIIUSELIB).a: $(WIIUSEOBJ)
 .PHONY: libs wii cube install-headers install uninstall dist docs
 
 #---------------------------------------------------------------------------------
-install-headers:
+install-headers: gc/ogc/libversion.h
 #---------------------------------------------------------------------------------
 	@mkdir -p $(INCDIR)
 	@mkdir -p $(INCDIR)/ogc/machine
@@ -278,16 +284,17 @@ install-headers:
 	@mkdir -p $(INCDIR)/sdcard
 	@mkdir -p $(INCDIR)/di
 	@mkdir -p $(INCDIR)/wiikeyboard
-	@cp ./gc/*.h $(INCDIR)
-	@cp ./gc/ogc/*.h $(INCDIR)/ogc
-	@cp ./gc/ogc/machine/*.h $(INCDIR)/ogc/machine
-	@cp ./gc/sys/*.h $(INCDIR)/sys
-	@cp ./gc/bte/*.h $(INCDIR)/bte
-	@cp ./gc/wiiuse/*.h $(INCDIR)/wiiuse
-	@cp ./gc/modplay/*.h $(INCDIR)/modplay
-	@cp ./gc/sdcard/*.h $(INCDIR)/sdcard
-	@cp ./gc/di/*.h $(INCDIR)/di
-	@cp ./gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
+	@cp $(BASEDIR)/gc/*.h $(INCDIR)
+	@cp $(BASEDIR)/gc/ogc/*.h $(INCDIR)/ogc
+	@cp $(BUILDDIR)/gc/ogc/*.h $(INCDIR)/ogc
+	@cp $(BASEDIR)/gc/ogc/machine/*.h $(INCDIR)/ogc/machine
+	@cp $(BASEDIR)/gc/sys/*.h $(INCDIR)/sys
+	@cp $(BASEDIR)/gc/bte/*.h $(INCDIR)/bte
+	@cp $(BASEDIR)/gc/wiiuse/*.h $(INCDIR)/wiiuse
+	@cp $(BASEDIR)/gc/modplay/*.h $(INCDIR)/modplay
+	@cp $(BASEDIR)/gc/sdcard/*.h $(INCDIR)/sdcard
+	@cp $(BASEDIR)/gc/di/*.h $(INCDIR)/di
+	@cp $(BASEDIR)/gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
 
 #---------------------------------------------------------------------------------
 install: wii cube install-headers
@@ -295,8 +302,8 @@ install: wii cube install-headers
 	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv gamecube_rules wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
+	@cp -frv $(BASEDIR)/libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
+	@cp -frv $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
 
 #---------------------------------------------------------------------------------
 uninstall:
@@ -306,9 +313,10 @@ uninstall:
 #---------------------------------------------------------------------------------
 dist: wii cube install-headers
 #---------------------------------------------------------------------------------
-	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
-		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
-		-cvjf libogc2-src-$(VERSTRING).tar.bz2 *
+	@tar -C $(BASEDIR) --exclude-vcs --exclude-vcs-ignores --exclude .github \
+		-cvjf $(BUILDDIR)/libogc2-src-$(VERSTRING).tar.bz2 .
+
+	@cp $(BASEDIR)/libogc_license.txt $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules .
 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
 
 
@@ -329,6 +337,7 @@ libs: $(LIBRARIES)
 clean:
 #---------------------------------------------------------------------------------
 	rm -fr wii cube
+	rm -fr gc/ogc/libversion.h
 	rm -fr $(DEPS)
 	rm -fr $(LIBS)
 	rm -fr $(INCDIR)
@@ -337,6 +346,6 @@ clean:
 #---------------------------------------------------------------------------------
 docs: install-headers
 #---------------------------------------------------------------------------------
-	VERSTRING="$(VERSTRING)" doxygen Doxyfile
+	@cd $(BASEDIR); VERSTRING="$(VERSTRING)" doxygen Doxyfile
 
 -include $(DEPSDIR)/*.d
