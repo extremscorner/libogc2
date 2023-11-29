@@ -186,7 +186,8 @@ WIIKEYBLIBOBJ	:=	usbkeyboard.o keyboard.o ukbdmap.o wskbdutil.o
 
 
 
-all: wii cube
+PLATFORMS	?= wii cube
+all: $(PLATFORMS)
 
 #---------------------------------------------------------------------------------
 wii: gc/ogc/libversion.h
@@ -298,7 +299,7 @@ install-headers: gc/ogc/libversion.h
 	@cp $(BASEDIR)/gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
 
 #---------------------------------------------------------------------------------
-install: wii cube install-headers
+install: $(PLATFORMS) install-headers
 #---------------------------------------------------------------------------------
 	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
@@ -312,7 +313,7 @@ uninstall:
 	@rm -frv $(DESTDIR)$(DEVKITPRO)/libogc2
 
 #---------------------------------------------------------------------------------
-dist: wii cube install-headers
+dist: $(PLATFORMS) install-headers
 #---------------------------------------------------------------------------------
 	@tar -C $(BASEDIR) --exclude-vcs --exclude-vcs-ignores --exclude .github \
 		-cvjf $(BUILDDIR)/libogc2-src-$(VERSTRING).tar.bz2 .
@@ -321,17 +322,19 @@ dist: wii cube install-headers
 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt *_rules
 
 
-LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a $(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
+ifeq ($(strip $(LIBRARIES)),)
+LIBRARIES	:=	ogc modplay db tinysmb asnd aesnd iso9660
 
 ifeq ($(PLATFORM),cube)
-LIBRARIES	+=	$(BBALIB).a
+LIBRARIES	+=	bba
 endif
 ifeq ($(PLATFORM),wii)
-LIBRARIES	+=	$(BTELIB).a $(WIIUSELIB).a $(DILIB).a $(WIIKEYBLIB).a
+LIBRARIES	+=	bte wiiuse di wiikeyboard
+endif
 endif
 
 #---------------------------------------------------------------------------------
-libs: $(LIBRARIES)
+libs: $(foreach lib,$(LIBRARIES),$(LIBDIR)/lib$(lib).a)
 #---------------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------------
