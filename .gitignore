@@ -5,6 +5,7 @@ include
 lib
 wii
 gc/ogc/libversion.h
+*_rules
 *.bz2
 docs
 warn.log
