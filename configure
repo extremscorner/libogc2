@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+src=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+if [[ "$(readlink -f "$PWD")" == "$src" ]]; then
+    printf '%s\n' 'This script must be run out of tree!'
+    exit 1
+fi
+
+tmp=$(mktemp -t Makefile.XXXXXXXXXX)
+trap 'rm -f "$tmp"' EXIT
+
+function write() {
+    printf '%s\n' "$*" >> "$tmp"
+}
+
+write '# Automatically generated file'
+
+platforms=()
+libs=()
+
+for arg in "$@"; do
+    val="${arg#*=}"
+    case $arg in
+        --prefix=*)
+            write export INSTALL_PREFIX := "$val"
+            ;;
+        --incdir=*)
+            write export INCDEST := "$val"
+            ;;
+        --libdir=*)
+            write export LIBDEST := "$val"
+            ;;
+        --bindir=*)
+            # no-op
+            ;;
+        --opt-level=*)
+            write export OPTLEVEL := "$val"
+            ;;
+        --with-platform=*)
+            platforms+=("$val")
+            ;;
+        --with-lib=*)
+            libs+=("$val")
+            ;;
+        *)
+            printf '%s\n' "$arg: Invalid argument"
+            exit 1
+    esac
+done
+
+if (( ${#platforms[@]} )); then
+    write export PLATFORMS := "${platforms[@]}"
+fi
+
+if (( ${#libs[@]} )); then
+    write export LIBRARIES := "${libs[@]}"
+fi
+
+write "include $src/Makefile"
+cp "$tmp" Makefile
