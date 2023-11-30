@@ -9,3 +9,4 @@ gc/ogc/libversion.h
 *.bz2
 docs
 warn.log
+.meson-subproject-wrap-hash.txt
