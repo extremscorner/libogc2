@@ -26,10 +26,10 @@ export LIBOGC_MINOR	:= 1
 export LIBOGC_PATCH	:= 0
 
 include	$(DEVKITPPC)/base_rules
+export AR	:=	$(AR) -D
 
 BUILD		:=	build
 
-DATESTRING	:=	$(shell date +%Y%m%d)
 VERSTRING	:=	$(shell printf "r%s.%s" "$$(git rev-list --count HEAD)" "$$(git rev-parse --short=7 HEAD)")
 
 #---------------------------------------------------------------------------------

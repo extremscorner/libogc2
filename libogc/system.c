@@ -221,7 +221,6 @@ static sys_resetinfo mem_resetinfo = {
 	127
 };
 
-static const char *__sys_versiondate;
 static const char *__sys_versionbuild;
 
 static void (*reload)(void) = (void(*)(void))0x80001800;
@@ -974,7 +973,7 @@ void* __SYS_GetIPCBufferHi(void)
 #endif
 
 void _V_EXPORTNAME(void)
-{ __sys_versionbuild = _V_STRING; __sys_versiondate = _V_DATE_; }
+{ __sys_versionbuild = _V_STRING; }
 
 #if defined(HW_RVL)
 void __SYS_DoPowerCB(void)
