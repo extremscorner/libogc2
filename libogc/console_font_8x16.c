@@ -1,4 +1,4 @@
-unsigned char console_font_8x16[] = {
+unsigned char console_font_8x16[] __attribute__((weak)) = {
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */
