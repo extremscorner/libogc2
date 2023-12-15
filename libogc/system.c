@@ -260,12 +260,14 @@ static void (*reload)(void) = (void(*)(void))0x80001800;
 static bool __stub_found(void)
 {
 #if defined(HW_DOL)
-	u64 sig = *(u64*)0x80001808;
-#else
-	u64 sig = *(u64*)0x80001804;
-#endif
-	if (sig == 0x5354554248415858ULL) // 'STUBHAXX'
+	u32 *sig = (u32*)0x80001804;
+	if ((*sig++ == 0x53545542 || *sig++ == 0x53545542) && *sig == 0x48415858)
 		return true;
+#else
+	u64 *sig = (u64*)0x80001804;
+	if (*sig == 0x5354554248415858ULL) // 'STUBHAXX'
+		return true;
+#endif
 	return false;
 }
 
