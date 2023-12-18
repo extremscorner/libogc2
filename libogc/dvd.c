@@ -2519,12 +2519,12 @@ s32 DVD_CancelAllAsync(dvdcbcallback cb)
 }
 
 s32 DVD_PrepareStreamAbsAsync(dvdcmdblk* cmd, u32 length, u32 offset, dvdcbcallback callback) {
-    cmd->cmd = 6;
-    cmd->len = length;
-    cmd->offset = offset;
-    cmd->cb = callback;
+	cmd->cmd = 6;
+	cmd->len = length;
+	cmd->offset = offset;
+	cmd->cb = callback;
 
-    return __issuecommand(1, cmd);
+	return __issuecommand(1, cmd);
 }
 
 s32 DVD_PrepareStream(dvdfileinfo* fileInfo, u32 length, u32 offset) {
@@ -2536,28 +2536,28 @@ s32 DVD_PrepareStream(dvdfileinfo* fileInfo, u32 length, u32 offset) {
 	printf("DVD_PrepareStream(%p)\n",block);
 #endif
 
-    u32 start = fileInfo->addr + offset;
+	u32 start = fileInfo->addr + offset;
 
-    if (!is_aligned_32k(start)) {
+	if (!is_aligned_32k(start)) {
 #ifdef _DVD_DEBUG
-        printf("DVD_PrepareStream(): Specified start address (filestart(0x%x) + offset(0x%x)) is not 32KB aligned\n", fileInfo->addr, offset);
+		printf("DVD_PrepareStream(): Specified start address (filestart(0x%x) + offset(0x%x)) is not 32KB aligned\n", fileInfo->addr, offset);
 #endif
-        return DVD_ERROR_FATAL;
-    }
+		return DVD_ERROR_FATAL;
+	}
 
-    if (length == 0)
-        length = fileInfo->len - offset;
+	if (length == 0)
+		length = fileInfo->len - offset;
 
-    if (!is_aligned_32k(length)) {
+	if (!is_aligned_32k(length)) {
 #ifdef _DVD_DEBUG
-        printf("DVD_PrepareStream(): Specified length (0x%x) is not a multiple of 32768(32*1024)\n", length);
+		printf("DVD_PrepareStream(): Specified length (0x%x) is not a multiple of 32768(32*1024)\n", length);
 #endif
-        return DVD_ERROR_FATAL;
-    }
+		return DVD_ERROR_FATAL;
+	}
 
-    if (!((offset <= fileInfo->len) && (offset + length <= fileInfo->len))) {
+	if (!((offset <= fileInfo->len) && (offset + length <= fileInfo->len))) {
 #ifdef _DVD_DEBUG
-        printf("DVD_PrepareStream(): The area specified (offset(0x%x), length(0x%x)) is out of the file\n", offset, length);
+		printf("DVD_PrepareStream(): The area specified (offset(0x%x), length(0x%x)) is out of the file\n", offset, length);
 #endif
 		return DVD_ERROR_FATAL;
 	}
@@ -2575,7 +2575,7 @@ s32 DVD_PrepareStream(dvdfileinfo* fileInfo, u32 length, u32 offset) {
 	} while(state!=DVD_STATE_END && state!=DVD_STATE_FATAL_ERROR && state!=DVD_STATE_CANCELED);
 	_CPU_ISR_Restore(level);
 
-    return ret;
+	return ret;
 }
 
 s32 DVD_StopStreamAtEndAsync(dvdcmdblk *block,dvdcbcallback cb)
