@@ -135,6 +135,7 @@ distribution.
 
 #define cpu_to_le32(x)					(((x>>24)&0x000000ff) | ((x>>8)&0x0000ff00) | ((x<<8)&0x00ff0000) | ((x<<24)&0xff000000))
 #define dvd_may_retry(s)				(DVD_STATUS(s) == DVD_STATUS_READY || DVD_STATUS(s) == DVD_STATUS_DISK_ID_NOT_READ)
+#define is_aligned_32k(x)				(((u32)(x) & (32 * 1024 - 1)) == 0)
 
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
@@ -2515,6 +2516,66 @@ s32 DVD_CancelAllAsync(dvdcbcallback cb)
 	DVD_Pause();
 	_CPU_ISR_Restore(level);
 	return 1;
+}
+
+s32 DVD_PrepareStreamAbsAsync(dvdcmdblk* cmd, u32 length, u32 offset, dvdcbcallback callback) {
+    cmd->cmd = 6;
+    cmd->len = length;
+    cmd->offset = offset;
+    cmd->cb = callback;
+
+    return __issuecommand(1, cmd);
+}
+
+s32 DVD_PrepareStream(dvdfileinfo* fileInfo, u32 length, u32 offset) {
+	s32 ret,state;
+	u32 level;
+
+	dvdcmdblk *block = &(fileInfo->block);
+#ifdef _DVD_DEBUG
+	printf("DVD_PrepareStream(%p)\n",block);
+#endif
+
+    u32 start = fileInfo->addr + offset;
+
+    if (!is_aligned_32k(start)) {
+#ifdef _DVD_DEBUG
+        printf("DVD_PrepareStream(): Specified start address (filestart(0x%x) + offset(0x%x)) is not 32KB aligned\n", fileInfo->addr, offset);
+#endif
+        return DVD_ERROR_FATAL;
+    }
+
+    if (length == 0)
+        length = fileInfo->len - offset;
+
+    if (!is_aligned_32k(length)) {
+#ifdef _DVD_DEBUG
+        printf("DVD_PrepareStream(): Specified length (0x%x) is not a multiple of 32768(32*1024)\n", length);
+#endif
+        return DVD_ERROR_FATAL;
+    }
+
+    if (!((offset <= fileInfo->len) && (offset + length <= fileInfo->len))) {
+#ifdef _DVD_DEBUG
+        printf("DVD_PrepareStream(): The area specified (offset(0x%x), length(0x%x)) is out of the file\n", offset, length);
+#endif
+		return DVD_ERROR_FATAL;
+	}
+
+	ret = DVD_PrepareStreamAbsAsync(block, length, start, __dvd_synccb);
+	if(!ret) return DVD_ERROR_FATAL;
+
+	_CPU_ISR_Disable(level);
+	do {
+		state = block->state;
+		if(state==DVD_STATE_END) ret = DVD_ERROR_OK;
+		else if(state==DVD_STATE_FATAL_ERROR) ret = DVD_ERROR_FATAL;
+		else if(state==DVD_STATE_CANCELED) ret = DVD_ERROR_CANCELED;
+		else LWP_ThreadSleep(__dvd_wait_queue);
+	} while(state!=DVD_STATE_END && state!=DVD_STATE_FATAL_ERROR && state!=DVD_STATE_CANCELED);
+	_CPU_ISR_Restore(level);
+
+    return ret;
 }
 
 s32 DVD_StopStreamAtEndAsync(dvdcmdblk *block,dvdcbcallback cb)
