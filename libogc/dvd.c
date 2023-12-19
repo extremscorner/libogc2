@@ -2517,6 +2517,44 @@ s32 DVD_CancelAllAsync(dvdcbcallback cb)
 	return 1;
 }
 
+s32 DVD_PrepareStreamAbsAsync(dvdcmdblk *block,u32 len,s64 offset,dvdcbcallback cb)
+{
+#ifdef _DVD_DEBUG
+	printf("DVD_PrepareStreamAbsAsync(%p,%d,%d,%p)\n",block,len,offset,cb);
+#endif
+	if((len&0x7fff) || (offset&0x7fff)) return 0;
+
+	block->cmd = 0x0006;
+	block->len = len;
+	block->offset = offset;
+	block->cb = cb;
+
+	return __issuecommand(1,block);
+}
+
+s32 DVD_PrepareStreamAbs(dvdcmdblk *block,u32 len,s64 offset)
+{
+	s32 ret,state;
+	u32 level;
+#ifdef _DVD_DEBUG
+	printf("DVD_PrepareStreamAbs(%p,%d,%d)\n",block,len,offset);
+#endif
+	ret = DVD_PrepareStreamAbsAsync(block,len,offset,__dvd_synccb);
+	if(!ret) return DVD_ERROR_FATAL;
+
+	_CPU_ISR_Disable(level);
+	do {
+		state = block->state;
+		if(state==DVD_STATE_END) ret = DVD_ERROR_OK;
+		else if(state==DVD_STATE_FATAL_ERROR) ret = DVD_ERROR_FATAL;
+		else if(state==DVD_STATE_CANCELED) ret = DVD_ERROR_CANCELED;
+		else LWP_ThreadSleep(__dvd_wait_queue);
+	} while(state!=DVD_STATE_END && state!=DVD_STATE_FATAL_ERROR && state!=DVD_STATE_CANCELED);
+	_CPU_ISR_Restore(level);
+
+	return ret;
+}
+
 s32 DVD_StopStreamAtEndAsync(dvdcmdblk *block,dvdcbcallback cb)
 {
 #ifdef _DVD_DEBUG
