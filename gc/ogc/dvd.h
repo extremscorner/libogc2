@@ -124,7 +124,8 @@ typedef struct _dvddiskid dvddiskid;
  * \param gamever version of game
  * \param streaming flag to control audio streaming
  * \param streambufsize size of buffer used for audio streaming
- * \param pad[22] padding 
+ * \param pad[18] padding
+ * \param magic magic number
  */
 struct _dvddiskid {
 	s8 gamename[4];
@@ -133,7 +134,8 @@ struct _dvddiskid {
 	u8 gamever;
 	u8 streaming;
 	u8 streambufsize;
-	u8 pad[22];
+	u8 pad[18];
+	u32 magic;
 };
 
 /*!
@@ -352,10 +354,18 @@ s32 DVD_Inquiry(dvdcmdblk *block,dvddrvinfo *info);
 s32 DVD_InquiryAsync(dvdcmdblk *block,dvddrvinfo *info,dvdcbcallback cb);
 s32 DVD_StopMotor(dvdcmdblk *block);
 s32 DVD_StopMotorAsync(dvdcmdblk *block,dvdcbcallback cb);
-s32 DVD_ReadPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,s32 prio);
+#define DVD_ReadAbs(block,buf,len,offset) \
+    DVD_ReadAbsPrio(block,buf,len,offset,2)
+s32 DVD_ReadAbsPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,s32 prio);
+#define DVD_ReadAbsAsync(block,buf,len,offset,cb) \
+    DVD_ReadAbsAsyncPrio(block,buf,len,offset,cb,2)
 s32 DVD_ReadAbsAsyncPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,dvdcbcallback cb,s32 prio);
 s32 DVD_ReadAbsAsyncForBS(dvdcmdblk *block,void *buf,u32 len,s64 offset,dvdcbcallback cb);
-s32 DVD_SeekPrio(dvdcmdblk *block,s64 offset,s32 prio);
+#define DVD_SeekAbs(block,offset) \
+    DVD_SeekAbsPrio(block,offset,2)
+s32 DVD_SeekAbsPrio(dvdcmdblk *block,s64 offset,s32 prio);
+#define DVD_SeekAbsAsync(block,offset,cb) \
+    DVD_SeekAbsAsyncPrio(block,offset,cb,2)
 s32 DVD_SeekAbsAsyncPrio(dvdcmdblk *block,s64 offset,dvdcbcallback cb,s32 prio);
 s32 DVD_CancelAllAsync(dvdcbcallback cb);
 s32 DVD_PrepareStreamAbsAsync(dvdcmdblk *block,u32 len,s64 offset,dvdcbcallback cb);

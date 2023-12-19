@@ -2453,12 +2453,12 @@ s32 DVD_Inquiry(dvdcmdblk *block,dvddrvinfo *info)
 	return ret;
 }
 
-s32 DVD_ReadPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,s32 prio)
+s32 DVD_ReadAbsPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,s32 prio)
 {
 	s32 ret,state;
 	u32 level;
 #ifdef _DVD_DEBUG
-	printf("DVD_ReadPrio(%p,%p,%d,%d,%d)\n",block,buf,len,offset,prio);
+	printf("DVD_ReadAbsPrio(%p,%p,%d,%d,%d)\n",block,buf,len,offset,prio);
 #endif
 	if(offset>=0 && offset<8511160320LL) {
 		ret = DVD_ReadAbsAsyncPrio(block,buf,len,offset,__dvd_synccb,prio);
@@ -2479,12 +2479,12 @@ s32 DVD_ReadPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,s32 prio)
 	return DVD_ERROR_FATAL;
 }
 
-s32 DVD_SeekPrio(dvdcmdblk *block,s64 offset,s32 prio)
+s32 DVD_SeekAbsPrio(dvdcmdblk *block,s64 offset,s32 prio)
 {
 	s32 ret,state;
 	u32 level;
 #ifdef _DVD_DEBUG
-	printf("DVD_SeekPrio(%p,%d,%d)\n",block,offset,prio);
+	printf("DVD_SeekAbsPrio(%p,%d,%d)\n",block,offset,prio);
 #endif
 	if(offset>=0 && offset<8511160320LL) {
 		ret = DVD_SeekAbsAsyncPrio(block,offset,__dvd_synccb,prio);
@@ -3007,7 +3007,7 @@ static bool __gcdvd_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 	if(numSectors & ~0x1fffff) return false;
 	if((u32)buffer & 0x1f) return false;
 
-	if(DVD_ReadPrio(&blk, buffer, numSectors << 11, sector << 11, 2) < 0)
+	if(DVD_ReadAbs(&blk, buffer, numSectors << 11, sector << 11) < 0)
 		return false;
 
 	return true;
