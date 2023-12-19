@@ -358,6 +358,8 @@ s32 DVD_ReadAbsAsyncForBS(dvdcmdblk *block,void *buf,u32 len,s64 offset,dvdcbcal
 s32 DVD_SeekPrio(dvdcmdblk *block,s64 offset,s32 prio);
 s32 DVD_SeekAbsAsyncPrio(dvdcmdblk *block,s64 offset,dvdcbcallback cb,s32 prio);
 s32 DVD_CancelAllAsync(dvdcbcallback cb);
+s32 DVD_PrepareStreamAbsAsync(dvdcmdblk *block,u32 len,s64 offset,dvdcbcallback cb);
+s32 DVD_PrepareStreamAbs(dvdcmdblk *block,u32 len,s64 offset);
 s32 DVD_StopStreamAtEndAsync(dvdcmdblk *block,dvdcbcallback cb);
 s32 DVD_StopStreamAtEnd(dvdcmdblk *block);
 s32 DVD_ReadDiskID(dvdcmdblk *block,dvddiskid *id,dvdcbcallback cb);
