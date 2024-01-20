@@ -38,8 +38,6 @@ distribution.
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
 extern void __LCEnable(void);
-extern void L2GlobalInvalidate(void);
-extern void L2Enable(void);
 
 void LCEnable(void)
 {
@@ -138,6 +136,7 @@ void LCAllocNoInvalidate(void *addr,u32 bytes)
 	}
 	LCAllocTags(FALSE,addr,cnt);
 }
+
 #ifdef HW_RVL
 void L2Enhance(void)
 {

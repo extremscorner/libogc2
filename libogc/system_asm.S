@@ -211,7 +211,7 @@ __InitPS:
 
 	.extern ICEnable
 	.extern DCEnable
-	.extern L2Init
+	.extern __L2Init
 	.extern L2SetWriteThrough
 	.extern L2Enable
 	.globl __InitCache
@@ -233,7 +233,7 @@ ICEnabled:
 	bl		DCEnable	
 DCEnabled:
 
-	bl		L2Init
+	bl		__L2Init
 	li		r3,1
 	bl		L2SetWriteThrough
 	bl		L2Enable

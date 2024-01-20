@@ -258,8 +258,8 @@ ICSync:
 	isync
 	blr
 
-	.globl L2Init
-L2Init:
+	.globl __L2Init
+__L2Init:
 	mflr	r0
 	stw		r0,4(sp)
 	stwu	sp,-16(sp)
