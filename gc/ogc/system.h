@@ -140,6 +140,8 @@ distribution.
 #define SYS_GetArenaHi					SYS_GetArena1Hi
 #define SYS_SetArenaHi					SYS_SetArena1Hi
 #define SYS_GetArenaSize				SYS_GetArena1Size
+#define SYS_AllocArenaMemLo				SYS_AllocArena1MemLo
+#define SYS_AllocArenaMemHi				SYS_AllocArena1MemHi
 
 #ifdef __cplusplus
    extern "C" {
@@ -359,6 +361,8 @@ void SYS_SetArena1Lo(void *newLo);
 void* SYS_GetArena1Hi(void);
 void SYS_SetArena1Hi(void *newHi);
 u32 SYS_GetArena1Size(void);
+void* SYS_AllocArena1MemLo(u32 size,u32 align);
+void* SYS_AllocArena1MemHi(u32 size,u32 align);
 
 resetcallback SYS_SetResetCallback(resetcallback cb);
 
@@ -366,11 +370,15 @@ u32 SYS_ResetButtonDown(void);
 
 #if defined(HW_RVL)
 u32 SYS_GetHollywoodRevision(void);
+
 void* SYS_GetArena2Lo(void);
 void SYS_SetArena2Lo(void *newLo);
 void* SYS_GetArena2Hi(void);
 void SYS_SetArena2Hi(void *newHi);
 u32 SYS_GetArena2Size(void);
+void* SYS_AllocArena2MemLo(u32 size,u32 align);
+void* SYS_AllocArena2MemHi(u32 size,u32 align);
+
 powercallback SYS_SetPowerCallback(powercallback cb);
 #endif
 

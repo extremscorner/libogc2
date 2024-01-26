@@ -151,7 +151,6 @@ static vu16* const _memReg = (u16*)0xCC004000;
 static vu16* const _dspReg = (u16*)0xCC005000;
 
 void __SYS_ReadROM(void *buf,u32 len,u32 offset);
-void* SYS_AllocArena1MemLo(u32 size,u32 align);
 
 static s32 __sram_sync(void);
 static s32 __sram_writecallback(s32 chn,s32 dev);
@@ -1338,13 +1337,29 @@ u32 SYS_GetArena1Size(void)
 
 void* SYS_AllocArena1MemLo(u32 size,u32 align)
 {
-	u32 mem1lo;
-	void *ptr = NULL;
+	u32 level;
+	void *arenalo,*ptr;
 
-	mem1lo = (u32)SYS_GetArena1Lo();
-	ptr = (void*)((mem1lo+(align-1))&~(align-1));
-	mem1lo = ((((u32)ptr+size+align)-1)&~(align-1));
-	SYS_SetArena1Lo((void*)mem1lo);
+	_CPU_ISR_Disable(level);
+	arenalo = __sysarena1lo;
+	ptr = (void*)(((u32)arenalo+(align-1))&~(align-1));
+	arenalo = (void*)(((u32)ptr+size+(align-1))&~(align-1));
+	__sysarena1lo = arenalo;
+	_CPU_ISR_Restore(level);
+
+	return ptr;
+}
+
+void* SYS_AllocArena1MemHi(u32 size,u32 align)
+{
+	u32 level;
+	void *arenahi,*ptr;
+
+	_CPU_ISR_Disable(level);
+	arenahi = (void*)(((u32)__sysarena1hi)&~(align-1));
+	arenahi = ptr = (void*)(((u32)arenahi-size)&~(align-1));
+	__sysarena1hi = arenahi;
+	_CPU_ISR_Restore(level);
 
 	return ptr;
 }
@@ -1405,13 +1420,29 @@ u32 SYS_GetArena2Size(void)
 
 void* SYS_AllocArena2MemLo(u32 size,u32 align)
 {
-	u32 mem2lo;
-	void *ptr = NULL;
+	u32 level;
+	void *arenalo,*ptr;
 
-	mem2lo = (u32)SYS_GetArena2Lo();
-	ptr = (void*)((mem2lo+(align-1))&~(align-1));
-	mem2lo = ((((u32)ptr+size+align)-1)&~(align-1));
-	SYS_SetArena2Lo((void*)mem2lo);
+	_CPU_ISR_Disable(level);
+	arenalo = __sysarena2lo;
+	ptr = (void*)(((u32)arenalo+(align-1))&~(align-1));
+	arenalo = (void*)(((u32)ptr+size+(align-1))&~(align-1));
+	__sysarena2lo = arenalo;
+	_CPU_ISR_Restore(level);
+
+	return ptr;
+}
+
+void* SYS_AllocArena2MemHi(u32 size,u32 align)
+{
+	u32 level;
+	void *arenahi,*ptr;
+
+	_CPU_ISR_Disable(level);
+	arenahi = (void*)(((u32)__sysarena2hi)&~(align-1));
+	arenahi = ptr = (void*)(((u32)arenahi-size)&~(align-1));
+	__sysarena2hi = arenahi;
+	_CPU_ISR_Restore(level);
 
 	return ptr;
 }
