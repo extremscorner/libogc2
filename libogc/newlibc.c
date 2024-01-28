@@ -1,3 +1,18 @@
+/*
+ *  COPYRIGHT (c) 1994 by Division Incorporated
+ *
+ *  To anyone who acknowledges that this file is provided "AS IS"
+ *  without any express or implied warranty:
+ *      permission to use, copy, modify, and distribute this file
+ *      for any purpose is hereby granted without fee, provided that
+ *      the above copyright notice and this notice appears in all
+ *      copies, and that the name of Division Incorporated not be
+ *      used in advertising or publicity pertaining to distribution
+ *      of the software without specific, written prior permission.
+ *      Division Incorporated makes no representations about the
+ *      suitability of this software for any purpose.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <sys/reent.h>
