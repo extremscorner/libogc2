@@ -2,8 +2,11 @@
 
 usbmouse.c -- USB mouse support
 
-Copyright (C) 2009
+Copyright (C) 2009 - 2025
 Daryl Borth (Tantric)
+Michael Wiedenbauer (shagkur)
+Dave Murphy (WinterMute)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any

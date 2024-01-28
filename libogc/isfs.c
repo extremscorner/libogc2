@@ -1,11 +1,10 @@
 /*-------------------------------------------------------------
 
-es.c -- ETicket services
-
-Copyright (C) 2008
+Copyright (C) 2008 - 2025
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Hector Martin (marcan)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -839,6 +838,5 @@ s32 ISFS_GetUsageAsync(const char* filepath, u32* usage1, u32* usage2,isfscallba
 	param->fsusage.vector[2].len = sizeof(u32);
 	return IOS_IoctlvAsync(_fs_fd,ISFS_IOCTL_GETUSAGE,1,2,param->fsusage.vector,__isfsFunctionCB,param);
 }
-
 
 #endif /* defined(HW_RVL) */

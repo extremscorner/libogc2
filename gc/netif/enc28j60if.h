@@ -2,7 +2,7 @@
 
 enc28j60if.h -- ENC28J60 device driver
 
-Copyright (C) 2023 Extrems
+Copyright (C) 2023 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any

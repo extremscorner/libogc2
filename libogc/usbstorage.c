@@ -2,10 +2,12 @@
 
 usbstorage.c -- Bulk-only USB mass storage support
 
-Copyright (C) 2008
+Copyright (C) 2008 - 2025
 Sven Peter (svpe) <svpe@gmx.net>
-Copyright (C) 2009-2010
+Michael Wiedenbauer (shagkur)
+Dave Murphy (WinterMute)
 tueidj, rodries, Tantric
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -27,6 +29,7 @@ must not be misrepresented as being the original software.
 distribution.
 
 -------------------------------------------------------------*/
+
 #if defined(HW_RVL)
 
 #include <gccore.h>

@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------
 
-Copyright (C) 2008
+Copyright (C) 2008 - 2025
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -24,6 +25,7 @@ must not be misrepresented as being the original software.
 distribution.
 
 -------------------------------------------------------------*/
+
 #include "gctypes.h"
 #include <string.h>
 #include <unistd.h>

@@ -2,8 +2,11 @@
 
 wiilaunch.h -- Wii NAND title launching and argument passing
 
-Copyright (C) 2008
+Copyright (C) 2008 - 2025
 Hector Martin (marcan)
+Michael Wiedenbauer (shagkur)
+Dave Murphy (WinterMute)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -26,10 +29,10 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#if defined(HW_RVL)
-
 #ifndef __OGC_WIILAUNCH_H__
 #define __OGC_WIILAUNCH_H__
+
+#if defined(HW_RVL)
 
 #include <gctypes.h>
 #include <gcutil.h>

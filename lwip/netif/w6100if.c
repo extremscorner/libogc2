@@ -2,7 +2,7 @@
 
 w6100if.c -- W6100 device driver
 
-Copyright (C) 2024 Extrems
+Copyright (C) 2024 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any

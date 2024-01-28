@@ -5,10 +5,11 @@
 	Hardware routines for reading and writing to the Wii's internal
 	SD slot.
 
- Copyright (c) 2008
+ Copyright (C) 2008 - 2025
    Michael Wiedenbauer (shagkur)
    Dave Murphy (WinterMute)
-   Sven Peter <svpe@gmx.net>
+   Sven Peter (svpe) <svpe@gmx.net>
+   Extrems' Corner.org
 
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:

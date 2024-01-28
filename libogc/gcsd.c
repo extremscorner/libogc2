@@ -1,6 +1,6 @@
 /*
 
-	gcsd.h
+	gcsd.c
 
 	Hardware routines for reading and writing to SD geckos connected
 	to the memory card ports.
@@ -8,7 +8,7 @@
 	These functions are just wrappers around libsdcard's functions.
 
  Copyright (c) 2008 Sven "svpe" Peter <svpe@gmx.net>
-	
+
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
 

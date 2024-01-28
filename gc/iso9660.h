@@ -1,8 +1,8 @@
 /****************************************************************************
  * ISO9660 devoptab
  * 
- * Copyright (C) 2008-2010
- * tipoloski, clava, shagkur, Tantric, joedj
+ * Copyright (C) 2008-2025
+ * tipoloski, clava, shagkur, Tantric, joedj, Extrems
  ****************************************************************************/
 
 #ifndef __ISO9660_H__

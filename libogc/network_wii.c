@@ -2,7 +2,11 @@
 
 network_wii.c -- Wii network subsystem
 
-Copyright (C) 2008 bushing
+Copyright (C) 2008 - 2025
+bushing
+Michael Wiedenbauer (shagkur)
+Dave Murphy (WinterMute)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -26,7 +30,6 @@ distribution.
 -------------------------------------------------------------*/
 
 #if defined(HW_RVL)
-
 
 #define MAX_IP_RETRIES		100
 #define MAX_INIT_RETRIES	32

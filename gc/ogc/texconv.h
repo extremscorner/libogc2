@@ -2,9 +2,11 @@
 
 texconv.h -- GX texture helper functions
 
-Copyright (C) 2004
+Copyright (C) 2008 - 2025
+softdev
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -26,7 +28,6 @@ must not be misrepresented as being the original software.
 distribution.
 
 -------------------------------------------------------------*/
-
 
 #ifndef __OGC_TEXCONV_H__
 #define __OGC_TEXCONV_H__

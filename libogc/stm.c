@@ -1,11 +1,12 @@
 /*-------------------------------------------------------------
 
-stm.c - System and miscellaneous hardware control functions
+stm.c -- System and miscellaneous hardware control functions
 
-Copyright (C) 2008
+Copyright (C) 2008 - 2025
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Hector Martin (marcan)
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -276,7 +277,5 @@ s32 STM_RebootSystem(void)
 	}
 	return res;
 }
-
-
 
 #endif /* defined(HW_RVL) */

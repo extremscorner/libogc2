@@ -1,10 +1,11 @@
 /*-------------------------------------------------------------
 
-video.c -- VIDEO subsystem
+ video.c -- VIDEO subsystem
 
- Copyright (C) 2004 - 2008
+ Copyright (C) 2004 - 2025
    Michael Wiedenbauer (shagkur)
    Dave Murphy (WinterMute)
+   Extrems' Corner.org
 
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -28,7 +29,6 @@ video.c -- VIDEO subsystem
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -------------------------------------------------------------*/
-
 
 #include <stdlib.h>
 #include <stdio.h>

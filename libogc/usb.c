@@ -2,10 +2,11 @@
 
 usb.c -- USB lowlevel
 
-Copyright (C) 2008
+Copyright (C) 2008 - 2025
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 tueidj
+Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -28,7 +29,6 @@ distribution.
 
 -------------------------------------------------------------*/
 
-
 /*  Note: There are 3 types of USB interfaces here, the early ones
  *  (V0: /dev/usb/oh0 and /dev/usb/oh1) and two later ones (V5: /dev/usb/ven
  *  and /dev/usb/hid) which are similar but have some small
@@ -39,6 +39,7 @@ distribution.
  */
 
 #if defined(HW_RVL)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -1461,4 +1462,3 @@ s32 USB_ClearHalt(s32 fd, u8 endpoint)
 }
 
 #endif /* defined(HW_RVL) */
-

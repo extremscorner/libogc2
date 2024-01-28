@@ -1,10 +1,11 @@
 /*-------------------------------------------------------------
 
-dvd.h -- DVD subsystem
+dvd.c -- DVD subsystem
 
-Copyright (C) 2004
+Copyright (C) 2004 - 2025
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
+Extrems' Corner.org
 
 Additionally following copyrights apply for the patching system:
  * Copyright (C) 2005 The GameCube Linux Team
@@ -31,8 +32,8 @@ must not be misrepresented as being the original software.
 3.	This notice may not be removed or altered from any source
 distribution.
 
-
 -------------------------------------------------------------*/
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
