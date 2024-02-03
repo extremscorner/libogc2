@@ -119,7 +119,7 @@ int DI_ReadDVDConfig(uint32_t* val, uint32_t flag);
 int DI_ReadDVDCopyright(uint32_t* copyright);
 int DI_ReadDVDDiscKey(void *buf);
 int DI_ReadDVDPhysical(void *buf);
-int DI_Read_BCA(void *buf);
+int DI_ReadBCA(void *buf);
 int DI_ReportKey(int keytype, uint32_t lba, void* buf);
 
 int DI_OpenPartition(u32 offset);

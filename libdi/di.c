@@ -617,7 +617,7 @@ int DI_ReadDVDCopyright(uint32_t* copyright){
 	return (ret == 1)? 0 : -ret;
 }
 
-int DI_Read_BCA(void *outbuf)
+int DI_ReadBCA(void *outbuf)
 {
 	if(di_fd < 0)
 		return -ENXIO;
@@ -625,6 +625,8 @@ int DI_Read_BCA(void *outbuf)
 	if(!outbuf)
 		return -EINVAL;
 
+	LWP_MutexLock(bufferMutex);
+	
 	memset(dic, 0, sizeof(dic));
 	dic[0] = DVD_READ_BCA << 24;
 
