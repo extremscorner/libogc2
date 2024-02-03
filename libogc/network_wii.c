@@ -246,8 +246,6 @@ static char __manage_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/ncd/manage";
 static char __iptop_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/ip/top";
 static char __kd_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/kd/request";
 
-#define ROUNDDOWN32(v)				(((u32)(v)-0x1f)&~0x1f)
-
 static s32 NetCreateHeap(void)
 {
 	u32 level;
@@ -261,13 +259,12 @@ static s32 NetCreateHeap(void)
 		return IPC_OK;
 	}
 
-	net_heap_ptr = (void *)ROUNDDOWN32(((u32)SYS_GetArena2Hi() - NET_HEAP_SIZE));
-	if((u32)net_heap_ptr < (u32)SYS_GetArena2Lo())
+	net_heap_ptr = SYS_AllocArena2MemHi(NET_HEAP_SIZE, 32);
+	if(!net_heap_ptr)
 	{
 		_CPU_ISR_Restore(level);
 		return IPC_ENOMEM;
 	}
-	SYS_SetArena2Hi(net_heap_ptr);
 	__lwp_heap_init(&__net_heap, net_heap_ptr, NET_HEAP_SIZE, 32);
 	__net_heap_inited=1;
 	_CPU_ISR_Restore(level);

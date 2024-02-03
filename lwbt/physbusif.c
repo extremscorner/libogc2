@@ -175,10 +175,8 @@ static s32 __initUsbIOBuffer(struct memb_blks *blk,u32 buf_size,u32 num_bufs)
 	u8 *ptr = NULL;
 
 	len = ((MEM_ALIGN_SIZE(buf_size)+sizeof(u32))*num_bufs);
-	ptr = (u8*)ROUNDDOWN32(((u32)SYS_GetArena2Hi() - len));
-	if((u32)ptr<(u32)SYS_GetArena2Lo()) return -4;
-
-	SYS_SetArena2Hi(ptr);
+	ptr = (u8*)SYS_AllocArena2MemHi(len,32);
+	if(ptr==NULL) return -4;
 
 	blk->size = buf_size;
 	blk->num = num_bufs;

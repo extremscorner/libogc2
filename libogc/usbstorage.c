@@ -44,8 +44,6 @@ distribution.
 #include "disc_io.h"
 #include "lwp_watchdog.h"
 
-#define ROUNDDOWN32(v)				(((u32)(v)-0x1f)&~0x1f)
-
 #define	HEAP_SIZE					(18*1024)
 #define	TAG_START					0x0BADC0DE
 
@@ -210,17 +208,16 @@ s32 USBStorage_Initialize(void)
 		return IPC_OK;
 
 	_CPU_ISR_Disable(level);
-	LWP_InitQueue(&__usbstorage_waitq);
 	if(!arena_ptr) {
-		arena_ptr = (u8*)ROUNDDOWN32(((u32)SYS_GetArena2Hi() - HEAP_SIZE));
-		if((u32)arena_ptr < (u32)SYS_GetArena2Lo()) {
+		arena_ptr = SYS_AllocArena2MemHi(HEAP_SIZE, 32);
+		if(!arena_ptr) {
 			_CPU_ISR_Restore(level);
 			return IPC_ENOMEM;
 		}
-		SYS_SetArena2Hi(arena_ptr);
 	}
 	__lwp_heap_init(&__heap, arena_ptr, HEAP_SIZE, 32);
 	cbw_buffer=(u8*)__lwp_heap_allocate(&__heap, 32);
+	LWP_InitQueue(&__usbstorage_waitq);
 	__inited = true;
 	_CPU_ISR_Restore(level);
 	return IPC_OK;
