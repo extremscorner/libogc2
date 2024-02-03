@@ -311,6 +311,7 @@ __flush_cache:
 	sync
 	blr
 
+#if defined(HW_DOL)
 	.globl __reset
 __reset:
 	b		1f
@@ -340,7 +341,8 @@ __reset:
 6:	b		8f
 7:	nop
 	b		7b
-8:	b		9b	
+8:	b		9b
+#endif
 
 	.globl __InitBATS
 __InitBATS:

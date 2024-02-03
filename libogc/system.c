@@ -150,6 +150,9 @@ static vu32* const _piReg = (u32*)0xCC003000;
 static vu16* const _memReg = (u16*)0xCC004000;
 static vu16* const _dspReg = (u16*)0xCC005000;
 
+#if defined(HW_DOL)
+void __SYS_DoHotReset(u32 reset_code);
+#endif
 void __SYS_ReadROM(void *buf,u32 len,u32 offset);
 
 static s32 __sram_sync(void);
@@ -185,7 +188,9 @@ extern void __configMEM1_24Mb(void);
 extern void __configMEM1_48Mb(void);
 extern void __configMEM2_64Mb(void);
 extern void __configMEM2_128Mb(void);
+#if defined(HW_DOL)
 extern void __reset(u32 reset_code);
+#endif
 
 extern u32 __IPC_ClntInit(void);
 extern u32 __PADDisableRecalibration(s32 disable);
@@ -251,9 +256,6 @@ static __inline__ void __lwp_syswd_free(alarm_st *alarm)
 	__lwp_objmgr_free(&sys_alarm_objects,&alarm->object);
 }
 
-#if defined(HW_DOL)
-static void __dohotreset(u32 resetcode);
-#endif
 static void (*reload)(void) = (void(*)(void))0x80001800;
 
 static bool __stub_found(void)
@@ -277,7 +279,7 @@ void __reload(void)
 		reload();
 	}
 #if defined(HW_DOL)
-	__dohotreset(0);
+	__SYS_DoHotReset(0);
 #else
 	STM_RebootSystem();
 #endif
@@ -336,14 +338,14 @@ static void __sys_alarmhandler(void *arg)
 }
 
 #if defined(HW_DOL)
-static void __dohotreset(u32 resetcode)
+void __SYS_DoHotReset(u32 reset_code)
 {
 	u32 level;
 
 	_CPU_ISR_Disable(level);
 	_viReg[1] = 0;
 	ICFlashInvalidate();
-	__reset(resetcode<<3);
+	__reset(reset_code<<3);
 }
 #endif
 
@@ -1172,7 +1174,7 @@ void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
 
 	__lwp_thread_dispatchdisable();
 	if(reset==SYS_HOTRESET) {
-		__dohotreset(reset_code);
+		__SYS_DoHotReset(reset_code);
 	} else if(reset==SYS_RESTART) {
 		__lwp_thread_closeall();
 		__lwp_thread_dispatchunnest();

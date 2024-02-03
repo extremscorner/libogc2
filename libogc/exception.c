@@ -70,6 +70,9 @@ extern void dec_exceptionhandler(frame_context*);
 extern void default_exceptionhandler(frame_context*);
 extern void VIDEO_SetFramebuffer(void *);
 extern void __reload(void);
+#if defined(HW_DOL)
+extern void __SYS_DoHotReset(u32 reset_code);
+#endif
 
 extern s8 exceptionhandler_start[],exceptionhandler_end[],exceptionhandler_patch[];
 extern s8 systemcallhandler_start[],systemcallhandler_end[];
@@ -222,7 +225,7 @@ static void waitForReload(void)
 		{
 			kprintf("\n\tReset\n\n\n");
 #if defined(HW_DOL)
-			SYS_ResetSystem(SYS_HOTRESET,0,FALSE);
+			__SYS_DoHotReset(0);
 #else
 			__reload ();
 #endif
