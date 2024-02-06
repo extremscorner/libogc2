@@ -18,25 +18,11 @@
 
 ## Installing
 
-```
-sudo (dkp-)pacman -S ppc-libmad
-```
+Follow the instructions from [pacman-packages](https://github.com/extremscorner/pacman-packages#readme).
 
 ```
-git clone https://github.com/extremscorner/libogc2.git
-cd libogc2
-make
-sudo -E make install
+sudo (dkp-)pacman -S libogc2 libogc2-docs libogc2-examples
 ```
-
-```
-git clone https://github.com/extremscorner/libfat.git
-cd libfat
-make ogc-release
-sudo -E make ogc-install
-```
-
-Using `sudo` is not necessary with MSYS2.
 
 ## Migrating from libogc
 
@@ -55,6 +41,38 @@ Using `sudo` is not necessary with MSYS2.
 ### CMake
 
 Not currently supported.
+
+## Building
+
+1. Existing packages should first be uninstalled if already installed.
+
+   ```
+   sudo (dkp-)pacman -R --cascade libogc2(-git)
+   ```
+
+2. Install build dependencies.
+
+   ```
+   sudo (dkp-)pacman -S --needed devkitPPC gamecube-tools ppc-libmad
+   ```
+
+3. Clone and build source repositories.
+
+   ```
+   git clone https://github.com/extremscorner/libogc2.git
+   cd libogc2
+   make
+   sudo -E make install
+   ```
+
+   ```
+   git clone https://github.com/extremscorner/libfat.git
+   cd libfat
+   make ogc-release
+   sudo -E make ogc-install
+   ```
+
+Using `sudo` is not necessary with MSYS2.
 
 ## Upgrading
 
