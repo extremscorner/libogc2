@@ -4,15 +4,15 @@ endif
 
 include $(DEVKITPPC)/base_rules
 
-PORTLIBS	:=	$(PORTLIBS_PATH)/gamecube $(PORTLIBS_PATH)/ppc
+PORTLIBS	:=	$(PORTLIBS_PATH)/wii $(PORTLIBS_PATH)/ppc
 
-export PATH	:=	$(PORTLIBS_PATH)/gamecube/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
+export PATH     :=      $(PORTLIBS_PATH)/wii/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
 
-export	LIBOGC_INC	:=	$(DEVKITPRO)/libogc2/include
-export	LIBOGC_LIB	:=	$(DEVKITPRO)/libogc2/lib/cube
+export	LIBOGC_INC	:=	@PREFIX@/@INCDIR@
+export	LIBOGC_LIB	:=	@PREFIX@/@LIBDIR@/wii
 
+MACHDEP =  -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
 
-MACHDEP =  -DGEKKO -mogc -mcpu=750 -meabi -mhard-float
 
 #---------------------------------------------------------------------------------
 %.dol: %.elf
