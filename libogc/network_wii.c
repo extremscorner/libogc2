@@ -858,13 +858,14 @@ s32 net_connect(s32 s, struct sockaddr *addr, socklen_t addrlen)
 	memset(params, 0, sizeof(struct connect_params));
 	params->socket = s;
 	params->has_addr = 1;
-	memcpy(&params->addr, addr, addrlen);
+	memcpy(params->addr, addr, 8);
 
 	ret = _net_convert_error(IOS_Ioctl(net_ip_top_fd, IOCTL_SO_CONNECT, params, sizeof(struct connect_params), NULL, 0));
-	if (ret < 0)
-    	debug_printf("SOConnect(%d, %p)=%d\n", s, addr, ret);
 
-  	return ret;
+	if (ret < 0)
+		debug_printf("net_connect(%d, %p)=%d\n", s, addr, ret);
+
+	return ret;
 }
 
 s32 net_write(s32 s, const void *data, s32 size)
