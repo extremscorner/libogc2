@@ -995,6 +995,30 @@ s32 net_select(s32 maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset
 	return -EINVAL;
 }
 
+s32 net_getsockname(s32 s, struct sockaddr *name, socklen_t *namelen)
+{
+	s32 ret;
+	STACK_ALIGN(u32, _socket, 1, 32);
+
+	if (net_ip_top_fd < 0) return -ENXIO;
+
+	if (!name) return -EINVAL;
+	name->sa_len = 8;
+	name->sa_family = AF_INET;
+
+	if (!namelen) return -EINVAL;
+
+	if (*namelen < 8) return -ENOMEM;
+
+	*namelen = 8;
+
+	*_socket = s;
+	ret = _net_convert_error(IOS_Ioctl(net_ip_top_fd, IOCTL_SO_GETSOCKNAME, _socket, 4, name, *namelen));
+
+	debug_printf("net_getsockname(%d, %p)=%d\n", s, name, ret);
+	return ret;
+}
+
 s32 net_setsockopt(s32 s, u32 level, u32 optname, const void *optval, socklen_t optlen)
 {
 	s32 ret;

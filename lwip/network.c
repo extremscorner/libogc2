@@ -2194,7 +2194,7 @@ s32 net_getsockname(s32 s,struct sockaddr *name,socklen_t *namelen)
 
 	netconn_addr(sock->conn,&naddr,&sin.sin_port);
 
-	LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_getsockname(%d, addr=", s));
+	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockname(%d, addr=", s));
 	ip_addr_debug_print(SOCKETS_DEBUG, naddr);
 	LWIP_DEBUGF(SOCKETS_DEBUG, (" port=%d)\n", sin.sin_port));
 
