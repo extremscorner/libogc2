@@ -4596,6 +4596,8 @@ void GX_PreloadEntireTexture(const GXTexObj *obj,const GXTexRegion *region);
  */
 void GX_InitTlutObj(GXTlutObj *obj,void *lut,u8 fmt,u16 entries);
 
+void GX_InitTlutObjData(GXTlutObj *obj,void *lut);
+
 /*!
  * \fn void GX_InitTlutRegion(GXTlutRegion *region,u32 tmem_addr,u8 tlut_sz)
  * \brief Initializes a Texture Look-Up Table (TLUT) region object.
