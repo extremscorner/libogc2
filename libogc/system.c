@@ -1494,6 +1494,18 @@ void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl)
 	}
 }
 
+bool SYS_IsDMAAddress(const void *addr)
+{
+	if((u32)addr&0x1F) return false;
+	if((u32)addr>=0x80000000 && (u32)addr<0x84000000) return true;
+	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) return true;
+#if defined(HW_RVL)
+	if((u32)addr>=0x90000000 && (u32)addr<0xA0000000) return true;
+	if((u32)addr>=0xD0000000 && (u32)addr<0xE0000000) return true;
+#endif
+	return false;
+}
+
 void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 {
 	return memalign(32, VIDEO_GetFrameBufferSize(rmode));

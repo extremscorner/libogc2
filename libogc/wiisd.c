@@ -39,6 +39,7 @@
 #include <time.h>
 #include <gcutil.h>
 #include <ogc/ipc.h>
+#include <ogc/system.h>
 #include <unistd.h>
 #include <ogc/disc_io.h>
 #include <sdcard/wiisd_io.h>
@@ -539,7 +540,7 @@ static bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 
 	if((u32)sector != sector) return false;
 	if(numSectors & ~0x7fffff) return false;
-	if((u32)buffer & 0x1f) return false;
+	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
@@ -558,7 +559,7 @@ static bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 
 	if((u32)sector != sector) return false;
 	if(numSectors & ~0x7fffff) return false;
-	if((u32)buffer & 0x1f) return false;
+	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;

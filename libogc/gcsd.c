@@ -84,6 +84,7 @@ static bool __gcsd_writeSectors(int n, sec_t sector, sec_t numSectors, const voi
 
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
+	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(numSectors == 1)
 		ret = sdgecko_writeSector(n, buffer, sector);
