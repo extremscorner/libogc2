@@ -1,4 +1,4 @@
-# libogc2
+# [libogc2](https://github.com/extremscorner/libogc2)
 
 [![libogc2 build](https://github.com/extremscorner/libogc2/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/extremscorner/libogc2/actions/workflows/continuous-integration-workflow.yml) [![Extrems' Corner.org Discord](https://discordapp.com/api/guilds/243509579961466881/widget.png)](https://discord.extremscorner.org/)
 
@@ -6,7 +6,7 @@
 
 - [CleanRip](https://github.com/emukidid/cleanrip) - GameCube/Wii disc image creation tool
 - [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
-- [iplboot](https://github.com/redolution/iplboot) - GameCube bootloader
+- [gekkoboot](https://github.com/redolution/gekkoboot) - GameCube bootloader
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
