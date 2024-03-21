@@ -823,8 +823,8 @@ mono_8bits:
 	lsr  $ACC0, #8
 	lsl  $ACC0, #8
 
-	mrr $AXH1,$ACL0
-	mrr $AXH0,$ACL0
+	mrr  $AXH0, $ACL0
+	mrr  $AXH1, $ACL0
 	jmp	out_samp
 
 stereo_8bits:	
@@ -834,26 +834,26 @@ stereo_8bits:
 	lrri $ACL0, @$AR2
 	mrr  $ACM0, $ACL0
 	andi $ACM0, #0xff00
-	mrr  $AXH1, $ACM0
+	mrr  $AXH0, $ACM0
 	lsl  $ACC0, #8
 
-	mrr  $AXH0, $ACL0
+	mrr  $AXH1, $ACL0
 	jmp	out_samp
 
 mono_16bits:
 
 // 16 bits mono
 
-	lrri $AXH1, @$AR2
-	mrr  $AXH0,$AXH1
+	lrri $AXH0, @$AR2
+	mrr  $AXH1, $AXH0
 	jmp	out_samp
 
 stereo_16bits:
 
 // 16 bits stereo
 
-	lrri $AXH1, @$AR2
 	lrri $AXH0, @$AR2
+	lrri $AXH1, @$AR2
 	jmp	out_samp
 
 mono_8bits_unsigned:
@@ -868,8 +868,8 @@ mono_8bits_unsigned:
 	lsl  $ACC0, #24
 	xori $ACM0, #0x8000 // convert unsigned->signed
 
-	mrr  $AXH1,$ACM0
-	mrr  $AXH0,$ACM0
+	mrr  $AXH0, $ACM0
+	mrr  $AXH1, $ACM0
 	jmp	out_samp
 
 mono_16bits_le:
@@ -880,8 +880,8 @@ mono_16bits_le:
 	mrr  $ACL0, $ACM0
 	lsl  $ACC0, #8 // byteswap
 
-	mrr  $AXH1, $ACM0
 	mrr  $AXH0, $ACM0
+	mrr  $AXH1, $ACM0
 	jmp	out_samp
 
 stereo_8bits_unsigned:
@@ -892,24 +892,24 @@ stereo_8bits_unsigned:
 	xori $ACM0, #0x8080 // convert unsigned->signed
 	mrr  $ACL0, $ACM0
 	andi $ACM0, #0xff00
-	mrr  $AXH1, $ACM0
+	mrr  $AXH0, $ACM0
 	lsl  $ACC0, #8
 
-	mrr  $AXH0, $ACL0
+	mrr  $AXH1, $ACL0
 	jmp	out_samp
 
 stereo_16bits_le:
 
 // 16 bits stereo little-endian
-	lrri $ACM1, @$AR2
 	lrri $ACM0, @$AR2
-	mrr  $ACL1, $ACM1
+	lrri $ACM1, @$AR2
 	mrr  $ACL0, $ACM0
-	lsl  $ACC1, #8 // byteswap
-	lsl  $ACC0, #8
+	mrr  $ACL1, $ACM1
+	lsl  $ACC0, #8 // byteswap
+	lsl  $ACC1, #8
 	
-	mrr  $AXH1, $ACM1
 	mrr  $AXH0, $ACM0
+	mrr  $AXH1, $ACM1
 	//jmp	out_samp
 
 out_samp:	
