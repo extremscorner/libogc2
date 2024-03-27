@@ -537,16 +537,31 @@ static bool sdio_Shutdown(void)
 static bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 {
 	s32 ret;
+	u32 sec;
+	u32 secs_to_read;
+	u8 *dest = (u8*)buffer;
 
 	if((u32)sector != sector) return false;
-	if(numSectors & ~0x7fffff) return false;
+	if((u32)numSectors != numSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
 
-	if(__sd0_sdhc == 0) sector *= PAGE_SIZE512;
-	ret = __sdio_sendcommand(SDIO_CMD_READMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sector,numSectors,PAGE_SIZE512,buffer,NULL,0);
+	while(numSectors>0) {
+		if(__sd0_sdhc == 0) sec = (sector*PAGE_SIZE512);
+		else sec = sector;
+
+		if(numSectors>0xffff) secs_to_read = 0xffff;
+		else secs_to_read = numSectors;
+
+		ret = __sdio_sendcommand(SDIO_CMD_READMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sec,secs_to_read,PAGE_SIZE512,dest,NULL,0);
+		if(ret<0) break;
+
+		dest += (secs_to_read*PAGE_SIZE512);
+		sector += secs_to_read;
+		numSectors -= secs_to_read;
+	}
 
 	__sd0_deselect();
 
@@ -556,16 +571,31 @@ static bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 static bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 {
 	s32 ret;
+	u32 sec;
+	u32 secs_to_write;
+	u8 *src = (u8*)buffer;
 
 	if((u32)sector != sector) return false;
-	if(numSectors & ~0x7fffff) return false;
+	if((u32)numSectors != numSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
 
-	if(__sd0_sdhc == 0) sector *= PAGE_SIZE512;
-	ret = __sdio_sendcommand(SDIO_CMD_WRITEMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sector,numSectors,PAGE_SIZE512,(void*)buffer,NULL,0);
+	while(numSectors>0) {
+		if(__sd0_sdhc == 0) sec = (sector*PAGE_SIZE512);
+		else sec = sector;
+
+		if(numSectors>0xffff) secs_to_write = 0xffff;
+		else secs_to_write = numSectors;
+
+		ret = __sdio_sendcommand(SDIO_CMD_WRITEMULTIBLOCK,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,sec,secs_to_write,PAGE_SIZE512,src,NULL,0);
+		if(ret<0) break;
+
+		src += (secs_to_write*PAGE_SIZE512);
+		sector += secs_to_write;
+		numSectors -= secs_to_write;
+	}
 
 	__sd0_deselect();
 
