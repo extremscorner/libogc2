@@ -298,6 +298,7 @@ typedef enum {
 
 struct enc28j60if {
 	s32 chan;
+	s32 dev;
 	lwpq_t threadQueue;
 	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
@@ -305,12 +306,13 @@ struct enc28j60if {
 
 static struct netif *enc28j60_netif;
 static u8 CurrBank[EXI_CHANNEL_MAX];
+static u8 Dev[EXI_CHANNEL_MAX];
 
 static bool ENC28J60_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 {
 	bool err = false;
 
-	if (!EXI_Select(chan, EXI_DEVICE_0, ENC28J60_EXI_SPEED(cmd)))
+	if (!EXI_Select(chan, Dev[chan], ENC28J60_EXI_SPEED(cmd)))
 		return false;
 
 	err |= !EXI_Imm(chan, &cmd, 1 + ENC28J60_EXI_DUMMY(cmd), EXI_WRITE, NULL);
@@ -324,7 +326,7 @@ static bool ENC28J60_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 {
 	bool err = false;
 
-	if (!EXI_Select(chan, EXI_DEVICE_0, ENC28J60_EXI_SPEED(cmd)))
+	if (!EXI_Select(chan, Dev[chan], ENC28J60_EXI_SPEED(cmd)))
 		return false;
 
 	err |= !EXI_Imm(chan, &cmd, 1, EXI_WRITE, NULL);
@@ -474,11 +476,13 @@ static void ENC28J60_GetMACAddr(s32 chan, u8 macaddr[6])
 static s32 ExiHandler(s32 chan, s32 dev)
 {
 	struct enc28j60if *enc28j60if = enc28j60_netif->state;
-	u8 eie, eir;
+	chan = enc28j60if->chan;
+	dev = enc28j60if->dev;
 
 	if (!EXI_Lock(chan, dev, ExiHandler))
 		return FALSE;
 
+	u8 eie, eir;
 	ENC28J60_ClearBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE);
 	ENC28J60_ReadReg(chan, ENC28J60_EIE, &eie);
 	ENC28J60_ReadReg(chan, ENC28J60_EIR, &eir);
@@ -547,94 +551,92 @@ static s32 UnlockedHandler(s32 chan, s32 dev)
 	return TRUE;
 }
 
-static bool enc28j60_init(struct netif *netif)
+static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 {
-	struct enc28j60if *enc28j60if = netif->state;
+	u32 id;
 
-	for (s32 chan = EXI_CHANNEL_0; chan < EXI_CHANNEL_MAX; chan++) {
-		u32 id;
+	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
+		while (!EXI_ProbeEx(chan));
+		if (!EXI_Attach(chan, ExtHandler))
+			return false;
+	} else if (dev == EXI_DEVICE_0 && sdgecko_isInitialized(chan))
+		return false;
 
-		if (chan < EXI_CHANNEL_2) {
-			while (!EXI_ProbeEx(chan));
-			if (!EXI_Attach(chan, ExtHandler))
-				continue;
-		} else if (sdgecko_isInitialized(chan))
-			continue;
+	u32 level = IRQ_Disable();
+	while (!EXI_Lock(chan, dev, UnlockedHandler))
+		LWP_ThreadSleep(enc28j60if->threadQueue);
+	IRQ_Restore(level);
 
-		u32 level = IRQ_Disable();
-		while (!EXI_Lock(chan, EXI_DEVICE_0, UnlockedHandler))
-			LWP_ThreadSleep(enc28j60if->threadQueue);
-		IRQ_Restore(level);
+	Dev[chan] = dev;
+	ENC28J60_Reset(chan);
+	CurrBank[chan] = 0;
+	usleep(1000);
 
-		ENC28J60_Reset(chan);
-		CurrBank[chan] = 0;
-		usleep(1000);
-
-		if (!EXI_GetIDEx(chan, EXI_DEVICE_0, &id) || id != 0xFA050000) {
-			if (chan < EXI_CHANNEL_2)
-				EXI_Detach(chan);
-			EXI_Unlock(chan);
-			continue;
-		}
-
-		netif->name[0] = 'E';
-		netif->name[1] = '0' + chan;
-		enc28j60if->chan = chan;
-
-		ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, ENC28J60_INIT_ERXST);
-		ENC28J60_WriteReg16(chan, ENC28J60_ERXST, ENC28J60_INIT_ERXST);
-		ENC28J60_WriteReg16(chan, ENC28J60_ERXND, ENC28J60_INIT_ERXND);
-		ENC28J60_WriteReg16(chan, ENC28J60_ERXRDPT, ENC28J60_INIT_ERXND);
-		ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
-		ENC28J60_WriteReg16(chan, ENC28J60_ETXST, ENC28J60_INIT_ETXST);
-		ENC28J60_WriteReg16(chan, ENC28J60_ETXND, ENC28J60_INIT_ETXND);
-
-		ENC28J60_WriteReg(chan, ENC28J60_ERXFCON, ENC28J60_ERXFCON_UCEN | ENC28J60_ERXFCON_CRCEN | ENC28J60_ERXFCON_MCEN | ENC28J60_ERXFCON_BCEN);
-
-		ENC28J60_WriteReg(chan, ENC28J60_MACON1, ENC28J60_MACON1_MARXEN);
-		ENC28J60_WriteReg(chan, ENC28J60_MACON3, ENC28J60_MACON3_PADCFG(1) | ENC28J60_MACON3_TXCRCEN | ENC28J60_MACON3_FRMLNEN);
-		ENC28J60_WriteReg(chan, ENC28J60_MACON4, ENC28J60_MACON4_DEFER);
-		ENC28J60_WriteReg16(chan, ENC28J60_MAMXFL, 2048);
-		ENC28J60_WriteReg(chan, ENC28J60_MABBIPG, 0x12);
-		ENC28J60_WriteReg16(chan, ENC28J60_MAIPG, 0x0C12);
-
-		ENC28J60_GetMACAddr(chan, enc28j60if->ethaddr->addr);
-		ENC28J60_WriteReg(chan, ENC28J60_MAADR1, enc28j60if->ethaddr->addr[0]);
-		ENC28J60_WriteReg(chan, ENC28J60_MAADR2, enc28j60if->ethaddr->addr[1]);
-		ENC28J60_WriteReg(chan, ENC28J60_MAADR3, enc28j60if->ethaddr->addr[2]);
-		ENC28J60_WriteReg(chan, ENC28J60_MAADR4, enc28j60if->ethaddr->addr[3]);
-		ENC28J60_WriteReg(chan, ENC28J60_MAADR5, enc28j60if->ethaddr->addr[4]);
-		ENC28J60_WriteReg(chan, ENC28J60_MAADR6, enc28j60if->ethaddr->addr[5]);
-
-		ENC28J60_WritePHYReg(chan, ENC28J60_PHCON2, ENC28J60_PHCON2_HDLDIS);
-		ENC28J60_WritePHYReg(chan, ENC28J60_PHLCON, ENC28J60_PHLCON_LACFG(4) | ENC28J60_PHLCON_LBCFG(7) | ENC28J60_PHLCON_LFRQ(1) | ENC28J60_PHLCON_STRCH);
-
-		ENC28J60_SetBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE | ENC28J60_EIE_PKTIE | ENC28J60_EIE_TXIE | ENC28J60_EIE_TXERIE);
-		ENC28J60_SetBits(chan, ENC28J60_ECON1, ENC28J60_ECON1_RXEN);
-		ENC28J60_SelectBank(chan, 0);
-
+	if (!EXI_GetIDEx(chan, dev, &id) || id != 0xFA050000) {
+		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
+			EXI_Detach(chan);
 		EXI_Unlock(chan);
-
-		if (chan < EXI_CHANNEL_2) {
-			EXI_RegisterEXICallback(chan, ExiHandler);
-		} else {
-			IRQ_Request(IRQ_PI_DEBUG, DbgHandler);
-			__UnmaskIrq(IM_PI_DEBUG);
-		}
-		return true;
+		return false;
 	}
 
-	return false;
+	enc28j60if->chan = chan;
+	enc28j60if->dev = dev;
+
+	ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, ENC28J60_INIT_ERXST);
+	ENC28J60_WriteReg16(chan, ENC28J60_ERXST, ENC28J60_INIT_ERXST);
+	ENC28J60_WriteReg16(chan, ENC28J60_ERXND, ENC28J60_INIT_ERXND);
+	ENC28J60_WriteReg16(chan, ENC28J60_ERXRDPT, ENC28J60_INIT_ERXND);
+	ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
+	ENC28J60_WriteReg16(chan, ENC28J60_ETXST, ENC28J60_INIT_ETXST);
+	ENC28J60_WriteReg16(chan, ENC28J60_ETXND, ENC28J60_INIT_ETXND);
+
+	ENC28J60_WriteReg(chan, ENC28J60_ERXFCON, ENC28J60_ERXFCON_UCEN | ENC28J60_ERXFCON_CRCEN | ENC28J60_ERXFCON_MCEN | ENC28J60_ERXFCON_BCEN);
+
+	ENC28J60_WriteReg(chan, ENC28J60_MACON1, ENC28J60_MACON1_MARXEN);
+	ENC28J60_WriteReg(chan, ENC28J60_MACON3, ENC28J60_MACON3_PADCFG(1) | ENC28J60_MACON3_TXCRCEN | ENC28J60_MACON3_FRMLNEN);
+	ENC28J60_WriteReg(chan, ENC28J60_MACON4, ENC28J60_MACON4_DEFER);
+	ENC28J60_WriteReg16(chan, ENC28J60_MAMXFL, 2048);
+	ENC28J60_WriteReg(chan, ENC28J60_MABBIPG, 0x12);
+	ENC28J60_WriteReg16(chan, ENC28J60_MAIPG, 0x0C12);
+
+	ENC28J60_GetMACAddr(chan, enc28j60if->ethaddr->addr);
+	ENC28J60_WriteReg(chan, ENC28J60_MAADR1, enc28j60if->ethaddr->addr[0]);
+	ENC28J60_WriteReg(chan, ENC28J60_MAADR2, enc28j60if->ethaddr->addr[1]);
+	ENC28J60_WriteReg(chan, ENC28J60_MAADR3, enc28j60if->ethaddr->addr[2]);
+	ENC28J60_WriteReg(chan, ENC28J60_MAADR4, enc28j60if->ethaddr->addr[3]);
+	ENC28J60_WriteReg(chan, ENC28J60_MAADR5, enc28j60if->ethaddr->addr[4]);
+	ENC28J60_WriteReg(chan, ENC28J60_MAADR6, enc28j60if->ethaddr->addr[5]);
+
+	ENC28J60_WritePHYReg(chan, ENC28J60_PHCON2, ENC28J60_PHCON2_HDLDIS);
+	ENC28J60_WritePHYReg(chan, ENC28J60_PHLCON, ENC28J60_PHLCON_LACFG(4) | ENC28J60_PHLCON_LBCFG(7) | ENC28J60_PHLCON_LFRQ(1) | ENC28J60_PHLCON_STRCH);
+
+	ENC28J60_SetBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE | ENC28J60_EIE_PKTIE | ENC28J60_EIE_TXIE | ENC28J60_EIE_TXERIE);
+	ENC28J60_SetBits(chan, ENC28J60_ECON1, ENC28J60_ECON1_RXEN);
+	ENC28J60_SelectBank(chan, 0);
+
+	EXI_Unlock(chan);
+
+	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
+		EXI_RegisterEXICallback(chan, ExiHandler);
+	} else if (chan == EXI_CHANNEL_0 && dev == EXI_DEVICE_2) {
+		EXI_RegisterEXICallback(EXI_CHANNEL_2, ExiHandler);
+	} else if (chan == EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
+		IRQ_Request(IRQ_PI_DEBUG, DbgHandler);
+		__UnmaskIrq(IM_PI_DEBUG);
+	}
+
+	return true;
 }
 
 static err_t enc28j60_output(struct netif *netif, struct pbuf *p)
 {
 	struct enc28j60if *enc28j60if = netif->state;
 	s32 chan = enc28j60if->chan;
+	s32 dev = enc28j60if->dev;
 
 	u32 level = IRQ_Disable();
 	LWP_SemWait(enc28j60if->txSemaphore);
-	while (!EXI_Lock(chan, EXI_DEVICE_0, UnlockedHandler))
+	while (!EXI_Lock(chan, dev, UnlockedHandler))
 		LWP_ThreadSleep(enc28j60if->threadQueue);
 	IRQ_Restore(level);
 
@@ -681,8 +683,25 @@ err_t enc28j60if_init(struct netif *netif)
 	enc28j60if->ethaddr = (struct eth_addr *)netif->hwaddr;
 	enc28j60_netif = netif;
 
-	if (enc28j60_init(netif))
+	if (ENC28J60_Init(EXI_CHANNEL_0, EXI_DEVICE_2, enc28j60if)) {
+		netif->name[0] = 'E';
+		netif->name[1] = '1';
 		return ERR_OK;
+	}
+
+	if (ENC28J60_Init(EXI_CHANNEL_2, EXI_DEVICE_0, enc28j60if)) {
+		netif->name[0] = 'E';
+		netif->name[1] = '2';
+		return ERR_OK;
+	}
+
+	for (s32 chan = EXI_CHANNEL_0; chan < EXI_CHANNEL_2; chan++) {
+		if (ENC28J60_Init(chan, EXI_DEVICE_0, enc28j60if)) {
+			netif->name[0] = 'E';
+			netif->name[1] = 'A' + chan;
+			return ERR_OK;
+		}
+	}
 
 	LWP_SemDestroy(enc28j60if->txSemaphore);
 	LWP_CloseQueue(enc28j60if->threadQueue);
