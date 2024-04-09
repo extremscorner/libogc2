@@ -40,7 +40,11 @@ sudo (dkp-)pacman -S libogc2 libogc2-docs libogc2-examples
 
 ### CMake
 
-Not currently supported.
+```
+sudo (dkp-)pacman -S libogc2-cmake
+```
+
+`DKP_OGC_PLATFORM_LIBRARY` may be set to `libogc` or `libogc2` to build projects using either thereafter.
 
 ## Building
 
