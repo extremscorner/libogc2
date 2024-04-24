@@ -299,7 +299,7 @@ typedef enum {
 struct enc28j60if {
 	s32 chan;
 	s32 dev;
-	lwpq_t threadQueue;
+	lwpq_t unlockQueue;
 	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
 };
@@ -385,7 +385,6 @@ static bool ENC28J60_WriteReg(s32 chan, ENC28J60Reg addr, u8 data)
 	return true;
 }
 
-#if 0
 static bool ENC28J60_ReadReg16(s32 chan, ENC28J60Reg addr, u16 *data)
 {
 	if (!ENC28J60_SelectBank(chan, addr) ||
@@ -395,7 +394,6 @@ static bool ENC28J60_ReadReg16(s32 chan, ENC28J60Reg addr, u16 *data)
 
 	return true;
 }
-#endif
 
 static bool ENC28J60_WriteReg16(s32 chan, ENC28J60Reg16 addr, u16 data)
 {
@@ -407,7 +405,6 @@ static bool ENC28J60_WriteReg16(s32 chan, ENC28J60Reg16 addr, u16 data)
 	return true;
 }
 
-#if 0
 static bool ENC28J60_ReadPHYReg(s32 chan, ENC28J60PHYReg addr, u16 *data)
 {
 	u8 mistat;
@@ -427,7 +424,6 @@ static bool ENC28J60_ReadPHYReg(s32 chan, ENC28J60PHYReg addr, u16 *data)
 
 	return true;
 }
-#endif
 
 static bool ENC28J60_WritePHYReg(s32 chan, ENC28J60PHYReg addr, u16 data)
 {
@@ -443,6 +439,16 @@ static bool ENC28J60_WritePHYReg(s32 chan, ENC28J60PHYReg addr, u16 data)
 	} while (mistat & ENC28J60_MISTAT_BUSY);
 
 	return true;
+}
+
+static bool ENC28J60_GetLinkState(s32 chan)
+{
+	u16 phstat2;
+
+	if (!ENC28J60_ReadPHYReg(chan, ENC28J60_PHSTAT2, &phstat2))
+		return false;
+
+	return !!(phstat2 & ENC28J60_PHSTAT2_LSTAT);
 }
 
 static void ENC28J60_GetMACAddr(s32 chan, u8 macaddr[6])
@@ -515,6 +521,17 @@ static s32 ExiHandler(s32 chan, s32 dev)
 		ENC28J60_SetBits(chan, ENC28J60_ECON2, ENC28J60_ECON2_PKTDEC);
 	}
 
+	if (eir & ENC28J60_EIR_LINKIF) {
+		u16 phir;
+
+		if (ENC28J60_GetLinkState(chan))
+			enc28j60_netif->flags |= NETIF_FLAG_LINK_UP;
+		else
+			enc28j60_netif->flags &= ~NETIF_FLAG_LINK_UP;
+
+		ENC28J60_ReadPHYReg(chan, ENC28J60_PHIR, &phir);
+	}
+
 	if (eir & ENC28J60_EIR_TXIF) {
 		ENC28J60_ClearBits(chan, ENC28J60_EIR, ENC28J60_EIR_TXIF);
 		LWP_SemPost(enc28j60if->txSemaphore);
@@ -534,6 +551,7 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 static s32 ExtHandler(s32 chan, s32 dev)
 {
+	enc28j60_netif->flags &= ~NETIF_FLAG_LINK_UP;
 	EXI_RegisterEXICallback(chan, NULL);
 	return TRUE;
 }
@@ -547,7 +565,7 @@ static void DbgHandler(u32 irq, frame_context *ctx)
 static s32 UnlockedHandler(s32 chan, s32 dev)
 {
 	struct enc28j60if *enc28j60if = enc28j60_netif->state;
-	LWP_ThreadBroadcast(enc28j60if->threadQueue);
+	LWP_ThreadBroadcast(enc28j60if->unlockQueue);
 	return TRUE;
 }
 
@@ -564,7 +582,7 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 
 	u32 level = IRQ_Disable();
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(enc28j60if->threadQueue);
+		LWP_ThreadSleep(enc28j60if->unlockQueue);
 	IRQ_Restore(level);
 
 	Dev[chan] = dev;
@@ -610,7 +628,9 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	ENC28J60_WritePHYReg(chan, ENC28J60_PHCON2, ENC28J60_PHCON2_HDLDIS);
 	ENC28J60_WritePHYReg(chan, ENC28J60_PHLCON, ENC28J60_PHLCON_LACFG(4) | ENC28J60_PHLCON_LBCFG(7) | ENC28J60_PHLCON_LFRQ(1) | ENC28J60_PHLCON_STRCH);
 
-	ENC28J60_SetBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE | ENC28J60_EIE_PKTIE | ENC28J60_EIE_TXIE | ENC28J60_EIE_TXERIE);
+	ENC28J60_WritePHYReg(chan, ENC28J60_PHIE, ENC28J60_PHIE_PLNKIE | ENC28J60_PHIE_PGEIE);
+
+	ENC28J60_SetBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE | ENC28J60_EIE_PKTIE | ENC28J60_EIE_LINKIE | ENC28J60_EIE_TXIE | ENC28J60_EIE_TXERIE);
 	ENC28J60_SetBits(chan, ENC28J60_ECON1, ENC28J60_ECON1_RXEN);
 	ENC28J60_SelectBank(chan, 0);
 
@@ -635,9 +655,14 @@ static err_t enc28j60_output(struct netif *netif, struct pbuf *p)
 	s32 dev = enc28j60if->dev;
 
 	u32 level = IRQ_Disable();
+	if (!(netif->flags & NETIF_FLAG_LINK_UP)) {
+		IRQ_Restore(level);
+		return ERR_CONN;
+	}
+
 	LWP_SemWait(enc28j60if->txSemaphore);
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(enc28j60if->threadQueue);
+		LWP_ThreadSleep(enc28j60if->unlockQueue);
 	IRQ_Restore(level);
 
 	ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
@@ -677,7 +702,7 @@ err_t enc28j60if_init(struct netif *netif)
 	netif->mtu = 1500;
 	netif->flags = NETIF_FLAG_BROADCAST;
 
-	LWP_InitQueue(&enc28j60if->threadQueue);
+	LWP_InitQueue(&enc28j60if->unlockQueue);
 	LWP_SemInit(&enc28j60if->txSemaphore, 1, 1);
 
 	enc28j60if->ethaddr = (struct eth_addr *)netif->hwaddr;
@@ -704,7 +729,7 @@ err_t enc28j60if_init(struct netif *netif)
 	}
 
 	LWP_SemDestroy(enc28j60if->txSemaphore);
-	LWP_CloseQueue(enc28j60if->threadQueue);
+	LWP_CloseQueue(enc28j60if->unlockQueue);
 
 	mem_free(enc28j60if);
 	return ERR_IF;
