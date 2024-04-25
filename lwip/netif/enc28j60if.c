@@ -29,6 +29,8 @@ distribution.
 #include <ogc/exi.h>
 #include <ogc/irq.h>
 #include <ogc/lwp.h>
+#include <ogc/lwp_watchdog.h>
+#include <ogc/machine/asm.h>
 #include <ogc/machine/processor.h>
 #include <ogc/semaphore.h>
 #include <sdcard/card_cmn.h>
@@ -413,16 +415,18 @@ static bool ENC28J60_ReadPHYReg(s32 chan, ENC28J60PHYReg addr, u16 *data)
 		!ENC28J60_WriteReg(chan, ENC28J60_MICMD, ENC28J60_MICMD_MIIRD))
 		return false;
 
+	u64 start = gettime();
+
 	do {
 		if (!ENC28J60_ReadReg(chan, ENC28J60_MISTAT, &mistat))
 			return false;
-	} while (mistat & ENC28J60_MISTAT_BUSY);
+	} while ((mistat & ENC28J60_MISTAT_BUSY) && diff_usec(start, gettime()) <= 150);
 
 	if (!ENC28J60_WriteReg(chan, ENC28J60_MICMD, 0) ||
 		!ENC28J60_ReadReg16(chan, ENC28J60_MIRD, data))
 		return false;
 
-	return true;
+	return !(mistat & ENC28J60_MISTAT_BUSY);
 }
 
 static bool ENC28J60_WritePHYReg(s32 chan, ENC28J60PHYReg addr, u16 data)
@@ -433,12 +437,14 @@ static bool ENC28J60_WritePHYReg(s32 chan, ENC28J60PHYReg addr, u16 data)
 		!ENC28J60_WriteReg16(chan, ENC28J60_MIWR, data))
 		return false;
 
+	u64 start = gettime();
+
 	do {
 		if (!ENC28J60_ReadReg(chan, ENC28J60_MISTAT, &mistat))
 			return false;
-	} while (mistat & ENC28J60_MISTAT_BUSY);
+	} while ((mistat & ENC28J60_MISTAT_BUSY) && diff_usec(start, gettime()) <= 150);
 
-	return true;
+	return !(mistat & ENC28J60_MISTAT_BUSY);
 }
 
 static bool ENC28J60_GetLinkState(s32 chan)
@@ -655,12 +661,17 @@ static err_t enc28j60_output(struct netif *netif, struct pbuf *p)
 	s32 dev = enc28j60if->dev;
 
 	u32 level = IRQ_Disable();
+
 	if (!(netif->flags & NETIF_FLAG_LINK_UP)) {
 		IRQ_Restore(level);
 		return ERR_CONN;
 	}
 
-	LWP_SemWait(enc28j60if->txSemaphore);
+	if (LWP_SemTimedWait(enc28j60if->txSemaphore, &(struct timespec){2, 0})) {
+		IRQ_Restore(level);
+		return ERR_IF;
+	}
+
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
 		LWP_ThreadSleep(enc28j60if->unlockQueue);
 	IRQ_Restore(level);
