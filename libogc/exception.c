@@ -255,7 +255,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	kprintf("\tGPR05 %08X GPR13 %08X GPR21 %08X GPR29 %08X\n",pCtx->GPR[5], pCtx->GPR[13], pCtx->GPR[21], pCtx->GPR[29]);
 	kprintf("\tGPR06 %08X GPR14 %08X GPR22 %08X GPR30 %08X\n",pCtx->GPR[6], pCtx->GPR[14], pCtx->GPR[22], pCtx->GPR[30]);
 	kprintf("\tGPR07 %08X GPR15 %08X GPR23 %08X GPR31 %08X\n",pCtx->GPR[7], pCtx->GPR[15], pCtx->GPR[23], pCtx->GPR[31]);
-	kprintf("\tLR %08X SRR0 %08x SRR1 %08x MSR %08x\n", pCtx->LR, pCtx->SRR0, pCtx->SRR1,pCtx->MSR);
+	kprintf("\tLR %08X SRR0 %08X SRR1 %08X MSR %08X\n", pCtx->LR, pCtx->SRR0, pCtx->SRR1, pCtx->MSR);
 	kprintf("\tDAR %08X DSISR %08X\n", mfspr(19), mfspr(18));
 
 	_cpu_print_stack((void*)pCtx->SRR0,(void*)pCtx->LR,(void*)pCtx->GPR[1]);
