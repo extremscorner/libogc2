@@ -577,6 +577,7 @@ static s32 UnlockedHandler(s32 chan, s32 dev)
 
 static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 {
+	bool err = false;
 	u32 id;
 
 	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
@@ -606,52 +607,54 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	enc28j60if->chan = chan;
 	enc28j60if->dev = dev;
 
-	ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, ENC28J60_INIT_ERXST);
-	ENC28J60_WriteReg16(chan, ENC28J60_ERXST, ENC28J60_INIT_ERXST);
-	ENC28J60_WriteReg16(chan, ENC28J60_ERXND, ENC28J60_INIT_ERXND);
-	ENC28J60_WriteReg16(chan, ENC28J60_ERXRDPT, ENC28J60_INIT_ERXND);
-	ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
-	ENC28J60_WriteReg16(chan, ENC28J60_ETXST, ENC28J60_INIT_ETXST);
-	ENC28J60_WriteReg16(chan, ENC28J60_ETXND, ENC28J60_INIT_ETXND);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_ERDPT, ENC28J60_INIT_ERXST);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_ERXST, ENC28J60_INIT_ERXST);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_ERXND, ENC28J60_INIT_ERXND);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_ERXRDPT, ENC28J60_INIT_ERXND);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_ETXST, ENC28J60_INIT_ETXST);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_ETXND, ENC28J60_INIT_ETXND);
 
-	ENC28J60_WriteReg(chan, ENC28J60_ERXFCON, ENC28J60_ERXFCON_UCEN | ENC28J60_ERXFCON_CRCEN | ENC28J60_ERXFCON_MCEN | ENC28J60_ERXFCON_BCEN);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_ERXFCON, ENC28J60_ERXFCON_UCEN | ENC28J60_ERXFCON_CRCEN | ENC28J60_ERXFCON_MCEN | ENC28J60_ERXFCON_BCEN);
 
-	ENC28J60_WriteReg(chan, ENC28J60_MACON1, ENC28J60_MACON1_MARXEN);
-	ENC28J60_WriteReg(chan, ENC28J60_MACON3, ENC28J60_MACON3_PADCFG(1) | ENC28J60_MACON3_TXCRCEN | ENC28J60_MACON3_FRMLNEN);
-	ENC28J60_WriteReg(chan, ENC28J60_MACON4, ENC28J60_MACON4_DEFER);
-	ENC28J60_WriteReg16(chan, ENC28J60_MAMXFL, 2048);
-	ENC28J60_WriteReg(chan, ENC28J60_MABBIPG, 0x12);
-	ENC28J60_WriteReg16(chan, ENC28J60_MAIPG, 0x0C12);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MACON1, ENC28J60_MACON1_MARXEN);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MACON3, ENC28J60_MACON3_PADCFG(1) | ENC28J60_MACON3_TXCRCEN | ENC28J60_MACON3_FRMLNEN);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MACON4, ENC28J60_MACON4_DEFER);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_MAMXFL, 2048);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MABBIPG, 0x12);
+	err |= !ENC28J60_WriteReg16(chan, ENC28J60_MAIPG, 0x0C12);
 
 	ENC28J60_GetMACAddr(chan, enc28j60if->ethaddr->addr);
-	ENC28J60_WriteReg(chan, ENC28J60_MAADR1, enc28j60if->ethaddr->addr[0]);
-	ENC28J60_WriteReg(chan, ENC28J60_MAADR2, enc28j60if->ethaddr->addr[1]);
-	ENC28J60_WriteReg(chan, ENC28J60_MAADR3, enc28j60if->ethaddr->addr[2]);
-	ENC28J60_WriteReg(chan, ENC28J60_MAADR4, enc28j60if->ethaddr->addr[3]);
-	ENC28J60_WriteReg(chan, ENC28J60_MAADR5, enc28j60if->ethaddr->addr[4]);
-	ENC28J60_WriteReg(chan, ENC28J60_MAADR6, enc28j60if->ethaddr->addr[5]);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MAADR1, enc28j60if->ethaddr->addr[0]);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MAADR2, enc28j60if->ethaddr->addr[1]);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MAADR3, enc28j60if->ethaddr->addr[2]);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MAADR4, enc28j60if->ethaddr->addr[3]);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MAADR5, enc28j60if->ethaddr->addr[4]);
+	err |= !ENC28J60_WriteReg(chan, ENC28J60_MAADR6, enc28j60if->ethaddr->addr[5]);
 
-	ENC28J60_WritePHYReg(chan, ENC28J60_PHCON2, ENC28J60_PHCON2_HDLDIS);
-	ENC28J60_WritePHYReg(chan, ENC28J60_PHLCON, ENC28J60_PHLCON_LACFG(4) | ENC28J60_PHLCON_LBCFG(7) | ENC28J60_PHLCON_LFRQ(1) | ENC28J60_PHLCON_STRCH);
+	err |= !ENC28J60_WritePHYReg(chan, ENC28J60_PHCON2, ENC28J60_PHCON2_HDLDIS);
+	err |= !ENC28J60_WritePHYReg(chan, ENC28J60_PHLCON, ENC28J60_PHLCON_LACFG(4) | ENC28J60_PHLCON_LBCFG(7) | ENC28J60_PHLCON_LFRQ(1) | ENC28J60_PHLCON_STRCH);
 
-	ENC28J60_WritePHYReg(chan, ENC28J60_PHIE, ENC28J60_PHIE_PLNKIE | ENC28J60_PHIE_PGEIE);
+	err |= !ENC28J60_WritePHYReg(chan, ENC28J60_PHIE, ENC28J60_PHIE_PLNKIE | ENC28J60_PHIE_PGEIE);
 
-	ENC28J60_SetBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE | ENC28J60_EIE_PKTIE | ENC28J60_EIE_LINKIE | ENC28J60_EIE_TXIE | ENC28J60_EIE_TXERIE);
-	ENC28J60_SetBits(chan, ENC28J60_ECON1, ENC28J60_ECON1_RXEN);
-	ENC28J60_SelectBank(chan, 0);
+	err |= !ENC28J60_SetBits(chan, ENC28J60_EIE, ENC28J60_EIE_INTIE | ENC28J60_EIE_PKTIE | ENC28J60_EIE_LINKIE | ENC28J60_EIE_TXIE | ENC28J60_EIE_TXERIE);
+	err |= !ENC28J60_SetBits(chan, ENC28J60_ECON1, ENC28J60_ECON1_RXEN);
+	err |= !ENC28J60_SelectBank(chan, 0);
 
 	EXI_Unlock(chan);
 
-	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
-		EXI_RegisterEXICallback(chan, ExiHandler);
-	} else if (chan == EXI_CHANNEL_0 && dev == EXI_DEVICE_2) {
-		EXI_RegisterEXICallback(EXI_CHANNEL_2, ExiHandler);
-	} else if (chan == EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
-		IRQ_Request(IRQ_PI_DEBUG, DbgHandler);
-		__UnmaskIrq(IM_PI_DEBUG);
+	if (!err) {
+		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
+			EXI_RegisterEXICallback(chan, ExiHandler);
+		} else if (chan == EXI_CHANNEL_0 && dev == EXI_DEVICE_2) {
+			EXI_RegisterEXICallback(EXI_CHANNEL_2, ExiHandler);
+		} else if (chan == EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
+			IRQ_Request(IRQ_PI_DEBUG, DbgHandler);
+			__UnmaskIrq(IM_PI_DEBUG);
+		}
 	}
 
-	return true;
+	return !err;
 }
 
 static err_t enc28j60_output(struct netif *netif, struct pbuf *p)
