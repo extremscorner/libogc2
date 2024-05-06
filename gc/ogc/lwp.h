@@ -39,6 +39,7 @@ distribution.
 */ 
 
 #include <gctypes.h>
+#include <time.h>
 
 #define LWP_CLOSED					-1
 #define LWP_SUCCESSFUL				0
@@ -176,9 +177,19 @@ void LWP_CloseQueue(lwpq_t thequeue);
 \brief Pushes the current thread onto the given thread synchronization queue and sets the thread state to blocked.
 \param[in] thequeue handle to the thread's synchronization queue to push the thread on
 
-\return none
+\return 0 on success, <0 on error
 */
 s32 LWP_ThreadSleep(lwpq_t thequeue);
+
+
+/*! \fn s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *abstime)
+\brief Pushes the current thread onto the given thread synchronization queue and sets the thread state to blocked until timeout.
+\param[in] thequeue handle to the thread's synchronization queue to push the thread on
+\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+
+\return 0 on success, <0 on error
+*/
+s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *abstime);
 
 
 /*! \fn void LWP_ThreadSignal(lwpq_t thequeue)

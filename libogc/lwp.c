@@ -346,7 +346,7 @@ s32 LWP_InitQueue(lwpq_t *thequeue)
 	tq = __lwp_tqueue_allocate();
 	if(!tq) return -1;
 
-	__lwp_threadqueue_init(&tq->tqueue,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_ON_THREADQ,0);
+	__lwp_threadqueue_init(&tq->tqueue,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_ON_THREADQ,ETIMEDOUT);
 
 	*thequeue = (lwpq_t)(LWP_OBJMASKTYPE(LWP_OBJTYPE_TQUEUE)|LWP_OBJMASKID(tq->object.id));
 	__lwp_thread_dispatchenable();
@@ -371,7 +371,7 @@ void LWP_CloseQueue(lwpq_t thequeue)
 	return;
 }
 
-s32 LWP_ThreadSleep(lwpq_t thequeue)
+static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,u64 timeout)
 {
 	u32 level;
 	tqueue_st *tq;
@@ -389,9 +389,22 @@ s32 LWP_ThreadSleep(lwpq_t thequeue)
 	exec->wait.queue = &tq->tqueue;
 	exec->wait.id = thequeue;
 	_CPU_ISR_Restore(level);
-	__lwp_threadqueue_enqueue(&tq->tqueue,LWP_THREADQ_NOTIMEOUT);
+	__lwp_threadqueue_enqueue(&tq->tqueue,timeout);
 	__lwp_thread_dispatchenable();
-	return 0;
+	return exec->wait.ret_code;
+}
+
+s32 LWP_ThreadSleep(lwpq_t thequeue)
+{
+	return __lwp_tqueue_sleepsupp(thequeue,LWP_THREADQ_NOTIMEOUT);
+}
+
+s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *abstime)
+{
+	u64 timeout = LWP_THREADQ_NOTIMEOUT;
+
+	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	return __lwp_tqueue_sleepsupp(thequeue,timeout);
 }
 
 void LWP_ThreadBroadcast(lwpq_t thequeue)

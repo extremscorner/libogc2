@@ -85,7 +85,7 @@ static sema_st* __lwp_sema_allocate(void)
 	return NULL;
 }
 
-static s32 __lwp_sema_waitsupp(sem_t sem,u64 timeout,u8 block)
+static s32 __lwp_sema_waitsupp(sem_t sem,u8 block,u64 timeout)
 {
 	sema_st *lwp_sem;
 
@@ -130,7 +130,7 @@ s32 LWP_SemInit(sem_t *sem,u32 start,u32 max)
 
 s32 LWP_SemWait(sem_t sem)
 {
-	return __lwp_sema_waitsupp(sem,LWP_THREADQ_NOTIMEOUT,TRUE);
+	return __lwp_sema_waitsupp(sem,TRUE,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime)
@@ -138,12 +138,12 @@ s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime)
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
 	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
-	return __lwp_sema_waitsupp(sem,timeout,TRUE);
+	return __lwp_sema_waitsupp(sem,TRUE,timeout);
 }
 
 s32 LWP_SemTryWait(sem_t sem)
 {
-	return __lwp_sema_waitsupp(sem,LWP_THREADQ_NOTIMEOUT,FALSE);
+	return __lwp_sema_waitsupp(sem,FALSE,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_SemPost(sem_t sem)
