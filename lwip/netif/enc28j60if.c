@@ -302,6 +302,7 @@ struct enc28j60if {
 	s32 chan;
 	s32 dev;
 	lwpq_t unlockQueue;
+	lwpq_t linkupQueue;
 	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
 };
@@ -530,9 +531,10 @@ static s32 ExiHandler(s32 chan, s32 dev)
 	if (eir & ENC28J60_EIR_LINKIF) {
 		u16 phir;
 
-		if (ENC28J60_GetLinkState(chan))
+		if (ENC28J60_GetLinkState(chan)) {
 			enc28j60_netif->flags |= NETIF_FLAG_LINK_UP;
-		else
+			LWP_ThreadBroadcast(enc28j60if->linkupQueue);
+		} else
 			enc28j60_netif->flags &= ~NETIF_FLAG_LINK_UP;
 
 		ENC28J60_ReadPHYReg(chan, ENC28J60_PHIR, &phir);
@@ -665,12 +667,13 @@ static err_t enc28j60_output(struct netif *netif, struct pbuf *p)
 
 	u32 level = IRQ_Disable();
 
-	if (!(netif->flags & NETIF_FLAG_LINK_UP)) {
+	if (!(netif->flags & NETIF_FLAG_LINK_UP) &&
+		LWP_ThreadTimedSleep(enc28j60if->linkupQueue, &(struct timespec){2, 500000000})) {
 		IRQ_Restore(level);
 		return ERR_CONN;
 	}
 
-	if (LWP_SemTimedWait(enc28j60if->txSemaphore, &(struct timespec){2, 0})) {
+	if (LWP_SemTimedWait(enc28j60if->txSemaphore, &(struct timespec){2, 500000000})) {
 		IRQ_Restore(level);
 		return ERR_IF;
 	}
@@ -717,6 +720,7 @@ err_t enc28j60if_init(struct netif *netif)
 	netif->flags = NETIF_FLAG_BROADCAST;
 
 	LWP_InitQueue(&enc28j60if->unlockQueue);
+	LWP_InitQueue(&enc28j60if->linkupQueue);
 	LWP_SemInit(&enc28j60if->txSemaphore, 1, 1);
 
 	enc28j60if->ethaddr = (struct eth_addr *)netif->hwaddr;
@@ -743,6 +747,7 @@ err_t enc28j60if_init(struct netif *netif)
 	}
 
 	LWP_SemDestroy(enc28j60if->txSemaphore);
+	LWP_CloseQueue(enc28j60if->linkupQueue);
 	LWP_CloseQueue(enc28j60if->unlockQueue);
 
 	mem_free(enc28j60if);

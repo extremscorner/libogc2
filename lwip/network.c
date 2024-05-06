@@ -1550,8 +1550,10 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 
 	//last and least start the tcpip layer
 	ret = net_init();
+	if(ret<0) return ret;
 
-	if ( ret == 0 && g_hNetIF.dhcp != NULL ) {
+	if ( (g_hNetIF.flags & NETIF_FLAG_LINK_UP) == 0 ) return -2;
+	if ( g_hNetIF.dhcp != NULL ) {
 		// wait for dhcp to bind
 		while ( g_hNetIF.ip_addr.addr == 0 && g_hNetIF.dhcp->tries <= 4 )
 			LWP_YieldThread();
