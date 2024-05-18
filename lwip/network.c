@@ -1612,9 +1612,10 @@ u32 net_gethostip(void)
 	return g_hNetIF.ip_addr.addr;
 }
 
-s32 net_get_mac_address(void *mac_buf)
+s32 net_get_mac_address(u8 mac_buf[6])
 {
 	if(mac_buf==NULL) return -EINVAL;
+	if(g_hNetIF.hwaddr_len!=6) return -ERANGE;
 	memcpy(mac_buf,g_hNetIF.hwaddr,g_hNetIF.hwaddr_len);
 	return 0;
 }

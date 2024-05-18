@@ -280,7 +280,7 @@ s32 net_init_async(netcallback cb, void *usrdata);
 s32 net_get_status(void);
 void net_wc24cleanup(void);
 #endif
-s32 net_get_mac_address(void *mac_buf);
+s32 net_get_mac_address(u8 mac_buf[6]);
 void net_deinit(void);
 
 u32 net_gethostip(void);

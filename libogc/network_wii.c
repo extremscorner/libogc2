@@ -657,10 +657,10 @@ void net_wc24cleanup(void) {
     }
 }
 
-s32 net_get_mac_address(void *mac_buf) {
+s32 net_get_mac_address(u8 mac_buf[6]) {
 	s32 fd;
 	s32 result;
-	void *_mac_buf;
+	u8 *_mac_buf;
 	STACK_ALIGN(u32, manage_buf, 0x20, 32);
 
 	if (mac_buf==NULL) return -EINVAL;
