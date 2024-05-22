@@ -118,6 +118,15 @@ BOOL LWP_ThreadIsSuspended(lwp_t thethread);
 lwp_t LWP_GetSelf(void);
 
 
+/*! \fn s32 LWP_GetThreadPriority(lwp_t thethread)
+\brief Get the priority of the given thread.
+\param[in] thethread handle to the thread context whos priority should be returned. If NULL, the current thread will be taken.
+
+\return 0 on success, <0 on error
+*/
+s32 LWP_GetThreadPriority(lwp_t thethread);
+
+
 /*! \fn void LWP_SetThreadPriority(lwp_t thethread,u32 prio)
 \brief Set the priority of the given thread.
 \param[in] thethread handle to the thread context whos priority should be changed. If NULL, the current thread will be taken.

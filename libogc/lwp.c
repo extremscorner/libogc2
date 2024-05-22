@@ -265,6 +265,22 @@ lwp_t LWP_GetSelf(void)
 	return ret;
 }
 
+s32 LWP_GetThreadPriority(lwp_t thethread)
+{
+	u32 prio;
+	lwp_cntrl *lwp_thread;
+
+	if(thethread==LWP_THREAD_NULL) thethread = LWP_GetSelf();
+
+	lwp_thread = __lwp_cntrl_open(thethread);
+	if(!lwp_thread) return -1;
+
+	prio = __lwp_priotocore(lwp_thread->cur_prio);
+
+	__lwp_thread_dispatchenable();
+	return prio;
+}
+
 void LWP_SetThreadPriority(lwp_t thethread,u32 prio)
 {
 	lwp_cntrl *lwp_thread;
