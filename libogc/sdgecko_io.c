@@ -1516,7 +1516,7 @@ s32 sdgecko_doUnmount(s32 drv_no)
 		}
 		_ioFlag[drv_no] = NOT_INITIALIZED;
 		_ioCardInserted[drv_no] = FALSE;
-		if(drv_no!=2) {
+		if(drv_no!=2 && _ioCardSelect[drv_no]==EXI_DEVICE_0) {
 			EXI_Detach(drv_no);
 			sdgecko_ejectedCB(drv_no);
 		}
