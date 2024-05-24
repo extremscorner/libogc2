@@ -586,7 +586,7 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 		while (!EXI_ProbeEx(chan));
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
-	} else if (dev == EXI_DEVICE_0 && sdgecko_isInitialized(chan))
+	} else if (dev == sdgecko_getDevice(chan) && sdgecko_isInitialized(chan))
 		return false;
 
 	u32 level = IRQ_Disable();

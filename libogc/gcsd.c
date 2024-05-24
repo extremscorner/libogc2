@@ -41,6 +41,7 @@ static int __gcsd_init = 0;
 static bool __gcsd_startup(int n)
 {
 	s32 ret;
+	u32 dev;
 
 	if(!__gcsd_init) {
 		sdgecko_initBufferPool();
@@ -48,10 +49,22 @@ static bool __gcsd_startup(int n)
 		__gcsd_init = 1;
 	}
 
+	dev = sdgecko_getDevice(n);
+
 	ret = sdgecko_preIO(n);
 	if(ret == CARDIO_ERROR_READY)
 		return true;
 
+	if(dev == EXI_DEVICE_0)
+		sdgecko_setDevice(n, EXI_DEVICE_2);
+	else
+		sdgecko_setDevice(n, EXI_DEVICE_0);
+
+	ret = sdgecko_preIO(n);
+	if(ret == CARDIO_ERROR_READY)
+		return true;
+
+	sdgecko_setDevice(n, dev);
 	return false;
 }
 

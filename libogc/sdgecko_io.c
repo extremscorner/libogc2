@@ -65,6 +65,7 @@ u16 g_dCode[MAX_MI_NUM][MAX_DI_NUM] =
 	}
 };
 
+static u32 _ioCardSelect[MAX_DRIVE];
 static u32 _ioCardFreq[MAX_DRIVE];
 static u32 _ioRetryCnt;
 static cardiocallback _ioRetryCB = NULL;
@@ -269,7 +270,7 @@ static void __exi_wait(s32 drv_no)
 	u32 ret;
 
 	do {
-		if((ret=EXI_Lock(drv_no,EXI_DEVICE_0,__exi_unlock))==1) break;
+		if((ret=EXI_Lock(drv_no,_ioCardSelect[drv_no],__exi_unlock))==1) break;
 		LWP_ThreadSleep(_ioEXILock[drv_no]);
 	} while(ret==0);
 }
@@ -298,7 +299,7 @@ static s32 __card_writecmd0(s32 drv_no)
 
 	__exi_wait(drv_no);
 
-	if(EXI_SelectSD(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -315,7 +316,7 @@ static s32 __card_writecmd0(s32 drv_no)
 	}
 	EXI_Deselect(drv_no);
 	
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -355,7 +356,7 @@ static s32 __card_writecmd(s32 drv_no,void *buf,s32 len)
 
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -398,7 +399,7 @@ static s32 __card_readresponse(s32 drv_no,void *buf,s32 len)
 
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -439,7 +440,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 	
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -541,7 +542,7 @@ static s32 __card_datares(s32 drv_no,void *buf)
 	
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -657,7 +658,7 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 
 	__exi_wait(drv_no);
 	
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -747,7 +748,7 @@ static s32 __card_datawrite(s32 drv_no,void *buf,u32 len)
 
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -791,7 +792,7 @@ static s32 __card_multidatawrite(s32 drv_no,void *buf,u32 len)
 	
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -832,7 +833,7 @@ static s32 __card_multiwritestop(s32 drv_no)
 
 	__exi_wait(drv_no);
 	
-	if(EXI_Select(drv_no,EXI_DEVICE_0,_ioCardFreq[drv_no])==0) {
+	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -1180,6 +1181,11 @@ static bool __card_check(s32 drv_no)
 #ifdef _CARDIO_DEBUG	
 	printf("__card_check(%d)\n",drv_no);
 #endif
+	if(_ioCardSelect[drv_no]!=EXI_DEVICE_0) {
+		if(EXI_GetID(drv_no,_ioCardSelect[drv_no],&id)==0) return FALSE;
+		if(id!=0xffffffff) return FALSE;
+		return TRUE;
+	}
 	while((ret=EXI_ProbeEx(drv_no))==0);
 	if(ret!=1) return FALSE;
 	if(EXI_GetID(drv_no,EXI_DEVICE_0,&id)==0) return FALSE;
@@ -1235,6 +1241,7 @@ void sdgecko_initIODefault(void)
 		_ioFlag[i] = NOT_INITIALIZED;
 		_ioAddressingType[i] = CARDIO_ADDRESSING_BYTE;
 		_initType[i] = TYPE_SD;
+		_ioCardSelect[i] = EXI_DEVICE_0;
 		_ioCardFreq[i] = EXI_SPEED16MHZ;
 		LWP_InitQueue(&_ioEXILock[i]);
 	}
@@ -1292,7 +1299,7 @@ s32 sdgecko_preIO(s32 drv_no)
 {
 	s32 ret;
 
-	if(_ioFlag[drv_no]!=INITIALIZED) {
+	if(_ioFlag[drv_no]==NOT_INITIALIZED) {
 		ret = sdgecko_initIO(drv_no);
 		if(ret!=CARDIO_ERROR_READY) {
 #ifdef _CARDIO_DEBUG	
@@ -1533,6 +1540,17 @@ void sdgecko_ejectedCB(s32 drv_no)
 {
 	if(pfCallbackOUT[drv_no])
 		pfCallbackOUT[drv_no](drv_no);
+}
+
+u32 sdgecko_getDevice(s32 drv_no)
+{
+	return _ioCardSelect[drv_no];
+}
+
+void sdgecko_setDevice(s32 drv_no, u32 dev)
+{
+	if(_ioFlag[drv_no]==NOT_INITIALIZED)
+		_ioCardSelect[drv_no] = dev;
 }
 
 u32 sdgecko_getSpeed(s32 drv_no)

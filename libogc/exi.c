@@ -671,7 +671,8 @@ s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
 	s32 ret;
 	u32 reg;
 
-	if(nDev==EXI_DEVICE_0 && sdgecko_isInitialized(nChn)) {
+	if(nDev==sdgecko_getDevice(nChn)
+		&& sdgecko_isInitialized(nChn)) {
 		*nId = 0xffffffff;
 		return 1;
 	}

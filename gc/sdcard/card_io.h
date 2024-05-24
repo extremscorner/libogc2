@@ -49,6 +49,9 @@ s32 sdgecko_doUnmount(s32 drv_no);
 void sdgecko_insertedCB(s32 drv_no);
 void sdgecko_ejectedCB(s32 drv_no);
 
+u32 sdgecko_getDevice(s32 drv_no);
+void sdgecko_setDevice(s32 drv_no, u32 dev);
+
 u32 sdgecko_getSpeed(s32 drv_no);
 void sdgecko_setSpeed(s32 drv_no, u32 freq);
 
