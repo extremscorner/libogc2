@@ -124,7 +124,19 @@ static bool __gcsd_shutdown(int n)
 
 static bool __gcsda_startup(void)
 {
-	return __gcsd_startup(0);
+	bool ret;
+
+	ret = __gcsd_startup(0);
+
+	if(sdgecko_getDevice(0) == EXI_DEVICE_0) {
+		__io_gcsda.features |= FEATURE_GAMECUBE_SLOTA;
+		__io_gcsda.features &= ~FEATURE_GAMECUBE_PORT1;
+	} else {
+		__io_gcsda.features |= FEATURE_GAMECUBE_PORT1;
+		__io_gcsda.features &= ~FEATURE_GAMECUBE_SLOTA;
+	}
+
+	return ret;
 }
 
 static bool __gcsda_isInserted(void)
@@ -216,7 +228,7 @@ static bool __gcsd2_shutdown(void)
 	return __gcsd_shutdown(2);
 }
 
-const DISC_INTERFACE __io_gcsda = {
+DISC_INTERFACE __io_gcsda = {
 	DEVICE_TYPE_GC_SD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_SLOTA,
 	__gcsda_startup,
@@ -226,7 +238,8 @@ const DISC_INTERFACE __io_gcsda = {
 	__gcsda_clearStatus,
 	__gcsda_shutdown
 };
-const DISC_INTERFACE __io_gcsdb = {
+
+DISC_INTERFACE __io_gcsdb = {
 	DEVICE_TYPE_GC_SD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_SLOTB,
 	__gcsdb_startup,
@@ -236,7 +249,8 @@ const DISC_INTERFACE __io_gcsdb = {
 	__gcsdb_clearStatus,
 	__gcsdb_shutdown
 };
-const DISC_INTERFACE __io_gcsd2 = {
+
+DISC_INTERFACE __io_gcsd2 = {
 	DEVICE_TYPE_GC_SD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_PORT2,
 	__gcsd2_startup,
@@ -245,4 +259,4 @@ const DISC_INTERFACE __io_gcsd2 = {
 	__gcsd2_writeSectors,
 	__gcsd2_clearStatus,
 	__gcsd2_shutdown
-} ;
+};

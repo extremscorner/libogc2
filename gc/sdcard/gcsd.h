@@ -39,8 +39,8 @@
 
 #define DEVICE_TYPE_GC_SD	(('G'<<24)|('C'<<16)|('S'<<8)|'D')
 
-extern const DISC_INTERFACE __io_gcsda;
-extern const DISC_INTERFACE __io_gcsdb;
-extern const DISC_INTERFACE __io_gcsd2;
+extern DISC_INTERFACE __io_gcsda;
+extern DISC_INTERFACE __io_gcsdb;
+extern DISC_INTERFACE __io_gcsd2;
 
 #endif
