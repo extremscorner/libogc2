@@ -580,6 +580,7 @@ static s32 UnlockedHandler(s32 chan, s32 dev)
 static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 {
 	bool err = false;
+	u16 phid1, phid2;
 	u32 id;
 
 	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
@@ -599,7 +600,9 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	CurrBank[chan] = 0;
 	usleep(1000);
 
-	if (!EXI_GetIDEx(chan, dev, &id) || id != 0xFA050000) {
+	if (!EXI_GetIDEx(chan, dev, &id) || id != 0xFA050000 ||
+		!ENC28J60_ReadPHYReg(chan, ENC28J60_PHID1, &phid1) || phid1 != 0x0083 ||
+		!ENC28J60_ReadPHYReg(chan, ENC28J60_PHID2, &phid2) || phid2 != 0x1400) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
 		EXI_Unlock(chan);
