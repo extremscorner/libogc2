@@ -115,7 +115,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_SND_QUEUELEN        (36*TCP_SND_BUF/TCP_MSS)
 
 /* TCP receive window. */
-#define TCP_WND                 (TCP_MSS)
+#define TCP_WND                 (2*TCP_MSS)
 
 /* Maximum number of retransmissions of data segments. */
 #define TCP_MAXRTX              12
