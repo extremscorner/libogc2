@@ -79,6 +79,7 @@ static bool __gcsd_readSectors(int n, sec_t sector, sec_t numSectors, void *buff
 
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
+	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(numSectors == 1)
 		ret = sdgecko_readSector(n, buffer, sector);

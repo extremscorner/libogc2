@@ -27,6 +27,11 @@ enum {
 	CARDIO_ADDRESSING_BLOCK
 };
 
+enum {
+	CARDIO_TRANSFER_IMM = 0,
+	CARDIO_TRANSFER_DMA
+};
+
 extern u8 g_CSD[MAX_DRIVE][16];
 extern u8 g_CID[MAX_DRIVE][16];
 extern u8 g_mCode[MAX_MI_NUM];
@@ -59,6 +64,7 @@ u32 sdgecko_getPageSize(s32 drv_no);
 s32 sdgecko_setPageSize(s32 drv_no, u32 size);
 
 u32 sdgecko_getAddressingType(s32 drv_no);
+u32 sdgecko_getTransferMode(s32 drv_no);
 
 bool sdgecko_isInserted(s32 drv_no);
 bool sdgecko_isInitialized(s32 drv_no);
