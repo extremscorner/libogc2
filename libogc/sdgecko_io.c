@@ -1183,9 +1183,11 @@ static s32 __card_softreset(s32 drv_no)
 #endif
 		return ret;
 	}
-	
 	if((ret=__card_readresponse(drv_no,_ioResponse[drv_no],1))!=0) return ret;
-	return __check_response(drv_no,_ioResponse[drv_no][0]);
+	if((ret=__check_response(drv_no,_ioResponse[drv_no][0]))!=0) return ret;
+	if(!(_ioError[drv_no]&CARDIO_OP_IOERR_IDLE)) return CARDIO_ERROR_IOERROR;
+
+	return CARDIO_ERROR_READY;
 }
 
 static bool __card_check(s32 drv_no)
@@ -1296,7 +1298,11 @@ s32 sdgecko_initIO(s32 drv_no)
 #ifdef _CARDIO_DEBUG
 		printf("Response %02X,%02X,%02X,%02X,%02X\n",_ioResponse[drv_no][0],_ioResponse[drv_no][1],_ioResponse[drv_no][2],_ioResponse[drv_no][3],_ioResponse[drv_no][4]);
 #endif
-		if((_ioResponse[drv_no][3]==1) && (_ioResponse[drv_no][4]==0xAA)) _initType[drv_no] = TYPE_SDHC;
+		if(!(_ioResponse[drv_no][0]&MMC_ERROR_IDLE)) goto exit;
+		else if(_ioResponse[drv_no][0]==MMC_ERROR_IDLE) {
+			if((_ioResponse[drv_no][3]==1) && (_ioResponse[drv_no][4]==0xAA)) _initType[drv_no] = TYPE_SDHC;
+			else goto exit;
+		}
 
 		if(__card_sendopcond(drv_no)!=0) goto exit;
 
