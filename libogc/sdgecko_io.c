@@ -1262,7 +1262,7 @@ void sdgecko_initIODefault(void)
 		_ioAddressingType[i] = CARDIO_ADDRESSING_BYTE;
 		_ioTransferMode[i] = CARDIO_TRANSFER_IMM;
 		_ioCardSelect[i] = EXI_DEVICE_0;
-		_ioCardFreq[i] = EXI_SPEED16MHZ;
+		_ioCardFreq[i] = EXI_SPEED32MHZ;
 		LWP_InitQueue(&_ioEXILock[i]);
 	}
 }
@@ -1271,8 +1271,10 @@ s32 sdgecko_initIO(s32 drv_no)
 {
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	if(_ioRetryCnt>5) {
+	if(_ioRetryCnt>=3) _ioCardFreq[drv_no] = EXI_SPEED16MHZ;
+	if(_ioRetryCnt>=6) {
 		_ioRetryCnt = 0;
+		_ioCardFreq[drv_no] = EXI_SPEED32MHZ;
 		return CARDIO_ERROR_IOERROR;
 	}
 	
@@ -1594,7 +1596,8 @@ u32 sdgecko_getSpeed(s32 drv_no)
 
 void sdgecko_setSpeed(s32 drv_no, u32 freq)
 {
-	_ioCardFreq[drv_no] = freq;
+	if(_ioFlag[drv_no]==NOT_INITIALIZED)
+		_ioCardFreq[drv_no] = freq;
 }
 
 u32 sdgecko_getPageSize(s32 drv_no)
