@@ -604,7 +604,7 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 {
 	u64 idtime = 0;
 	s32 ret,lck;
-	u32 level;
+	u32 level,cnt,id;
 	exibus_priv *exi = &eximap[nChn];
 
 	if(nChn==EXI_CHANNEL_0 && nDev==EXI_DEVICE_2 && exi_id_serport1!=0) {
@@ -642,7 +642,14 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 	else ret = EXI_Lock(nChn,nDev,NULL);
 
 	if(ret) {
-		ret = EXI_GetIDEx(nChn,nDev,nId);
+		id = 0xffffffff;
+		cnt = 0;
+		while(cnt<10) {
+			if((ret=EXI_GetIDEx(nChn,nDev,nId))==0) break;
+			if(id==*nId) break;
+			id = *nId;
+			cnt++;
+		}
 		EXI_Unlock(nChn);
 	}
 
@@ -680,9 +687,10 @@ s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
 
 	ret = 0;
 	reg = 0;
+	*nId = 0;
 	if(EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL)==0) ret |= 0x01;
 	if(EXI_Sync(nChn)==0) ret |= 0x02;
-	if(EXI_Imm(nChn,nId,4,EXI_READ,NULL)==0) ret |= 0x04;
+	if(EXI_Imm(nChn,nId,4,EXI_READWRITE,NULL)==0) ret |= 0x04;
 	if(EXI_Sync(nChn)==0) ret |= 0x08;
 	if(EXI_Deselect(nChn)==0) ret |= 0x10;
 
