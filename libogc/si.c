@@ -165,7 +165,7 @@ static void __si_alarmhandler(syswd_t thealarm,void *cbarg)
 
 static u32 __si_completetransfer(void)
 {
-	u32 val,sisr,cnt,i;
+	u32 sisr,val,cnt,i;
 	u32 *in;
 
 #ifdef _SI_DEBUG
@@ -183,7 +183,7 @@ static u32 __si_completetransfer(void)
 	for(i=0;i<cnt;i++) in[i] = _siReg[32+i];
 	if(sicntrl.in_bytes&0x03) {
 		val = _siReg[32+cnt];
-		for(i=0;i<(sicntrl.in_bytes&0x03);i++) ((u8*)in)[(cnt*4)+i] = (val>>((3-i)*8))&0xff;
+		__stswx(in+cnt,(sicntrl.in_bytes&0x03),val);
 	}
 #ifdef _SI_DEBUG
 	printf("__si_completetransfer(csr = %08x)\n",_siReg[13]);
@@ -203,7 +203,7 @@ static u32 __si_completetransfer(void)
 
 static u32 __si_transfer(s32 chan,void *out,u32 out_len,void *in,u32 in_len,SICallback cb)
 {
-	u32 level,cnt,i;
+	u32 level,val,cnt,i;
 	sicomcsr csr;
 #ifdef _SI_DEBUG
 	printf("__si_transfer(%d,%p,%d,%p,%d,%p)\n",chan,out,out_len,in,in_len,cb);
@@ -225,8 +225,12 @@ static u32 __si_transfer(s32 chan,void *out,u32 out_len,void *in,u32 in_len,SICa
 #ifdef _SI_DEBUG
 	printf("__si_transfer(csr = %08x,sr = %08x)\n",_siReg[13],_siReg[14]);
 #endif
-	cnt = ((out_len+3)/4);
-	for(i=0;i<cnt;i++)  _siReg[32+i] = ((u32*)out)[i];
+	cnt = (out_len/4);
+	for(i=0;i<cnt;i++) _siReg[32+i] = ((u32*)out)[i];
+	if(out_len&0x03) {
+		val = __lswx((u32*)out+cnt,(out_len&0x03));
+		_siReg[32+cnt] = val;
+	}
 
 	csr.val = _siReg[13];
 	csr.csrmap.tcint = 1;

@@ -435,7 +435,7 @@ s32 EXI_Sync(s32 nChn)
 {
 	u8 *buf;
 	s32 ret;
-	u32 level,i,cnt,val;
+	u32 level,len,val;
 	exibus_priv *exi = &eximap[nChn];
 #ifdef _EXI_DEBUG
 	printf("EXI_Sync(%d)\n",nChn);
@@ -447,11 +447,11 @@ s32 EXI_Sync(s32 nChn)
 	ret = 0;
 	if(exi->flags&EXI_FLAG_SELECT && exi->flags&(EXI_FLAG_DMA|EXI_FLAG_IMM)) {
 		if(exi->flags&EXI_FLAG_IMM) {
-			cnt = exi->imm_len;
 			buf = exi->imm_buff;
-			if(buf && cnt>0) {
+			len = exi->imm_len;
+			if(len>0) {
 				val = _exiReg[nChn*5+4];
-				for(i=0;i<cnt;i++) ((u8*)buf)[i] = (val>>((3-i)*8))&0xFF;
+				__stswx(buf,len,val);
 			}
 		}
 		exi->flags &= ~(EXI_FLAG_DMA|EXI_FLAG_IMM);
@@ -463,8 +463,8 @@ s32 EXI_Sync(s32 nChn)
 
 s32 EXI_Imm(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 {
+	u32 val;
 	u32 level;
-	u32 value,i;
 	exibus_priv *exi = &eximap[nChn];
 #ifdef _EXI_DEBUG
 	printf("EXI_Imm(%d,%p,%d,%d,%p)\n",nChn,pData,nLen,nMode,tc_cb);
@@ -486,8 +486,8 @@ s32 EXI_Imm(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 	exi->imm_buff = pData;
 	exi->imm_len = nLen;
 	if(nMode!=EXI_READ) {
-		for(i=0,value=0;i<nLen;i++) value |= (((u8*)pData)[i])<<((3-i)*8);
-		_exiReg[nChn*5+4] = value;
+		val = __lswx(pData,nLen);
+		_exiReg[nChn*5+4] = val;
 	}
 	if(nMode==EXI_WRITE) exi->imm_len = 0;
 
@@ -934,7 +934,7 @@ void __exi_irq_handler(u32 nIrq,frame_context *pCtx)
 
 void __tc_irq_handler(u32 nIrq,frame_context *pCtx)
 {
-	u32 cnt,len,d,chan,dev;
+	u32 len,val,chan,dev;
 	EXICallback tccb;
 	void *buf = NULL;
 	exibus_priv *exi = NULL;
@@ -956,13 +956,11 @@ void __tc_irq_handler(u32 nIrq,frame_context *pCtx)
 	exi->CallbackTC = NULL;
 	if(exi->flags&(EXI_FLAG_DMA|EXI_FLAG_IMM)) {
 		if(exi->flags&EXI_FLAG_IMM) {
-			len = exi->imm_len;
 			buf = exi->imm_buff;
-			if(len>0 && buf) {
-				d = _exiReg[chan*5+4];
-				if(d>0) {
-					for(cnt=0;cnt<len;cnt++) ((u8*)buf)[cnt] = (d>>((3-cnt)*8))&0xFF;
-				}
+			len = exi->imm_len;
+			if(len>0) {
+				val = _exiReg[chan*5+4];
+				__stswx(buf,len,val);
 			}
 		}
 		exi->flags &= ~(EXI_FLAG_DMA|EXI_FLAG_IMM);

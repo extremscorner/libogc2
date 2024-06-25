@@ -90,11 +90,19 @@
 	__asm__ __volatile__ ("lwbrx	%0,%1,%2" : "=r"(res) : "b%"(index), "r"(base) : "memory"); \
 	res; })
 
+#define __lswx(base,bytes)			\
+({	register u32 res;				\
+	__asm__ __volatile__ ("mtxer %2; lswx %0,%y1" : "=&r"(res) : "Z"(*(u32*)(base)), "r"(bytes) : "xer"); \
+	res; })
+
 #define __sthbrx(base,index,value)	\
 	__asm__ __volatile__ ("sthbrx	%0,%1,%2" : : "r"(value), "b%"(index), "r"(base) : "memory")
 
 #define __stwbrx(base,index,value)	\
 	__asm__ __volatile__ ("stwbrx	%0,%1,%2" : : "r"(value), "b%"(index), "r"(base) : "memory")
+
+#define __stswx(base,bytes,value)	\
+	__asm__ __volatile__ ("mtxer %2; stswx %1,%y0" : "=Z"(*(u32*)(base)) : "r"(value), "r"(bytes) : "xer");
 
 #define cntlzw(_val) ({register u32 _rval; \
 					  __asm__ __volatile__("cntlzw %0, %1" : "=r"((_rval)) : "r"((_val))); _rval;})
