@@ -485,33 +485,32 @@ s32 EXI_Imm(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 
 	exi->imm_buff = pData;
 	exi->imm_len = nLen;
+	if(nMode==EXI_WRITE) exi->imm_len = 0;
 	if(nMode!=EXI_READ) {
 		val = __lswx(pData,nLen);
 		_exiReg[nChn*5+4] = val;
 	}
-	if(nMode==EXI_WRITE) exi->imm_len = 0;
-
 	_exiReg[nChn*5+3] = (((nLen-1)&0x03)<<4)|((nMode&0x03)<<2)|0x01;
 
 	_CPU_ISR_Restore(level);
 	return 1;
 }
 
-s32 EXI_ImmEx(s32 nChn,void *pData,u32 nLen,u32 nMode)
+s32 __attribute__((flatten)) EXI_ImmEx(s32 nChn,void *pData,u32 nLen,u32 nMode)
 {
 	u8 *buf = pData;
-	u32 tc;
+	u32 len;
 #ifdef _EXI_DEBUG
 	printf("EXI_ImmEx(%d,%p,%d,%d)\n",nChn,pData,nLen,nMode);
 #endif
 	while(nLen) {
-		tc = nLen;
-		if(tc>4) tc = 4;
+		len = nLen;
+		if(len>4) len = 4;
 
-		if(!EXI_Imm(nChn,buf,tc,nMode,NULL)) return 0;
+		if(!EXI_Imm(nChn,buf,len,nMode,NULL)) return 0;
 		if(!EXI_Sync(nChn)) return 0;
-		nLen -= tc;
-		buf += tc;
+		nLen -= len;
+		buf += len;
 	}
 	return 1;
 }
@@ -540,9 +539,6 @@ s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 		__exi_clearirqs(nChn,0,1,0);
 		__UnmaskIrq((IRQMASK((IRQ_EXI0_TC+(nChn*3)))));
 	}
-
-	exi->imm_buff = NULL;
-	exi->imm_len = 0;
 	exi->flags |= EXI_FLAG_DMA;
 
 	_exiReg[nChn*5+1] = (u32)pData&0x1FFFFFE0;
