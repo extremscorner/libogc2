@@ -143,12 +143,9 @@
 	do { \
 		register u32 _enable_mask = 0; \
 		__asm__ __volatile__ ( \
-			"cmpwi %1,0\n" \
-			"beq 1f\n" \
 			"mfmsr %0\n" \
-			"ori %0,%0,0x8000\n" \
+			"insrwi %0,%1,1,16\n" \
 			"mtmsr %0\n" \
-			"1:" \
 			: "=&r" (_enable_mask) : "r" (_isr_cookie) : "memory" \
 		); \
 	} while (0)
@@ -157,15 +154,12 @@
 	do { \
 		register u32 _flash_mask = 0; \
 		__asm__ __volatile__ ( \
-			"cmpwi %1,0\n" \
-			"beq 1f\n" \
 			"mfmsr %0\n" \
-			"ori %0,%0,0x8000\n" \
+			"insrwi %0,%1,1,16\n" \
 			"mtmsr %0\n" \
 			"mfmsr %0\n" \
 			"rlwinm %0,%0,0,17,15\n" \
 			"mtmsr %0\n" \
-			"1:" \
 			: "=&r" (_flash_mask) : "r" (_isr_cookie) : "memory" \
 		); \
 	} while (0)
