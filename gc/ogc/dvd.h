@@ -153,6 +153,13 @@ typedef void (*dvdcbcallback)(s32 result,dvdcmdblk *block);
 
 
 /*!
+ * \typedef u32 dvdcmdbuf[3]
+ * \brief command buffer for user operations
+ */
+typedef u32 dvdcmdbuf[3];
+
+
+/*!
  * \typedef struct _dvdcmdblk dvdcmdblk
  *
  *        This structure is used internally to control the requested operation.
@@ -161,9 +168,17 @@ struct _dvdcmdblk {
 	lwp_node node;
 	u32 cmd;
 	s32 state;
-	s64 offset;
-	u32 len;
-	void *buf;
+	union {
+		struct {
+			s64 offset;
+			u32 len;
+			void *buf;
+		};
+		struct {
+			dvdcmdbuf cmdbuf;
+			u32 immbuf;
+		};
+	};
 	u32 currtxsize;
 	u32 txdsize;
 	dvddiskid *id;
@@ -343,6 +358,30 @@ s32 DVD_SetGCMOffset(dvdcmdblk *block,s64 offset);
  */
 s32 DVD_SetGCMOffsetAsync(dvdcmdblk *block,s64 offset,dvdcbcallback cb);
 
+#define DVD_ReadImm(block,cmdbuf,buf,len) \
+    DVD_ReadImmPrio(block,cmdbuf,buf,len,2)
+s32 DVD_ReadImmPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,void *buf,u32 len,s32 prio);
+#define DVD_ReadImmAsync(block,cmdbuf,buf,len,cb) \
+    DVD_ReadImmAsyncPrio(block,cmdbuf,buf,len,cb,2)
+s32 DVD_ReadImmAsyncPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcbcallback cb,s32 prio);
+#define DVD_ReadDma(block,cmdbuf,buf,len) \
+    DVD_ReadDmaPrio(block,cmdbuf,buf,len,2)
+s32 DVD_ReadDmaPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,void *buf,u32 len,s32 prio);
+#define DVD_ReadDmaAsync(block,cmdbuf,buf,len,cb) \
+    DVD_ReadDmaAsyncPrio(block,cmdbuf,buf,len,cb,2)
+s32 DVD_ReadDmaAsyncPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcbcallback cb,s32 prio);
+#define DVD_WriteImm(block,cmdbuf,buf,len) \
+    DVD_WriteImmPrio(block,cmdbuf,buf,len,2)
+s32 DVD_WriteImmPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,const void *buf,u32 len,s32 prio);
+#define DVD_WriteImmAsync(block,cmdbuf,buf,len,cb) \
+    DVD_WriteImmAsyncPrio(block,cmdbuf,buf,len,cb,2)
+s32 DVD_WriteImmAsyncPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,const void *buf,u32 len,dvdcbcallback cb,s32 prio);
+#define DVD_WriteDma(block,cmdbuf,buf,len) \
+    DVD_WriteDmaPrio(block,cmdbuf,buf,len,2)
+s32 DVD_WriteDmaPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,const void *buf,u32 len,s32 prio);
+#define DVD_WriteDmaAsync(block,cmdbuf,buf,len,cb) \
+    DVD_WriteDmaAsyncPrio(block,cmdbuf,buf,len,cb,2)
+s32 DVD_WriteDmaAsyncPrio(dvdcmdblk *block,const dvdcmdbuf cmdbuf,const void *buf,u32 len,dvdcbcallback cb,s32 prio);
 s32 DVD_GcodeRead(dvdcmdblk *block,void *buf,u32 len,u32 offset);
 s32 DVD_GcodeReadAsync(dvdcmdblk *block,void *buf,u32 len,u32 offset,dvdcbcallback cb);
 s32 DVD_GcodeWrite(dvdcmdblk *block,const void *buf,u32 len,u32 offset);
