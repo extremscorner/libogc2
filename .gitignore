@@ -1,9 +1,12 @@
+build
 cube
 deps
 include
 lib
 wii
 gc/ogc/libversion.h
+*_rules
 *.bz2
 docs
 warn.log
+.meson-subproject-wrap-hash.txt
