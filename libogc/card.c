@@ -865,11 +865,9 @@ static s32 __card_readstatus(s32 chn,u8 *pstatus)
 
 	err = 0;
 	val[0] = 0x83; val[1] = 0x00;
-	if(EXI_Imm(chn,val,2,EXI_WRITE,NULL)==0) err |= 0x01;
-	if(EXI_Sync(chn)==0) err |= 0x02;
-	if(EXI_Imm(chn,pstatus,1,EXI_READ,NULL)==0) err |= 0x04;
-	if(EXI_Sync(chn)==0) err |= 0x08;
-	if(EXI_Deselect(chn)==0) err |= 0x10;
+	if(EXI_ImmEx(chn,val,2,EXI_WRITE)==0) err |= 0x01;
+	if(EXI_ImmEx(chn,pstatus,1,EXI_READ)==0) err |= 0x02;
+	if(EXI_Deselect(chn)==0) err |= 0x04;
 
 	if(err) ret = CARD_ERROR_NOCARD;
 	else ret = CARD_ERROR_READY;
@@ -892,9 +890,8 @@ static s32 __card_clearstatus(s32 chn)
 
 	err = 0;
 	val = 0x89;
-	if(EXI_Imm(chn,&val,1,EXI_WRITE,NULL)==0) err |= 0x01;
-	if(EXI_Sync(chn)==0) err |= 0x02;
-	if(EXI_Deselect(chn)==0) err |= 0x04;
+	if(EXI_ImmEx(chn,&val,1,EXI_WRITE)==0) err |= 0x01;
+	if(EXI_Deselect(chn)==0) err |= 0x02;
 
 	if(err) ret = CARD_ERROR_NOCARD;
 	else ret = CARD_ERROR_READY;
@@ -916,9 +913,8 @@ static s32 __card_sleep(s32 chn)
 
 	err = 0;
 	val = 0x88;
-	if(EXI_Imm(chn,&val,1,EXI_WRITE,NULL)==0) err |= 0x01;
-	if(EXI_Sync(chn)==0) err |= 0x02;
-	if(EXI_Deselect(chn)==0) err |= 0x04;
+	if(EXI_ImmEx(chn,&val,1,EXI_WRITE)==0) err |= 0x01;
+	if(EXI_Deselect(chn)==0) err |= 0x02;
 
 	if(err) ret = CARD_ERROR_NOCARD;
 	else ret = CARD_ERROR_READY;
@@ -940,9 +936,8 @@ static s32 __card_wake(s32 chn)
 
 	err = 0;
 	val = 0x87;
-	if(EXI_Imm(chn,&val,1,EXI_WRITE,NULL)==0) err |= 0x01;
-	if(EXI_Sync(chn)==0) err |= 0x02;
-	if(EXI_Deselect(chn)==0) err |= 0x04;
+	if(EXI_ImmEx(chn,&val,1,EXI_WRITE)==0) err |= 0x01;
+	if(EXI_Deselect(chn)==0) err |= 0x02;
 
 	if(err) ret = CARD_ERROR_NOCARD;
 	else ret = CARD_ERROR_READY;
@@ -967,9 +962,8 @@ static s32 __card_enableinterrupt(s32 chn,u32 enable)
 	val[0] = 0x81;
 	if(enable) val[1] = 0x01;
 	else val[1] = 0x00;
-	if(EXI_Imm(chn,val,2,EXI_WRITE,NULL)==0) err |= 0x01;
-	if(EXI_Sync(chn)==0) err |= 0x02;
-	if(EXI_Deselect(chn)==0) err |= 0x04;
+	if(EXI_ImmEx(chn,val,2,EXI_WRITE)==0) err |= 0x01;
+	if(EXI_Deselect(chn)==0) err |= 0x02;
 	
 	if(err) ret = CARD_ERROR_BUSY;
 	else ret = CARD_ERROR_READY;
@@ -990,8 +984,8 @@ static s32 __card_txhandler(s32 chn,s32 dev)
 	card = &cardmap[chn];
 
 	err = 0;
-	if(EXI_Deselect(chn)==0) ret |= err;
-	if(EXI_Unlock(chn)==0) ret |= err;
+	if(EXI_Deselect(chn)==0) err |= 0x01;
+	EXI_Unlock(chn);
 	
 	cb = card->card_tx_cb;
 	if(cb) {

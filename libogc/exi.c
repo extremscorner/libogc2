@@ -679,16 +679,14 @@ s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
 		*nId = 0xffffffff;
 		return 1;
 	}
-	if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==0) return 0;
 
 	ret = 0;
 	reg = 0;
 	*nId = 0;
-	if(EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL)==0) ret |= 0x01;
-	if(EXI_Sync(nChn)==0) ret |= 0x02;
-	if(EXI_Imm(nChn,nId,4,EXI_READWRITE,NULL)==0) ret |= 0x04;
-	if(EXI_Sync(nChn)==0) ret |= 0x08;
-	if(EXI_Deselect(nChn)==0) ret |= 0x10;
+	if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==0) return 0;
+	if(EXI_ImmEx(nChn,&reg,2,EXI_WRITE)==0) ret |= 0x01;
+	if(EXI_ImmEx(nChn,nId,4,EXI_READWRITE)==0) ret |= 0x02;
+	if(EXI_Deselect(nChn)==0) ret |= 0x04;
 
 	if(ret) return 0;
 	return 1;
@@ -999,11 +997,9 @@ static s32 __probebarnacle(s32 chn,u32 dev,u32 *rev)
 	if(EXI_Lock(chn,dev,NULL)==1) {
 		if(EXI_Select(chn,dev,EXI_SPEED1MHZ)==1) {
 			reg = 0x20011300;
-			if(EXI_Imm(chn,&reg,sizeof(u32),EXI_WRITE,NULL)==0) ret |= 0x0001;
-			if(EXI_Sync(chn)==0) ret |= 0x0002;
-			if(EXI_Imm(chn,rev,sizeof(u32),EXI_READ,NULL)==0) ret |= 0x0004;
-			if(EXI_Sync(chn)==0) ret |= 0x0008;
-			if(EXI_Deselect(chn)==0) ret |= 0x0010;
+			if(EXI_ImmEx(chn,&reg,sizeof(u32),EXI_WRITE)==0) ret |= 0x01;
+			if(EXI_ImmEx(chn,rev,sizeof(u32),EXI_READ)==0) ret |= 0x02;
+			if(EXI_Deselect(chn)==0) ret |= 0x04;
 		}
 		EXI_Unlock(chn);
 	}
@@ -1024,10 +1020,8 @@ static s32 __queuelength(void)
 	if(EXI_Select(exi_uart_chan,exi_uart_dev,EXI_SPEED8MHZ)==0) return -1;
 
 	reg = 0x20010000;
-	EXI_Imm(exi_uart_chan,&reg,sizeof(u32),EXI_WRITE,NULL);
-	EXI_Sync(exi_uart_chan);
-	EXI_Imm(exi_uart_chan,&len,sizeof(u8),EXI_READ,NULL);
-	EXI_Sync(exi_uart_chan);
+	EXI_ImmEx(exi_uart_chan,&reg,sizeof(u32),EXI_WRITE);
+	EXI_ImmEx(exi_uart_chan,&len,sizeof(u8),EXI_READ);
 
 	EXI_Deselect(exi_uart_chan);
 
@@ -1094,8 +1088,7 @@ s32 WriteUARTN(void *buf,u32 len)
 			}
 
 			reg = 0xa0010000;
-			EXI_Imm(exi_uart_chan,&reg,sizeof(u32),EXI_WRITE,NULL);
-			EXI_Sync(exi_uart_chan);
+			EXI_ImmEx(exi_uart_chan,&reg,sizeof(u32),EXI_WRITE);
 
 			cnt = qlen<len?qlen:len;
 			EXI_ImmEx(exi_uart_chan,ptr,cnt,EXI_WRITE);

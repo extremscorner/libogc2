@@ -16,13 +16,11 @@ static struct dbginterface usb_device;
 
 static __inline__ int __send_command(s32 chn,u16 *cmd)
 {
-	s32 ret;
+	s32 ret = 0;
 
-	ret = 0;
-	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED32MHZ)) ret |= 0x01;
-	if(!EXI_Imm(chn,cmd,sizeof(u16),EXI_READWRITE,NULL)) ret |= 0x02;
-	if(!EXI_Sync(chn)) ret |= 0x04;
-	if(!EXI_Deselect(chn)) ret |= 0x08;
+	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED32MHZ)) return 0;
+	if(!EXI_ImmEx(chn,cmd,sizeof(u16),EXI_READWRITE)) ret |= 0x01;
+	if(!EXI_Deselect(chn)) ret |= 0x02;
 
 	if(ret) return 0;
 	return 1;

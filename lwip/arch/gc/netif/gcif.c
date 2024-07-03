@@ -230,8 +230,7 @@ static __inline__ void bba_cmd_insnosel(u32 reg,void *val,u32 len)
 {
 	u16 req;
 	req = reg<<8;
-	EXI_Imm(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
+	EXI_ImmEx(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE);
 	EXI_ImmEx(EXI_CHANNEL_0,val,len,EXI_READ);
 }
 
@@ -239,8 +238,7 @@ static __inline__ void bba_cmd_outsnosel(u32 reg,void *val,u32 len)
 {
 	u16 req;
 	req = (reg<<8)|0x4000;
-	EXI_Imm(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
+	EXI_ImmEx(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE);
 	EXI_ImmEx(EXI_CHANNEL_0,val,len,EXI_WRITE);
 }
 
@@ -248,8 +246,7 @@ static __inline__ void bba_insnosel(u32 reg,void *val,u32 len)
 {
 	u32 req;
 	req = (reg<<8)|0x80000000;
-	EXI_Imm(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
+	EXI_ImmEx(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE);
 	EXI_ImmEx(EXI_CHANNEL_0,val,len,EXI_READ);
 }
 
@@ -257,8 +254,7 @@ static __inline__ void bba_outsnosel(u32 reg,void *val,u32 len)
 {
 	u32 req;
 	req = (reg<<8)|0xC0000000;
-	EXI_Imm(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
+	EXI_ImmEx(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE);
 	EXI_ImmEx(EXI_CHANNEL_0,val,len,EXI_WRITE);
 }
 
@@ -266,8 +262,7 @@ static __inline__ void bba_insregister(u32 reg)
 {
 	u32 req;
 	req = (reg<<8)|0x80000000;
-	EXI_Imm(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
+	EXI_ImmEx(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE);
 }
 
 static __inline__ void bba_insdata(void *val,u32 len)
@@ -279,8 +274,7 @@ static __inline__ void bba_outsregister(u32 reg)
 {
 	u32 req;
 	req = (reg<<8)|0xC0000000;
-	EXI_Imm(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE,NULL);
-	EXI_Sync(EXI_CHANNEL_0);
+	EXI_ImmEx(EXI_CHANNEL_0,&req,sizeof(req),EXI_WRITE);
 }
 
 static __inline__ void bba_outsdata(void *val,u32 len)

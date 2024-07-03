@@ -50,10 +50,9 @@ static __inline__ int __send_command(s32 chn,u16 *cmd)
 {
 	s32 ret = 0;
 
-	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED32MHZ)) ret |= 0x01;
-	if(!EXI_Imm(chn,cmd,sizeof(u16),EXI_READWRITE,NULL)) ret |= 0x02;
-	if(!EXI_Sync(chn)) ret |= 0x04;
-	if(!EXI_Deselect(chn)) ret |= 0x08;
+	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED32MHZ)) return 0;
+	if(!EXI_ImmEx(chn,cmd,sizeof(u16),EXI_READWRITE)) ret |= 0x01;
+	if(!EXI_Deselect(chn)) ret |= 0x02;
 
 	if(ret) return 0;
 	return 1;
@@ -67,10 +66,10 @@ static __inline__ int __flashwritecommand(s32 chn, u32 flashaddress, u8 flashdat
 	if (flashaddress > 0x7FFFF)
 		return 0;
 
-	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED16MHZ)) ret |= 0x01;
+	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED16MHZ)) return 0;
+	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_WRITE)) ret |= 0x01;
 	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_WRITE)) ret |= 0x02;
-	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_WRITE)) ret |= 0x04;
-	if(!EXI_Deselect(chn)) ret |= 0x08;
+	if(!EXI_Deselect(chn)) ret |= 0x04;
 
 	if(ret) return 0;
 	return 1;
@@ -84,10 +83,10 @@ static __inline__ int __flashreadcommand(s32 chn, u32 flashaddress, u8 *flashdat
 	if (flashaddress > 0x7FFFF)
 		return 0;
 
-	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED16MHZ)) ret |= 0x01;
-	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_WRITE)) ret |= 0x02;
-	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_READ)) ret |= 0x04;
-	if(!EXI_Deselect(chn)) ret |= 0x08;
+	if(!EXI_Select(chn,EXI_DEVICE_0,EXI_SPEED16MHZ)) return 0;
+	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_WRITE)) ret |= 0x01;
+	if(!EXI_ImmEx(chn,&val,sizeof(u32),EXI_READ)) ret |= 0x02;
+	if(!EXI_Deselect(chn)) ret |= 0x04;
 
 	if(ret) return 0;
 	*flashdata = val>>23;

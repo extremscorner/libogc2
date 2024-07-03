@@ -543,11 +543,10 @@ static u32 __read_rom(void *buf,u32 len,u32 offset)
 
 	ret = 0;
 	loff = offset<<6;
-	if(EXI_Imm(EXI_CHANNEL_0,&loff,4,EXI_WRITE,NULL)==0) ret |= 0x01;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
-	if(EXI_DmaEx(EXI_CHANNEL_0,buf,len,EXI_READ)==0) ret |= 0x04;
-	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x08;
-	if(EXI_Unlock(EXI_CHANNEL_0)==0) ret |= 0x10;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&loff,4,EXI_WRITE)==0) ret |= 0x01;
+	if(EXI_DmaEx(EXI_CHANNEL_0,buf,len,EXI_READ)==0) ret |= 0x02;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
+	EXI_Unlock(EXI_CHANNEL_0);
 
 	if(ret) return 0;
 	return 1;
@@ -557,7 +556,6 @@ static u32 __getrtc(u32 *gctime)
 {
 	u32 ret;
 	u32 cmd;
-	u32 time;
 
 	if(EXI_Lock(EXI_CHANNEL_0,EXI_DEVICE_1,NULL)==0) return 0;
 	if(EXI_Select(EXI_CHANNEL_0,EXI_DEVICE_1,EXI_SPEED8MHZ)==0) {
@@ -566,18 +564,14 @@ static u32 __getrtc(u32 *gctime)
 	}
 
 	ret = 0;
-	time = 0;
 	cmd = 0x20000000;
-	if(EXI_Imm(EXI_CHANNEL_0,&cmd,4,EXI_WRITE,NULL)==0) ret |= 0x01;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
-	if(EXI_Imm(EXI_CHANNEL_0,&time,4,EXI_READ,NULL)==0) ret |= 0x04;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
-	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
-
+	*gctime = 0;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&cmd,4,EXI_WRITE)==0) ret |= 0x01;
+	if(EXI_ImmEx(EXI_CHANNEL_0,gctime,4,EXI_READ)==0) ret |= 0x02;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
 	EXI_Unlock(EXI_CHANNEL_0);
-	*gctime = time;
-	if(ret) return 0;
 
+	if(ret) return 0;
 	return 1;
 }
 
@@ -595,12 +589,11 @@ static u32 __sram_read(void *buffer)
 
 	ret = 0;
 	command = 0x20000100;
-	if(EXI_Imm(EXI_CHANNEL_0,&command,4,EXI_WRITE,NULL)==0) ret |= 0x01;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
-	if(EXI_Dma(EXI_CHANNEL_0,buffer,64,EXI_READ,NULL)==0) ret |= 0x04;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
-	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
-	if(EXI_Unlock(EXI_CHANNEL_0)==0) ret |= 0x20;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&command,4,EXI_WRITE)==0) ret |= 0x01;
+	if(EXI_Dma(EXI_CHANNEL_0,buffer,64,EXI_READ,NULL)==0) ret |= 0x02;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x04;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x08;
+	EXI_Unlock(EXI_CHANNEL_0);
 
 	if(ret) return 0;
 	return 1;
@@ -618,11 +611,10 @@ static u32 __sram_write(void *buffer,u32 loc,u32 len)
 
 	ret = 0;
 	cmd = 0xa0000100+(loc<<6);
-	if(EXI_Imm(EXI_CHANNEL_0,&cmd,4,EXI_WRITE,NULL)==0) ret |= 0x01;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
-	if(EXI_ImmEx(EXI_CHANNEL_0,buffer,len,EXI_WRITE)==0) ret |= 0x04;
-	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x08;
-	if(EXI_Unlock(EXI_CHANNEL_0)==0) ret |= 0x10;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&cmd,4,EXI_WRITE)==0) ret |= 0x01;
+	if(EXI_ImmEx(EXI_CHANNEL_0,buffer,len,EXI_WRITE)==0) ret |= 0x02;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
+	EXI_Unlock(EXI_CHANNEL_0);
 
 	if(ret) return 0;
 	return 1;
@@ -949,11 +941,9 @@ u32 __SYS_SetRTC(u32 gctime)
 
 	ret = 0;
 	cmd = 0xa0000000;
-	if(EXI_Imm(EXI_CHANNEL_0,&cmd,4,EXI_WRITE,NULL)==0) ret |= 0x01;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
-	if(EXI_Imm(EXI_CHANNEL_0,&gctime,4,EXI_WRITE,NULL)==0) ret |= 0x04;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
-	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&cmd,4,EXI_WRITE)==0) ret |= 0x01;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&gctime,4,EXI_WRITE)==0) ret |= 0x02;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
 	EXI_Unlock(EXI_CHANNEL_0);
 
 	if(ret) return 0;
