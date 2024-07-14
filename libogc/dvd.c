@@ -1625,22 +1625,28 @@ static void __dvd_statebusy(dvdcmdblk *block)
 			DVD_LowSetGCMOffset(block->offset,__dvd_statebusycb);
 			return;
 		case 20:
+			_diReg[1] = _diReg[1];
 			DVD_LowReadImm(block->cmdbuf,__dvd_statebusycb);
 			return;
 		case 21:
+			_diReg[1] = _diReg[1];
 			DVD_LowWriteImm(block->cmdbuf,block->immbuf,__dvd_statebusycb);
 			return;
 		case 22:
+			_diReg[1] = _diReg[1];
 			DVD_LowReadDma(block->cmdbuf,block->buf,block->currtxsize,__dvd_statebusycb);
 			return;
 		case 23:
+			_diReg[1] = _diReg[1];
 			DVD_LowWriteDma(block->cmdbuf,block->buf,block->currtxsize,__dvd_statebusycb);
 			return;
 		case 24:
+			_diReg[1] = _diReg[1];
 			block->currtxsize = block->len;
 			DVD_GcodeLowRead(block->buf,block->len,block->offset,__dvd_statebusycb);
 			return;
 		case 25:
+			_diReg[1] = _diReg[1];
 			len = block->len-block->txdsize;
 			if(len<__dvd_gcode_writebufsize) block->currtxsize = len;
 			else block->currtxsize = __dvd_gcode_writebufsize;
