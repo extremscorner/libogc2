@@ -65,7 +65,7 @@ static dsptask_t __aesnddsptask;
 static vu32 __aesndinit = 0;
 static vu32 __aesndcurrab = 0;
 static vu32 __aesnddspinit = 0;
-static vu32 __aesndcurrvoice = 0;
+static vu32 __aesndcurrvoice = MAX_VOICES;
 static vu32 __aesnddspcomplete = 0;
 static vu64 __aesnddspstarttime = 0;
 static vu64 __aesnddspprocesstime = 0;
@@ -330,7 +330,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 
 		if(__aesndcommand.flags&VOICE_STOPPED && __aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_STOPPED);
 
-		__aesndcopycommand(&__aesndvoicepb[__aesndcurrvoice],&__aesndcommand);
+		if(__aesndvoicepb[__aesndcurrvoice].flags&VOICE_USED) __aesndcopycommand(&__aesndvoicepb[__aesndcurrvoice],&__aesndcommand);
 
 		__aesndcurrvoice++;
 		while(__aesndcurrvoice<MAX_VOICES && (!(__aesndvoicepb[__aesndcurrvoice].flags&VOICE_USED) || (__aesndvoicepb[__aesndcurrvoice].flags&VOICE_STOPPED))) __aesndcurrvoice++;
@@ -437,6 +437,7 @@ void AESND_Init(void)
 		__aesndinit = 1;
 		__aesndcurrab = 0;
 		__aesnddspinit = 0;
+		__aesndcurrvoice = MAX_VOICES;
 		__aesnddspcomplete = 0;
 		__aesndglobalpause = false;
 		__aesndvoicesstopped = true;
@@ -545,6 +546,7 @@ AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb)
 
 	_CPU_ISR_Disable(level);
 	for(i=0;i<MAX_VOICES;i++) {
+		if(i==__aesndcurrvoice) continue;
 		if(!(__aesndvoicepb[i].flags&VOICE_USED)) {
 			pb = &__aesndvoicepb[i];
 			pb->voiceno = i;
