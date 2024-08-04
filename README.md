@@ -7,6 +7,7 @@
 - [CleanRip](https://github.com/emukidid/cleanrip) - GameCube/Wii disc image creation tool
 - [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - GameCube bootloader
+- [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
