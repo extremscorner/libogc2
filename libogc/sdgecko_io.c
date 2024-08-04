@@ -1199,22 +1199,29 @@ static bool __card_check(s32 drv_no)
 #ifdef _CARDIO_DEBUG	
 	printf("__card_check(%d)\n",drv_no);
 #endif
-	if(drv_no==2 || _ioCardSelect[drv_no]!=EXI_DEVICE_0) {
+	if(drv_no==0 && _ioCardSelect[drv_no]!=EXI_DEVICE_0) {
 		if(EXI_GetID(drv_no,_ioCardSelect[drv_no],&id)==0) return FALSE;
 		if(id!=0xffffffff) return FALSE;
 		return TRUE;
 	}
 	while((ret=EXI_ProbeEx(drv_no))==0);
 	if(ret!=1) return FALSE;
+
 	if(EXI_GetID(drv_no,EXI_DEVICE_0,&id)==0) return FALSE;
+	if(_ioCardSelect[drv_no]!=EXI_DEVICE_0) {
+		if(id==0xffffffff) return FALSE;
+		if(EXI_GetID(drv_no,_ioCardSelect[drv_no],&id)==0) return FALSE;
+	}
 	if(id!=0xffffffff) return FALSE;
 
-	if(!(EXI_GetState(drv_no)&EXI_FLAG_ATTACH)) {
-		if(EXI_Attach(drv_no,__card_exthandler)==0) return FALSE;
+	if(drv_no!=2 && _ioCardSelect[drv_no]==EXI_DEVICE_0) {
+		if(!(EXI_GetState(drv_no)&EXI_FLAG_ATTACH)) {
+			if(EXI_Attach(drv_no,__card_exthandler)==0) return FALSE;
 #ifdef _CARDIO_DEBUG	
-		printf("__card_check(%d, attached)\n",drv_no);
+			printf("__card_check(%d, attached)\n",drv_no);
 #endif
-		sdgecko_insertedCB(drv_no);
+			sdgecko_insertedCB(drv_no);
+		}
 	}
 	return TRUE;
 }
