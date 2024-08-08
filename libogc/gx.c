@@ -267,6 +267,32 @@ static void __GX_WaitAbort(u32 delay)
 	};
 }
 
+static u32 __GX_ReadCPCounterU32(u32 reg)
+{
+	u16 lcnt,ucnt,tmp;
+
+	tmp = _cpReg[reg+1];
+	do {
+		ucnt = tmp;
+		lcnt = _cpReg[reg];
+		tmp = _cpReg[reg+1];
+	} while(tmp!=ucnt);
+	return (u32)((ucnt<<16)|lcnt);
+}
+
+static u32 __GX_ReadPECounterU32(u32 reg)
+{
+	u16 lcnt,ucnt,tmp;
+
+	tmp = _peReg[reg+1];
+	do {
+		ucnt = tmp;
+		lcnt = _peReg[reg];
+		tmp = _peReg[reg+1];
+	} while(tmp!=ucnt);
+	return (u32)((ucnt<<16)|lcnt);
+}
+
 #ifdef HW_RVL
 static u32 __GX_ReadMemCounterU32(u32 reg)
 {
@@ -4986,37 +5012,37 @@ void GX_SetGPMetric(u32 perf0,u32 perf1)
 
 	__gx->perf0Mode = perf0;
 	switch(__gx->perf0Mode) {
-		case GX_PERF0_CLOCKS:
+		case GX_PERF0_VERTICES:
 			GX_LOAD_XF_REG(0x1006,0x00000273);
 			break;
-		case GX_PERF0_VERTICES:
+		case GX_PERF0_CLIP_VTX:
 			GX_LOAD_XF_REG(0x1006,0x0000014a);
 			break;
-		case GX_PERF0_CLIP_VTX:
+		case GX_PERF0_CLIP_CLKS:
 			GX_LOAD_XF_REG(0x1006,0x0000016b);
 			break;
-		case GX_PERF0_CLIP_CLKS:
+		case GX_PERF0_XF_WAIT_IN:
 			GX_LOAD_XF_REG(0x1006,0x00000084);
 			break;
-		case GX_PERF0_XF_WAIT_IN:
+		case GX_PERF0_XF_WAIT_OUT:
 			GX_LOAD_XF_REG(0x1006,0x000000c6);
 			break;
-		case GX_PERF0_XF_WAIT_OUT:
+		case GX_PERF0_XF_XFRM_CLKS:
 			GX_LOAD_XF_REG(0x1006,0x00000210);
 			break;
-		case GX_PERF0_XF_XFRM_CLKS:
+		case GX_PERF0_XF_LIT_CLKS:
 			GX_LOAD_XF_REG(0x1006,0x00000252);
 			break;
-		case GX_PERF0_XF_LIT_CLKS:
+		case GX_PERF0_XF_BOT_CLKS:
 			GX_LOAD_XF_REG(0x1006,0x00000231);
 			break;
-		case GX_PERF0_XF_BOT_CLKS:
+		case GX_PERF0_XF_REGLD_CLKS:
 			GX_LOAD_XF_REG(0x1006,0x000001ad);
 			break;
-		case GX_PERF0_XF_REGLD_CLKS:
+		case GX_PERF0_XF_REGRD_CLKS:
 			GX_LOAD_XF_REG(0x1006,0x000001ce);
 			break;
-		case GX_PERF0_XF_REGRD_CLKS:
+		case GX_PERF0_CLOCKS:
 			GX_LOAD_XF_REG(0x1006,0x00000021);
 			break;
 		case GX_PERF0_CLIP_RATIO:
@@ -5097,34 +5123,34 @@ void GX_SetGPMetric(u32 perf0,u32 perf1)
 
 	__gx->perf1Mode = perf1;
 	switch(__gx->perf1Mode) {
-		case GX_PERF1_CLOCKS:
+		case GX_PERF1_TEXELS:
 			GX_LOAD_BP_REG(0x67000042);
 			break;
-		case GX_PERF1_TEXELS:
+		case GX_PERF1_TX_IDLE:
 			GX_LOAD_BP_REG(0x67000084);
 			break;
-		case GX_PERF1_TX_IDLE:
+		case GX_PERF1_TX_REGS:
 			GX_LOAD_BP_REG(0x67000063);
 			break;
-		case GX_PERF1_TX_REGS:
+		case GX_PERF1_TX_MEMSTALL:
 			GX_LOAD_BP_REG(0x67000129);
 			break;
-		case GX_PERF1_TX_MEMSTALL:
+		case GX_PERF1_TC_MISS:
 			GX_LOAD_BP_REG(0x67000252);
 			break;
-		case GX_PERF1_TC_CHECK1_2:
+		case GX_PERF1_CLOCKS:
 			GX_LOAD_BP_REG(0x67000021);
 			break;
-		case GX_PERF1_TC_CHECK3_4:
+		case GX_PERF1_TC_CHECK1_2:
 			GX_LOAD_BP_REG(0x6700014b);
 			break;
-		case GX_PERF1_TC_CHECK5_6:
+		case GX_PERF1_TC_CHECK3_4:
 			GX_LOAD_BP_REG(0x6700018d);
 			break;
-		case GX_PERF1_TC_CHECK7_8:
+		case GX_PERF1_TC_CHECK5_6:
 			GX_LOAD_BP_REG(0x670001cf);
 			break;
-		case GX_PERF1_TC_MISS:
+		case GX_PERF1_TC_CHECK7_8:
 			GX_LOAD_BP_REG(0x67000211);
 			break;
 		case GX_PERF1_VC_ELEMQ_FULL:
@@ -5190,10 +5216,10 @@ void GX_InitXfRasMetric(void)
 
 void GX_ReadXfRasMetric(u32 *xfwaitin,u32 *xfwaitout,u32 *rasbusy,u32 *clks)
 {
-	*rasbusy = _SHIFTL(_cpReg[33],16,16)|(_cpReg[32]&0xffff);
-	*clks = _SHIFTL(_cpReg[35],16,16)|(_cpReg[34]&0xffff);
-	*xfwaitin = _SHIFTL(_cpReg[37],16,16)|(_cpReg[36]&0xffff);
-	*xfwaitout = _SHIFTL(_cpReg[39],16,16)|(_cpReg[38]&0xffff);
+	*rasbusy = __GX_ReadCPCounterU32(32);
+	*clks = __GX_ReadCPCounterU32(34);
+	*xfwaitin = __GX_ReadCPCounterU32(36);
+	*xfwaitout = __GX_ReadCPCounterU32(38);
 }
 
 u32 GX_ReadClksPerVtx(void)
@@ -5211,13 +5237,32 @@ void GX_ClearVCacheMetric(void)
 
 void GX_ReadVCacheMetric(u32 *check,u32 *miss,u32 *stall)
 {
-	*check = _SHIFTL(_cpReg[41],16,16)|(_cpReg[40]&0xffff);
-	*miss = _SHIFTL(_cpReg[43],16,16)|(_cpReg[42]&0xffff);
-	*stall = _SHIFTL(_cpReg[45],16,16)|(_cpReg[44]&0xffff);
+	*check = __GX_ReadCPCounterU32(40);
+	*miss = __GX_ReadCPCounterU32(42);
+	*stall = __GX_ReadCPCounterU32(44);
 }
 
 void GX_SetVCacheMetric(u32 attr)
 {
+	__gx->cpPerfMode = (__gx->cpPerfMode&~0x0f)|(attr&0x0f);
+	GX_LOAD_CP_REG(0x20,__gx->cpPerfMode);
+	GX_LOAD_CP_REG(0x10,1);
+}
+
+void GX_ClearPixMetric(void)
+{
+	GX_LOAD_BP_REG(0x57000000);
+	GX_LOAD_BP_REG(0x57000AAA);
+}
+
+void GX_ReadPixMetric(u32 *toppixin,u32 *toppixout,u32 *botpixin,u32 *botpixout,u32 *clrpixin,u32 *copyclks)
+{
+	*toppixin = __GX_ReadPECounterU32(12)*4;
+	*toppixout = __GX_ReadPECounterU32(14)*4;
+	*botpixin = __GX_ReadPECounterU32(16)*4;
+	*botpixout = __GX_ReadPECounterU32(18)*4;
+	*clrpixin = __GX_ReadPECounterU32(20)*4;
+	*copyclks = __GX_ReadPECounterU32(22);
 }
 
 void GX_GetGPStatus(u8 *overhi,u8 *underlow,u8 *readIdle,u8 *cmdIdle,u8 *brkpt)
@@ -5232,21 +5277,25 @@ void GX_GetGPStatus(u8 *overhi,u8 *underlow,u8 *readIdle,u8 *cmdIdle,u8 *brkpt)
 
 void GX_ReadGPMetric(u32 *cnt0,u32 *cnt1)
 {
-	u32 tmp,reg1,reg2;
+	u32 reg1,reg2,reg3,reg4;
 
-	reg1 = (_SHIFTL(_cpReg[33],16,16))|(_cpReg[32]&0xffff);
-	reg2 = (_SHIFTL(_cpReg[35],16,16))|(_cpReg[34]&0xffff);
-	//reg3 = (_SHIFTL(_cpReg[37],16,16))|(_cpReg[36]&0xffff);
-	//reg4 = (_SHIFTL(_cpReg[39],16,16))|(_cpReg[38]&0xffff);
+	reg1 = __GX_ReadCPCounterU32(32);
+	reg2 = __GX_ReadCPCounterU32(34);
+	reg3 = __GX_ReadCPCounterU32(36);
+	reg4 = __GX_ReadCPCounterU32(38);
 
 	*cnt0 = 0;
-	if(__gx->perf0Mode==GX_PERF0_CLIP_RATIO) {
-		tmp = reg2*1000;
-		*cnt0 = tmp/reg1;
-	} else if(__gx->perf0Mode>=GX_PERF0_VERTICES && __gx->perf0Mode<GX_PERF0_NONE) *cnt0 = reg1;
+	if(__gx->perf0Mode==GX_PERF0_CLIP_RATIO) *cnt0 = (reg2*1000)/reg1;
+	else if(__gx->perf0Mode>=GX_PERF0_VERTICES && __gx->perf0Mode<=GX_PERF0_CLOCKS) *cnt0 = reg1;
 
-	//further implementation needed.....
-	// cnt1 fails....
+	*cnt1 = 0;
+	if(__gx->perf1Mode==GX_PERF1_TEXELS) *cnt1 = reg4*4;
+	else if(__gx->perf1Mode==GX_PERF1_TC_CHECK1_2) *cnt1 = (reg3*1)+(reg4*2);
+	else if(__gx->perf1Mode==GX_PERF1_TC_CHECK3_4) *cnt1 = (reg3*3)+(reg4*4);
+	else if(__gx->perf1Mode==GX_PERF1_TC_CHECK5_6) *cnt1 = (reg3*5)+(reg4*6);
+	else if(__gx->perf1Mode==GX_PERF1_TC_CHECK7_8) *cnt1 = (reg3*7)+(reg4*8);
+	else if(__gx->perf1Mode>=GX_PERF1_FIFO_REQ && __gx->perf1Mode<GX_PERF1_CLOCKS) *cnt1 = reg3;
+	else if(__gx->perf1Mode>=GX_PERF1_TX_IDLE && __gx->perf1Mode<=GX_PERF1_CLOCKS) *cnt1 = reg4;
 }
 
 void GX_AdjustForOverscan(const GXRModeObj *rmin,GXRModeObj *rmout,u16 hor,u16 ver)

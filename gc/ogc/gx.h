@@ -5021,7 +5021,6 @@ void GX_InitSpecularDir(GXLightObj *lit_obj,f32 nx,f32 ny,f32 nz);
  */
 void GX_InitLightSpot(GXLightObj *lit_obj,f32 cut_off,u8 spotfn);
 
-u32 GX_ReadClksPerVtx(void);
 u32 GX_GetOverflowCount(void);
 u32 GX_ResetOverflowCount(void);
 
@@ -5138,6 +5137,8 @@ void GX_InitXfRasMetric(void);
  */
 void GX_ReadXfRasMetric(u32 *xfwaitin,u32 *xfwaitout,u32 *rasbusy,u32 *clks);
 
+u32 GX_ReadClksPerVtx(void);
+
 /*!
  * \fn void GX_ClearVCacheMetric(void)
  * \brief Clears the Vertex Cache performance counter.
@@ -5180,6 +5181,9 @@ void GX_ReadVCacheMetric(u32 *check,u32 *miss,u32 *stall);
  * \return none
  */
 void GX_SetVCacheMetric(u32 attr);
+
+void GX_ClearPixMetric(void);
+void GX_ReadPixMetric(u32 *toppixin,u32 *toppixout,u32 *botpixin,u32 *botpixout,u32 *clrpixin,u32 *copyclks);
 
 /*!
  * \fn void GX_GetGPStatus(u8 *overhi,u8 *underlow,u8 *readIdle,u8 *cmdIdle,u8 *brkpt)
