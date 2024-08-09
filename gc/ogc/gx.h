@@ -20,8 +20,9 @@
 /*! \addtogroup clipmode Clipping mode
  * @{
  */
-#define GX_CLIP_DISABLE		1
-#define GX_CLIP_ENABLE		0
+#define GX_CLIP_ENABLE			0
+#define GX_CLIP_DISABLE			1
+#define GX_CLIP_REJECT_DISABLE	3			/*!< Disable clipping and trivial rejection. */
 /*! @} */
 
 #define GX_FIFO_MINSIZE		(64*1024)			/*!< Smallest usable graphics FIFO size. */
