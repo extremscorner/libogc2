@@ -1931,6 +1931,9 @@ void GX_SetCopyClamp(u8 clamp)
 {
 	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~1)|(clamp&1);
 	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~2)|(clamp&2);
+
+	__gx->texCopyCntrl = (__gx->texCopyCntrl&~1)|(clamp&1);
+	__gx->texCopyCntrl = (__gx->texCopyCntrl&~2)|(clamp&2);
 }
 
 void GX_SetDispCopyGamma(u8 gamma)
@@ -2136,7 +2139,7 @@ void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mipmap)
 	__gx->texCopyDst = (__gx->texCopyDst&~0x3ff)|((xtiles*zplanes)&0x3ff);
 
 	if(fmt==GX_TF_Z16) lfmt = 11;
-	if(fmt==GX_CTF_YUVA8 || (fmt>=GX_TF_I4 && fmt<GX_TF_RGB565)) __gx->texCopyCntrl = (__gx->texCopyCntrl&~0x18000)|0x18000;
+	if(fmt==GX_CTF_YUVA8 || (fmt>=GX_TF_I4 && fmt<=GX_TF_IA8)) __gx->texCopyCntrl = (__gx->texCopyCntrl&~0x18000)|0x18000;
 	else __gx->texCopyCntrl = (__gx->texCopyCntrl&~0x18000)|0x10000;
 
 	__gx->texCopyCntrl = (__gx->texCopyCntrl&~0x8)|(lfmt&0x8);
