@@ -962,7 +962,6 @@ void __SYS_SetTime(s64 time)
 	now += *pBootTime;
 	*pBootTime = now;
 	settime(time);
-	EXI_ProbeReset();
 	_CPU_ISR_Restore(level);
 }
 

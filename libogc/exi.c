@@ -184,7 +184,7 @@ static s32 __exi_probe(s32 nChn)
 			last_exi_idtime[nChn] = 0;
 		}
 		if(_exiReg[nChn][0]&EXI_EXT_BIT) {
-			time = gettime();
+			time = __SYS_GetSystemTime();
 			if(last_exi_idtime[nChn]==0) last_exi_idtime[nChn] = time;
 			if((val=diff_usec(last_exi_idtime[nChn],time)+10)<30) ret = 0;
 			else ret = 1;
