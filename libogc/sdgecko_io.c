@@ -1183,7 +1183,14 @@ static s32 __card_softreset(s32 drv_no)
 #endif
 		return ret;
 	}
-	if((ret=__card_readresponse(drv_no,_ioResponse[drv_no],1))!=0) return ret;
+	if((ret=__card_readresponse(drv_no,_ioResponse[drv_no],1))!=0) {
+		if(_ioTransferMode[drv_no]!=CARDIO_TRANSFER_IMM) {
+			_ioTransferMode[drv_no] = CARDIO_TRANSFER_IMM;
+			if((ret=__card_readresponse(drv_no,_ioResponse[drv_no],1))!=0) {
+				return __card_softreset(drv_no);
+			}
+		} else return ret;
+	}
 	if((ret=__check_response(drv_no,_ioResponse[drv_no][0]))!=0) return ret;
 	if(!(_ioError[drv_no]&CARDIO_OP_IOERR_IDLE)) return CARDIO_ERROR_IOERROR;
 
@@ -1290,17 +1297,11 @@ s32 sdgecko_initIO(s32 drv_no)
 		_ioFlag[drv_no] = INITIALIZING;
 		_initType[drv_no] = TYPE_SD;
 		_ioAddressingType[drv_no] = CARDIO_ADDRESSING_BYTE;
+		_ioTransferMode[drv_no] = CARDIO_TRANSFER_IMM;
 
-		if(drv_no!=0 && _ioCardSelect[drv_no]==EXI_DEVICE_0) {
+		if(drv_no!=0 && _ioCardSelect[drv_no]==EXI_DEVICE_0)
 			_ioTransferMode[drv_no] = CARDIO_TRANSFER_DMA;
-			if(__card_softreset(drv_no)!=0) {
-				_ioTransferMode[drv_no] = CARDIO_TRANSFER_IMM;
-				if(__card_softreset(drv_no)!=0) goto exit;
-			}
-		} else {
-			_ioTransferMode[drv_no] = CARDIO_TRANSFER_IMM;
-			if(__card_softreset(drv_no)!=0) goto exit;
-		}
+		if(__card_softreset(drv_no)!=0) goto exit;
 
 		if(__card_sendCMD8(drv_no)!=0) goto exit;
 #ifdef _CARDIO_DEBUG
