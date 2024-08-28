@@ -34,9 +34,10 @@ distribution.
 #include "asm.h"
 #include "irq.h"
 #include "processor.h"
-#include "spinlock.h"
 #include "cache.h"
 #include "exi.h"
+#include "lwp.h"
+#include "lwp_threads.h"
 #include "card_cmn.h"
 #include "card_io.h"
 
@@ -73,15 +74,16 @@ typedef struct _exibus_priv {
 	EXICallback CallbackTC;
 	EXICallback CallbackEXT;
 
+	u32 flags;
 	u32 imm_len;
 	void *imm_buff;
 	u32 lockeddev;
-	u32 flags;
-	u32 lck_cnt;
 	u32 exi_id;
 	u64 exi_idtime;
-	lwp_queue lckd_dev;
+	u32 lck_cnt;
 	u32 lckd_dev_bits;
+	lwp_queue lckd_dev;
+	lwpq_t syncqueue;
 } exibus_priv;
 
 static lwp_queue _lckdev_queue;
@@ -150,17 +152,18 @@ static void __exi_initmap(exibus_priv *exim)
 	for(i=0;i<EXI_MAX_CHANNELS;i++) {
 		m = &exim[i];
 		m->CallbackEXI = NULL;
-		m->CallbackEXT = NULL;
 		m->CallbackTC = NULL;
-		m->imm_buff = NULL;
-		m->exi_id = 0;
-		m->exi_idtime = 0;
+		m->CallbackEXT = NULL;
 		m->flags = 0;
 		m->imm_len = 0;
-		m->lck_cnt = 0;
+		m->imm_buff = NULL;
 		m->lockeddev = 0;
+		m->exi_id = 0;
+		m->exi_idtime = 0;
+		m->lck_cnt = 0;
 		m->lckd_dev_bits = 0;
 		__lwp_queue_init_empty(&m->lckd_dev);
+		m->syncqueue = LWP_TQUEUE_NULL;
 	}
 }
 
@@ -461,6 +464,32 @@ s32 EXI_Sync(s32 nChn)
 	return ret;
 }
 
+static s32 __exi_synccallback(s32 nChn,s32 nDev)
+{
+	exibus_priv *exi = &eximap[nChn];
+	LWP_ThreadBroadcast(exi->syncqueue);
+	return 1;
+}
+
+static s32 __exi_syncex(s32 nChn)
+{
+	u32 level;
+	exibus_priv *exi = &eximap[nChn];
+
+	_CPU_ISR_Disable(level);
+	if(exi->syncqueue==LWP_TQUEUE_NULL) {
+		if(LWP_InitQueue(&exi->syncqueue)==-1) {
+			_CPU_ISR_Restore(level);
+			return 0;
+		}
+	}
+	while(exi->flags&(EXI_FLAG_DMA|EXI_FLAG_IMM)) {
+		LWP_ThreadSleep(exi->syncqueue);
+	}
+	_CPU_ISR_Restore(level);
+	return 1;
+}
+
 s32 EXI_Imm(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 {
 	u32 val;
@@ -570,8 +599,13 @@ s32 EXI_DmaEx(s32 nChn,void *pData,u32 nLen,u32 nMode)
 	roundlen = (len&~0x1f);
 	if(nMode==EXI_READ) DCInvalidateRange(ptr,roundlen);
 	else DCStoreRange(ptr,roundlen);
-	if(!EXI_Dma(nChn,ptr,roundlen,nMode,NULL)) return 0;
-	if(!EXI_Sync(nChn)) return 0;
+	if(!__lwp_isr_in_progress()) {
+		if(!EXI_Dma(nChn,ptr,roundlen,nMode,__exi_synccallback)) return 0;
+		if(!__exi_syncex(nChn)) return 0;
+	} else {
+		if(!EXI_Dma(nChn,ptr,roundlen,nMode,NULL)) return 0;
+		if(!EXI_Sync(nChn)) return 0;
+	}
 
 	len -= roundlen;
 	ptr += roundlen;
