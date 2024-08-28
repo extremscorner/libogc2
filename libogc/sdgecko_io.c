@@ -724,10 +724,10 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
 		}
-	}
 
-	/* sleep 1us*/
-	usleep(1);
+		/* sleep 1us*/
+		usleep(1);
+	}
 
 	res[0] = res[1] = 0xff;
 	if(EXI_ImmEx(drv_no,res,2,EXI_READWRITE)==0) {
@@ -783,9 +783,6 @@ static s32 __card_datawrite(s32 drv_no,void *buf,u32 len)
 		return CARDIO_ERROR_IOERROR;
 	}
 
-	/* sleep 1us*/
-	usleep(1);
-
 	ret = CARDIO_ERROR_READY;
 	if(EXI_ImmEx(drv_no,&crc,2,EXI_WRITE)==0) ret = CARDIO_ERROR_IOERROR;
 
@@ -826,9 +823,6 @@ static s32 __card_multidatawrite(s32 drv_no,void *buf,u32 len)
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
 	}
-	
-	/* sleep 1us*/
-	usleep(1);
 
 	ret = CARDIO_ERROR_READY;
 	if(EXI_ImmEx(drv_no,&crc,2,EXI_WRITE)==0) ret = CARDIO_ERROR_IOERROR;
