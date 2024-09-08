@@ -117,13 +117,15 @@ s32 TPL_OpenTPLFromHandle(TPLFile* tdf, FILE *handle)
 			palhead = deschead[c].palhead;
 
 			//now read in the image data.
-			fseek(f,(s32)imghead,SEEK_SET);
-			imghead = malloc(sizeof(TPLImgHeader));
-			if(!imghead) goto error_open;
+			if(imghead) {
+				fseek(f,(s32)imghead,SEEK_SET);
 
-			fread(imghead,sizeof(TPLImgHeader),1,f);
-			deschead[c].imghead = imghead;
+				imghead = malloc(sizeof(TPLImgHeader));
+				if(!imghead) goto error_open;
 
+				fread(imghead,sizeof(TPLImgHeader),1,f);
+				deschead[c].imghead = imghead;
+			}
 			if(palhead) {
 				fseek(f,(s32)palhead,SEEK_SET);
 
@@ -141,6 +143,7 @@ s32 TPL_OpenTPLFromHandle(TPLFile* tdf, FILE *handle)
 
 error_open:
 	if(deschead) free(deschead);
+	if(imghead) free(imghead);
 	if(palhead) free(palhead);
 
 	fclose(f);
@@ -169,19 +172,24 @@ s32 TPL_OpenTPLFromMemory(TPLFile* tdf, void *memory,u32 len)
 		palhead = NULL;
 
 		pos = (u32)deschead[c].imghead;
-		imghead = (TPLImgHeader*)(p + pos);
+		if(pos) {
+			imghead = (TPLImgHeader*)(p + pos);
 
-		pos = (u32)imghead->data;
-		imghead->data = (char*)(p + pos);
-		imghead->unpacked = TRUE;
-
+			if(!imghead->unpacked) {
+				pos = (u32)imghead->data;
+				imghead->data = (char*)(p + pos);
+				imghead->unpacked = TRUE;
+			}
+		}
 		pos = (u32)deschead[c].palhead;
 		if(pos) {
 			palhead = (TPLPalHeader*)(p + pos);
 
-			pos = (u32)palhead->data;
-			palhead->data = (char*)(p + pos);
-			palhead->unpacked = TRUE;
+			if(!palhead->unpacked) {
+				pos = (u32)palhead->data;
+				palhead->data = (char*)(p + pos);
+				palhead->unpacked = TRUE;
+			}
 		}
 		deschead[c].imghead = imghead;
 		deschead[c].palhead = palhead;
@@ -236,13 +244,15 @@ s32 TPL_GetTexture(TPLFile *tdf,s32 id,GXTexObj *texObj)
 	if(tdf->type==TPL_FILE_TYPE_DISC) {
 		f = tdf->tpl_file;
 
-		pos = (s32)imghead->data;
-		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
-		imghead->unpacked = TRUE;
-		if(!imghead->data) return -1;
+		if(!imghead->unpacked) {
+			pos = (s32)imghead->data;
+			imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
+			imghead->unpacked = TRUE;
+			if(!imghead->data) return -1;
 
-		fseek(f,pos,SEEK_SET);
-		fread(imghead->data,1,size,f);
+			fseek(f,pos,SEEK_SET);
+			fread(imghead->data,1,size,f);
+		} else if(!imghead->data) return -1;
 	}
 	
 	if(imghead->maxlod>0) bMipMap = 1;
@@ -269,7 +279,7 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 	if(!tdf) return -1;
 	if(!texObj) return -1;
 	if(!tlutObj) return -1;
- 	if(id<0 || id>=tdf->ntextures) return -1;
+	if(id<0 || id>=tdf->ntextures) return -1;
 
 	deschead = (TPLDescHeader*)tdf->texdesc;
 	if(!deschead) return -1;
@@ -284,24 +294,25 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 	if(tdf->type==TPL_FILE_TYPE_DISC) {
 		f = tdf->tpl_file;
 
-		pos = (s32)imghead->data;
-		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
-		imghead->unpacked = TRUE;
-		if(!imghead->data) return -1;
+		if(!imghead->unpacked) {
+			pos = (s32)imghead->data;
+			imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
+			imghead->unpacked = TRUE;
+			if(!imghead->data) return -1;
 
-		fseek(f,pos,SEEK_SET);
-		fread(imghead->data,1,size,f);
+			fseek(f,pos,SEEK_SET);
+			fread(imghead->data,1,size,f);
+		} else if(!imghead->data) return -1;
 
-		pos = (s32)palhead->data;
-		palhead->data = memalign(PPC_CACHE_ALIGNMENT,(palhead->nitems*sizeof(u16)));
-		palhead->unpacked = TRUE;
-		if(!palhead->data) {
-			free(imghead->data);
-			return -1;
-		}
+		if(!palhead->unpacked) {
+			pos = (s32)palhead->data;
+			palhead->data = memalign(PPC_CACHE_ALIGNMENT,(palhead->nitems*sizeof(u16)));
+			palhead->unpacked = TRUE;
+			if(!palhead->data) return -1;
 
-		fseek(f,pos,SEEK_SET);
-		fread(palhead->data,1,(palhead->nitems*sizeof(u16)),f);
+			fseek(f,pos,SEEK_SET);
+			fread(palhead->data,1,(palhead->nitems*sizeof(u16)),f);
+		} else if(!palhead->data) return -1;
 	}
 
 	if(imghead->maxlod>0) bMipMap = 1;
@@ -331,21 +342,21 @@ void TPL_CloseTPLFile(TPLFile *tdf)
 		if(f) fclose(f);
 
 		deschead = (TPLDescHeader*)tdf->texdesc;
-		if(!deschead) return;
-
-		for(i=0;i<tdf->ntextures;i++) {
-			imghead = deschead[i].imghead;
-			palhead = deschead[i].palhead;
-			if(imghead) {
-				if(imghead->unpacked) free(imghead->data);
-				free(imghead);
+		if(deschead) {
+			for(i=0;i<tdf->ntextures;i++) {
+				imghead = deschead[i].imghead;
+				palhead = deschead[i].palhead;
+				if(imghead) {
+					if(imghead->unpacked) free(imghead->data);
+					free(imghead);
+				}
+				if(palhead) {
+					if(palhead->unpacked) free(palhead->data);
+					free(palhead);
+				}
 			}
-			if(palhead) {
-				if(palhead->unpacked) free(palhead->data);
-				free(palhead);
-			}
+			free(deschead);
 		}
-		free(tdf->texdesc);
 	}
 	
 	tdf->ntextures = 0;
