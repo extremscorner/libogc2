@@ -674,7 +674,7 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 	if(ret) {
 		id = 0xffffffff;
 		cnt = 0;
-		while(cnt<10) {
+		while(cnt<4) {
 			if((ret=EXI_GetIDEx(nChn,nDev,nId))==0) break;
 			if(id==*nId) break;
 			id = *nId;
@@ -708,15 +708,13 @@ s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
 	s32 ret;
 	u32 reg;
 
+	*nId = 0xffffffff;
 	if(nDev==sdgecko_getDevice(nChn)
-		&& sdgecko_isInitialized(nChn)) {
-		*nId = 0xffffffff;
+		&& sdgecko_isInitialized(nChn))
 		return 1;
-	}
 
 	ret = 0;
 	reg = 0;
-	*nId = 0;
 	if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==0) return 0;
 	if(EXI_ImmEx(nChn,&reg,2,EXI_WRITE)==0) ret |= 0x01;
 	if(EXI_ImmEx(nChn,nId,4,EXI_READWRITE)==0) ret |= 0x02;
