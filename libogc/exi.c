@@ -783,6 +783,8 @@ char *EXI_GetTypeString(u32 nType)
 			return "GDEV";
 		case 0x02020000:
 			return "Modem";
+		case 0x03000000:
+			return "W5500";
 		case 0x03010000:
 			return "Marlin";
 		case 0x04120000:

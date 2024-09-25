@@ -128,7 +128,7 @@ LWIPOBJ		:=	network.o netio.o gcif.o	\
 			sys.o tcp.o tcp_in.o tcp_out.o	\
 			udp.o icmp.o ip.o ip_frag.o		\
 			ip_addr.o etharp.o loopif.o		\
-			enc28j60if.o
+			enc28j60if.o w5500if.o
 
 #---------------------------------------------------------------------------------
 OGCOBJ		:=	\

@@ -26,8 +26,9 @@
 #include <lwip/tcpip.h>
 #include <netif/enc28j60if.h>
 #include <netif/etharp.h>
-#include <netif/loopif.h>
 #include <netif/gcif/gcif.h>
+#include <netif/loopif.h>
+#include <netif/w5500if.h>
 
 #include <sys/iosupport.h>
 
@@ -1514,6 +1515,8 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 	}
 	hbba = bba_create(&g_hNetIF);
 	pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,hbba,bba_init,net_input);
+	if(!pnet)
+		pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,NULL,w5500if_init,net_input);
 	if(!pnet)
 		pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,NULL,enc28j60if_init,net_input);
 	if(pnet) {
