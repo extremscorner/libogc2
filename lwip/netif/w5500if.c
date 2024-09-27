@@ -496,6 +496,11 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 	W5500_WriteReg(chan, W5500_SIMR, W5500_SIMR_S(0));
 
+	if (W5500_GetLinkState(chan))
+		w5500_netif->flags |= NETIF_FLAG_LINK_UP;
+	else
+		w5500_netif->flags &= ~NETIF_FLAG_LINK_UP;
+
 	EXI_Unlock(chan);
 	return TRUE;
 }
