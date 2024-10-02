@@ -79,7 +79,7 @@ static bool _ioCardInserted[MAX_DRIVE];
 
 static u8 _ioResponse[MAX_DRIVE][128];
 static u8 _ioCrc7Table[256];
-static u16 _ioCrc16Table[256];
+static u16 _ioCrc16Table[2][256];
 
 // SDHC support
 static u32 _initType[MAX_DRIVE];
@@ -108,18 +108,14 @@ static __inline__ u32 __check_response(s32 drv_no,u8 res)
 static void __init_crc7(void)
 {
 	s32 i,j;
-	u8 c,crc7;
+	u8 crc7;
 
-	crc7 = 0;
 	for(i=0;i<256;i++) {
-		c = i;
-		crc7 = 0;
+		crc7 = i;
 		for(j=0;j<8;j++) {
-			crc7 <<= 1;
-			if((crc7^c)&0x80) crc7 ^= 0x09;
-			c <<= 1;
+			if(crc7&0x80) crc7 = (crc7<<1)^0x12;
+			else crc7 <<= 1;
 		}
-		crc7 &= 0x7f;
 		_ioCrc7Table[i] = crc7;
 	}
 }
@@ -132,10 +128,11 @@ static u8 __make_crc7(void *buffer,u32 len)
 
 	crc7 = 0;
 	ptr = buffer;
-	for(i=0;i<len;i++)
-		crc7 = _ioCrc7Table[(u8)((crc7<<1)^ptr[i])];
-
-	return ((crc7<<1)|1);
+	for(i=0;i<len;i++) {
+		crc7 ^= ptr[i];
+		crc7 = _ioCrc7Table[crc7];
+	}
+	return (crc7|1);
 }
 
 /* Old way, realtime
@@ -173,33 +170,37 @@ static u8 __make_crc7(void *buffer,u32 len)
 static void __init_crc16(void)
 {
 	s32 i,j;
-	u16 crc16,c;
+	u16 crc16;
 
 	for(i=0;i<256;i++) {
-		crc16 = 0;
-		c = ((u16)i)<<8;
+		crc16 = ((u16)i)<<8;
 		for(j=0;j<8;j++) {
-			if((crc16^c)&0x8000) crc16 = (crc16<<1)^0x1021;
+			if(crc16&0x8000) crc16 = (crc16<<1)^0x1021;
 			else crc16 <<= 1;
-
-			c <<= 1;
 		}
+		_ioCrc16Table[0][i] = crc16;
+	}
 
-		_ioCrc16Table[i] = crc16;
+	for(i=0;i<256;i++) {
+		crc16 = _ioCrc16Table[0][i];
+		crc16 = _ioCrc16Table[0][crc16>>8]^(crc16<<8);
+		_ioCrc16Table[1][i] = crc16;
 	}
 }
 
 static u16 __make_crc16(void *buffer,u32 len)
 {
 	s32 i;
-	u8 *ptr;
 	u16 crc16;
+	u16 *ptr;
 
 	crc16 = 0;
+	len /= 2;
 	ptr = buffer;
-	for(i=0;i<len;i++)
-		crc16 = (crc16<<8)^_ioCrc16Table[((crc16>>8)^(u16)(ptr[i]))];
-
+	for(i=0;i<len;i++) {
+		crc16 ^= ptr[i];
+		crc16 = _ioCrc16Table[1][crc16>>8]^_ioCrc16Table[0][crc16&0xff];
+	}
 	return crc16;
 }
 
