@@ -41,6 +41,7 @@ extern u16 g_dCode[MAX_MI_NUM][MAX_DI_NUM];
 void sdgecko_initIODefault(void);
 s32 sdgecko_initIO(s32 drv_no);
 s32 sdgecko_preIO(s32 drv_no);
+s32 sdgecko_enableCRC(s32 drv_no,bool enable);
 s32 sdgecko_readCID(s32 drv_no);
 s32 sdgecko_readCSD(s32 drv_no);
 s32 sdgecko_readStatus(s32 drv_no);

@@ -1049,6 +1049,30 @@ static s32 __card_sendCMD58(s32 drv_no)
 	return ret;
 }
 
+static s32 __card_sendCMD59(s32 drv_no,u32 crc_on_off)
+{
+	s32 ret;
+	u8 ccmd[5] = {0,0,0,0,0};
+
+	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
+
+	ccmd[0] = 0x3B;
+	ccmd[1] = (crc_on_off>>24)&0xff;
+	ccmd[2] = (crc_on_off>>16)&0xff;
+	ccmd[3] = (crc_on_off>>8)&0xff;
+	ccmd[4] = crc_on_off&0xff;
+	if((ret=__card_writecmd(drv_no,ccmd,5))!=0) {
+#ifdef _CARDIO_DEBUG
+		printf("__card_sendCMD59(%d): sd write cmd failed.\n",ret);
+#endif
+		return ret;
+	}
+	if((ret=__card_readresponse(drv_no,_ioResponse[drv_no],1))<0) return ret;
+	ret = __check_response(drv_no,_ioResponse[drv_no][0]);
+
+	return ret;
+}
+
 static s32 __card_sendcmd(s32 drv_no,u8 cmd,u8 *arg)
 {
 	u8 ccmd[5] = {0,0,0,0,0};
@@ -1189,7 +1213,7 @@ static s32 __card_softreset(s32 drv_no)
 	if((ret=__check_response(drv_no,_ioResponse[drv_no][0]))!=0) return ret;
 	if(!(_ioError[drv_no]&CARDIO_OP_IOERR_IDLE)) return CARDIO_ERROR_IOERROR;
 
-	return CARDIO_ERROR_READY;
+	return __card_sendCMD59(drv_no,TRUE);
 }
 
 static bool __card_check(s32 drv_no)
@@ -1347,6 +1371,20 @@ s32 sdgecko_preIO(s32 drv_no)
 		}
 	}
 	return CARDIO_ERROR_READY;
+}
+
+s32 sdgecko_enableCRC(s32 drv_no,bool enable)
+{
+	s32 ret;
+
+	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
+#ifdef _CARDIO_DEBUG
+	printf("sdgecko_enableCRC(%d,%d)\n",drv_no,enable);
+#endif
+	ret = sdgecko_preIO(drv_no);
+	if(ret!=0) return ret;
+
+	return __card_sendCMD59(drv_no,enable);
 }
 
 s32 sdgecko_readCID(s32 drv_no)
