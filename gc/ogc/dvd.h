@@ -406,6 +406,7 @@ s32 DVD_SeekAbsPrio(dvdcmdblk *block,s64 offset,s32 prio);
 #define DVD_SeekAbsAsync(block,offset,cb) \
     DVD_SeekAbsAsyncPrio(block,offset,cb,2)
 s32 DVD_SeekAbsAsyncPrio(dvdcmdblk *block,s64 offset,dvdcbcallback cb,s32 prio);
+s32 DVD_CancelAsync(dvdcmdblk *block,dvdcbcallback cb);
 s32 DVD_CancelAllAsync(dvdcbcallback cb);
 s32 DVD_PrepareStreamAbs(dvdcmdblk *block,u32 len,s64 offset);
 s32 DVD_PrepareStreamAbsAsync(dvdcmdblk *block,u32 len,s64 offset,dvdcbcallback cb);

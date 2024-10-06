@@ -380,6 +380,7 @@ static s32 __issuecommand(s32 prio,dvdcmdblk *block);
 
 void DVD_LowReset(u32 reset_mode);
 dvdcallbacklow DVD_LowSetResetCoverCallback(dvdcallbacklow cb);
+s32 DVD_LowBreak(void);
 dvdcallbacklow DVD_LowClearCallback(void);
 s32 DVD_LowSeek(s64 offset,dvdcallbacklow cb);
 s32 DVD_LowRead(void *buf,u32 len,s64 offset,dvdcallbacklow cb);
@@ -468,6 +469,16 @@ static s32 __dvd_checkwaitingqueue(void)
 	return (i<4);
 }
 
+static s32 __dvd_dequeuewaitingqueue(dvdcmdblk *block)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	__lwp_queue_extractI(&block->node);
+	_CPU_ISR_Restore(level);
+	return 1;
+}
+
 static s32 __dvd_pushwaitingqueue(s32 prio,dvdcmdblk *block)
 {
 	u32 level;
@@ -506,8 +517,8 @@ static dvdcmdblk* __dvd_popwaitingqueue(void)
 	_CPU_ISR_Disable(level);
 	for(i=0;i<4;i++) {
 		if(!__lwp_queue_isempty(&__dvd_waitingqueue[i])) {
-			_CPU_ISR_Restore(level);
 			ret = __dvd_popwaitingqueueprio(i);
+			_CPU_ISR_Restore(level);
 			return ret;
 		}
 	}
@@ -2416,6 +2427,13 @@ dvdcallbacklow DVD_LowSetResetCoverCallback(dvdcallbacklow cb)
 	return old;
 }
 
+s32 DVD_LowBreak(void)
+{
+	__dvd_stopnextint = 1;
+	__dvd_breaking = 1;
+	return 1;
+}
+
 dvdcallbacklow DVD_LowClearCallback(void)
 {
 	dvdcallbacklow old;
@@ -2658,16 +2676,110 @@ s32 DVD_SeekAbsPrio(dvdcmdblk *block,s64 offset,s32 prio)
 	return DVD_ERROR_FATAL;
 }
 
-s32 DVD_CancelAllAsync(dvdcbcallback cb)
+s32 DVD_CancelAsync(dvdcmdblk *block,dvdcbcallback cb)
 {
 	u32 level;
+	dvdcallbacklow old;
+#ifdef _DVD_DEBUG
+	printf("DVD_CancelAsync(%p,%p)\n",block,cb);
+#endif
+	_CPU_ISR_Disable(level);
+
+	switch(block->state) {
+		case DVD_STATE_FATAL_ERROR:
+		case DVD_STATE_END:
+		case DVD_STATE_CANCELED:
+			if(cb) cb(DVD_ERROR_OK,block);
+			break;
+		case DVD_STATE_BUSY:
+			if(__dvd_canceling) {
+				_CPU_ISR_Restore(level);
+				return 0;
+			}
+			__dvd_canceling = 1;
+			__dvd_cancelcallback = cb;
+			if(__dvd_currcmd==0x0001 || __dvd_currcmd==0x0004) DVD_LowBreak();
+			break;
+		case DVD_STATE_WAITING:
+			__dvd_dequeuewaitingqueue(block);
+			block->state = DVD_STATE_CANCELED;
+			if(block->cb) block->cb(DVD_ERROR_CANCELED,block);
+			if(cb) cb(DVD_ERROR_OK,block);
+			break;
+		case DVD_STATE_COVER_CLOSED:
+			if(__dvd_currcmd==0x0004 || __dvd_currcmd==0x0005
+				|| __dvd_currcmd==0x000d || __dvd_currcmd==0x000f) {
+				if(cb) cb(DVD_ERROR_OK,block);
+				break;
+			}
+			if(__dvd_canceling) {
+				_CPU_ISR_Restore(level);
+				return 0;
+			}
+			__dvd_canceling = 1;
+			__dvd_cancelcallback = cb;
+			break;
+		case DVD_STATE_NO_DISK:
+		case DVD_STATE_COVER_OPEN:
+		case DVD_STATE_WRONG_DISK:
+		case DVD_STATE_MOTOR_STOPPED:
+		case DVD_STATE_RETRY:
+			old = DVD_LowClearCallback();
+			if(old!=__dvd_statemotorstoppedcb) {
+				_CPU_ISR_Restore(level);
+				return 0;
+			}
+			switch(block->state) {
+				case DVD_STATE_WRONG_DISK:
+					__dvd_resumefromhere = 1;
+					break;
+				case DVD_STATE_RETRY:
+					__dvd_resumefromhere = 2;
+					break;
+				case DVD_STATE_NO_DISK:
+					__dvd_resumefromhere = 3;
+					break;
+				case DVD_STATE_COVER_OPEN:
+					__dvd_resumefromhere = 4;
+					break;
+				case DVD_STATE_MOTOR_STOPPED:
+					__dvd_resumefromhere = 7;
+					break;
+				default:
+					break;
+			}
+			__dvd_executing = &__dvd_dummycmdblk;
+			block->state = DVD_STATE_CANCELED;
+			if(block->cb) block->cb(DVD_ERROR_CANCELED,block);
+			if(cb) cb(DVD_ERROR_OK,block);
+			__dvd_stateready();
+			break;
+		default:
+			break;
+	}
+	_CPU_ISR_Restore(level);
+	return 1;
+}
+
+s32 DVD_CancelAllAsync(dvdcbcallback cb)
+{
+	s32 ret;
+	u32 level;
+	dvdcmdblk *block;
 #ifdef _DVD_DEBUG
 	printf("DVD_CancelAllAsync(%p)\n",cb);
 #endif
 	_CPU_ISR_Disable(level);
 	DVD_Pause();
+	while((block=__dvd_popwaitingqueue())) DVD_CancelAsync(block,NULL);
+	if(__dvd_executing) ret = DVD_CancelAsync(__dvd_executing,cb);
+	else {
+		ret = 1;
+		if(cb) cb(DVD_ERROR_OK,NULL);
+	}
+	DVD_Resume();
 	_CPU_ISR_Restore(level);
-	return 1;
+	return ret;
 }
 
 s32 DVD_PrepareStreamAbsAsync(dvdcmdblk *block,u32 len,s64 offset,dvdcbcallback cb)
