@@ -132,7 +132,7 @@ static u8 __make_crc7(void *buffer,u32 len)
 		crc7 ^= ptr[i];
 		crc7 = _ioCrc7Table[crc7];
 	}
-	return (crc7|1);
+	return crc7;
 }
 
 /* Old way, realtime
@@ -1333,6 +1333,7 @@ s32 sdgecko_initIO(s32 drv_no)
 		}
 
 		if(__card_sendopcond(drv_no)!=0) goto exit;
+		if(__card_sendCMD59(drv_no,TRUE)!=0) goto exit;
 
 		if(_initType[drv_no]==TYPE_SDHC) {
 			if(__card_sendCMD58(drv_no)!=0) goto exit;
