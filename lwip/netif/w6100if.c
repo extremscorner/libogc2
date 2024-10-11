@@ -890,23 +890,26 @@ static bool W6100_Init(s32 chan, s32 dev, struct w6100if *w6100if)
 	u16 cidr, ver;
 	u32 id;
 
-	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
-		while (!EXI_ProbeEx(chan));
+	while (!EXI_ProbeEx(chan));
+	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
-	}
 
 	u32 level = IRQ_Disable();
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
 		LWP_ThreadSleep(w6100if->unlockQueue);
 	IRQ_Restore(level);
 
-	Dev[chan] = dev;
+	if (!EXI_GetID(chan, dev, &id) || id != 0x03000000) {
+		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
+			EXI_Detach(chan);
+		EXI_Unlock(chan);
+		return false;
+	}
 
-	if (!EXI_GetIDEx(chan, dev, &id) || id != 0x03000000 ||
-		!W6100_ReadReg16(chan, W6100_CIDR, &cidr) || cidr != 0x6100 ||
-		!W6100_ReadReg16(chan, W6100_VER, &ver) || ver != 0x4661 ||
-		!W6100_Reset(chan)) {
+	Dev[chan] = dev;
+	if (!W6100_ReadReg16(chan, W6100_CIDR, &cidr) || cidr != 0x6100 ||
+		!W6100_ReadReg16(chan, W6100_VER, &ver) || ver != 0x4661) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
 		EXI_Unlock(chan);
@@ -915,6 +918,8 @@ static bool W6100_Init(s32 chan, s32 dev, struct w6100if *w6100if)
 
 	w6100if->chan = chan;
 	w6100if->dev = dev;
+
+	err |= !W6100_Reset(chan);
 
 	W6100_GetMACAddr(chan, w6100if->ethaddr->addr);
 	err |= !W6100_WriteReg(chan, W6100_NETLCKR, W6100_NETLCKR_UNLOCK);

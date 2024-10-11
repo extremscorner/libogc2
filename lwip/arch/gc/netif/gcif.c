@@ -420,7 +420,7 @@ static u32 __bba_get_linkstate()
 static u32 __bba_read_cid()
 {
 	u32 cid = 0;
-	EXI_GetIDEx(EXI_CHANNEL_0,EXI_DEVICE_2,&cid);
+	EXI_GetID(EXI_CHANNEL_0,EXI_DEVICE_2,&cid);
 	return cid;
 }
 

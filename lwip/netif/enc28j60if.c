@@ -33,8 +33,6 @@ distribution.
 #include <ogc/machine/asm.h>
 #include <ogc/machine/processor.h>
 #include <ogc/semaphore.h>
-#include <sdcard/card_cmn.h>
-#include <sdcard/card_io.h>
 #include <unistd.h>
 #include "lwip/debug.h"
 #include "lwip/err.h"
@@ -581,17 +579,22 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	u16 phid1, phid2;
 	u32 id;
 
-	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
-		while (!EXI_ProbeEx(chan));
+	while (!EXI_ProbeEx(chan));
+	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
-	} else if (dev == sdgecko_getDevice(chan) && sdgecko_isInitialized(chan))
-		return false;
 
 	u32 level = IRQ_Disable();
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
 		LWP_ThreadSleep(enc28j60if->unlockQueue);
 	IRQ_Restore(level);
+
+	if (!EXI_GetID(chan, dev, &id) || id == 0xFFFFFFFF) {
+		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
+			EXI_Detach(chan);
+		EXI_Unlock(chan);
+		return false;
+	}
 
 	Dev[chan] = dev;
 	ENC28J60_Reset(chan);

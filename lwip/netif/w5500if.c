@@ -528,25 +528,28 @@ static s32 UnlockedHandler(s32 chan, s32 dev)
 static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 {
 	bool err = false;
-	u8 versionr, sr;
+	u8 sr, versionr;
 	u32 id;
 
-	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0) {
-		while (!EXI_ProbeEx(chan));
+	while (!EXI_ProbeEx(chan));
+	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
-	}
 
 	u32 level = IRQ_Disable();
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
 		LWP_ThreadSleep(w5500if->unlockQueue);
 	IRQ_Restore(level);
 
-	Dev[chan] = dev;
+	if (!EXI_GetID(chan, dev, &id) || id != 0x03000000) {
+		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
+			EXI_Detach(chan);
+		EXI_Unlock(chan);
+		return false;
+	}
 
-	if (!EXI_GetIDEx(chan, dev, &id) || id != 0x03000000 ||
-		!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04 ||
-		!W5500_Reset(chan)) {
+	Dev[chan] = dev;
+	if (!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
 		EXI_Unlock(chan);
@@ -555,6 +558,8 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 
 	w5500if->chan = chan;
 	w5500if->dev = dev;
+
+	err |= !W5500_Reset(chan);
 
 	W5500_GetMACAddr(chan, w5500if->ethaddr->addr);
 	err |= !W5500_WriteReg(chan, W5500_SHAR0, w5500if->ethaddr->addr[0]);
