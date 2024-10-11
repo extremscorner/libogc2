@@ -71,7 +71,7 @@ enum {
 	Sn_RX_WR      = 0x2A, // Socket n RX Write Pointer Register
 	Sn_IMR        = 0x2C, // Socket n Interrupt Mask Register
 	Sn_FRAG,              // Socket n Fragment Offset in IP Header Register
-	Sn_KPALVTR    = 0x2F, // Socket n Keep Alive Time Register
+	Sn_KPALVTR    = 0x2F, // Socket n Keepalive Time Register
 };
 
 typedef enum {
@@ -94,8 +94,8 @@ typedef enum {
 	W5500_SIPR1,                               // Source IP Address Register 1
 	W5500_SIPR2,                               // Source IP Address Register 2
 	W5500_SIPR3,                               // Source IP Address Register 3
-	W5500_INTLEVEL0,                           // Interrupt Low Level Timer Register 0
-	W5500_INTLEVEL1,                           // Interrupt Low Level Timer Register 1
+	W5500_INTLEVEL0,                           // Interrupt Low-Level Timer Register 0
+	W5500_INTLEVEL1,                           // Interrupt Low-Level Timer Register 1
 	W5500_IR,                                  // Interrupt Register
 	W5500_IMR,                                 // Interrupt Mask Register
 	W5500_SIR,                                 // Socket Interrupt Register
@@ -178,7 +178,7 @@ W5500_S(7)
 } W5500Reg;
 
 typedef enum {
-	W5500_INTLEVEL          = W5500_REG(0x13), // Interrupt Low Level Timer Register
+	W5500_INTLEVEL          = W5500_REG(0x13), // Interrupt Low-Level Timer Register
 	W5500_RTR               = W5500_REG(0x19), // Retransmission Time Register
 	W5500_PSID              = W5500_REG(0x24), // PPPoE Session ID Register
 	W5500_PMRU              = W5500_REG(0x26), // PPPoE Maximum Receive Unit Register
