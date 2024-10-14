@@ -1799,7 +1799,7 @@ s32 net_listen(s32 s,u32 backlog)
 	return 0;
 }
 
-s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen_t *fromlen)
+s32 net_recvfrom(s32 s,void *mem,size_t len,u32 flags,struct sockaddr *from,socklen_t *fromlen)
 {
 	struct netsocket *sock;
 	struct netbuf *buf;
@@ -1867,17 +1867,17 @@ s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen
 	return copylen;
 }
 
-s32 net_read(s32 s,void *mem,s32 len)
+s32 net_read(s32 s,void *mem,size_t len)
 {
 	return net_recvfrom(s,mem,len,0,NULL,NULL);
 }
 
-s32 net_recv(s32 s,void *mem,s32 len,u32 flags)
+s32 net_recv(s32 s,void *mem,size_t len,u32 flags)
 {
 	return net_recvfrom(s,mem,len,flags,NULL,NULL);
 }
 
-s32 net_sendto(s32 s,const void *data,s32 len,u32 flags,struct sockaddr *to,socklen_t tolen)
+s32 net_sendto(s32 s,const void *data,size_t len,u32 flags,struct sockaddr *to,socklen_t tolen)
 {
 	struct netsocket *sock;
 	struct ip_addr remote_addr, addr;
@@ -1910,7 +1910,7 @@ s32 net_sendto(s32 s,const void *data,s32 len,u32 flags,struct sockaddr *to,sock
 	return ret;
 }
 
-s32 net_send(s32 s,const void *data,s32 len,u32 flags)
+s32 net_send(s32 s,const void *data,size_t len,u32 flags)
 {
 	struct netsocket *sock;
 	struct netbuf *buf;
@@ -1951,7 +1951,7 @@ s32 net_send(s32 s,const void *data,s32 len,u32 flags)
 	return len;
 }
 
-s32 net_write(s32 s,const void *data,s32 size)
+s32 net_write(s32 s,const void *data,size_t size)
 {
 	return net_send(s,data,size,0);
 }

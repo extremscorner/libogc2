@@ -868,17 +868,17 @@ s32 net_connect(s32 s, struct sockaddr *addr, socklen_t addrlen)
 	return ret;
 }
 
-s32 net_write(s32 s, const void *data, s32 size)
+s32 net_write(s32 s, const void *data, size_t size)
 {
-    return net_send(s, data, size, 0);
+	return net_sendto(s, data, size, 0, NULL, 0);
 }
 
-s32 net_send(s32 s, const void *data, s32 size, u32 flags)
+s32 net_send(s32 s, const void *data, size_t size, u32 flags)
 {
 	return net_sendto(s, data, size, flags, NULL, 0);
 }
 
-s32 net_sendto(s32 s, const void *data, s32 len, u32 flags, struct sockaddr *to, socklen_t tolen)
+s32 net_sendto(s32 s, const void *data, size_t len, u32 flags, struct sockaddr *to, socklen_t tolen)
 {
 	s32 ret;
 	u8 * message_buf = NULL;
@@ -919,12 +919,12 @@ s32 net_sendto(s32 s, const void *data, s32 len, u32 flags, struct sockaddr *to,
 	return ret;
 }
 
-s32 net_recv(s32 s, void *mem, s32 len, u32 flags)
+s32 net_recv(s32 s, void *mem, size_t len, u32 flags)
 {
-    return net_recvfrom(s, mem, len, flags, NULL, NULL);
+	return net_recvfrom(s, mem, len, flags, NULL, NULL);
 }
 
-s32 net_recvfrom(s32 s, void *mem, s32 len, u32 flags, struct sockaddr *from, socklen_t *fromlen)
+s32 net_recvfrom(s32 s, void *mem, size_t len, u32 flags, struct sockaddr *from, socklen_t *fromlen)
 {
 	s32 ret;
 	u8* message_buf = NULL;
@@ -969,7 +969,7 @@ done:
 	return ret;
 }
 
-s32 net_read(s32 s, void *mem, s32 len)
+s32 net_read(s32 s, void *mem, size_t len)
 {
 	return net_recvfrom(s, mem, len, 0, NULL, NULL);
 }
