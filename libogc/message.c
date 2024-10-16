@@ -85,13 +85,13 @@ static mqbox_st* __lwp_mqbox_allocate(void)
 
 static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,u64 timeout)
 {
-	u32 status;
+	u32 status,size = sizeof(mqmsg_t);
 	mqbox_st *mbox;
 
 	mbox = __lwp_mqbox_open(mqbox);
 	if(!mbox) return FALSE;
 
-	status = __lwpmq_submit(&mbox->mqueue,mbox->object.id,(void*)&msg,sizeof(mqmsg_t),type,wait,timeout);
+	status = __lwpmq_submit(&mbox->mqueue,mbox->object.id,(void*)&msg,size,type,wait,timeout);
 	__lwp_thread_dispatchenable();
 
 	if(status==LWP_MQ_STATUS_UNSATISFIED_WAIT)
@@ -99,15 +99,15 @@ static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,u64
 	return (status==LWP_MQ_STATUS_SUCCESSFUL);
 }
 
-static BOOL __lwp_mqbox_receivesupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait,u64 timeout)
+static BOOL __lwp_mqbox_recvsupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait,u64 timeout)
 {
-	u32 status,tmp;
+	u32 status,size;
 	mqbox_st *mbox;
 
 	mbox = __lwp_mqbox_open(mqbox);
 	if(!mbox) return FALSE;
 
-	__lwpmq_seize(&mbox->mqueue,mbox->object.id,(void*)msg,&tmp,wait,timeout);
+	__lwpmq_seize(&mbox->mqueue,mbox->object.id,(void*)msg,&size,wait,timeout);
 	__lwp_thread_dispatchenable();
 
 	status = _thr_executing->wait.ret_code;
@@ -183,7 +183,7 @@ BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
 {
 	u32 wait = (flags==MQ_MSG_BLOCK)?TRUE:FALSE;
 
-	return __lwp_mqbox_receivesupp(mqbox,msg,wait,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_mqbox_recvsupp(mqbox,msg,wait,LWP_THREADQ_NOTIMEOUT);
 }
 
 BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *abstime)
@@ -191,5 +191,5 @@ BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *abstime)
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
 	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
-	return __lwp_mqbox_receivesupp(mqbox,msg,TRUE,timeout);
+	return __lwp_mqbox_recvsupp(mqbox,msg,TRUE,timeout);
 }

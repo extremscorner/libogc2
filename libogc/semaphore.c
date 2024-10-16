@@ -168,7 +168,8 @@ s32 LWP_SemGetValue(sem_t sem,u32 *value)
 	lwp_sem = __lwp_sema_open(sem);
 	if(!lwp_sem) return -1;
 
-	*value = lwp_sem->sema.count;
+	*value = __lwp_sema_getcount(&lwp_sem->sema);
+	__lwp_thread_dispatchenable();
 
 	return 0;
 }

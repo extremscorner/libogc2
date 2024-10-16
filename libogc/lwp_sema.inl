@@ -6,6 +6,11 @@ static __inline__ u32 __lwp_sema_ispriority(lwp_semattr *attr)
 	return (attr->mode==LWP_SEMA_MODEPRIORITY);
 }
 
+static __inline__ u32 __lwp_sema_getcount(lwp_sema *sema)
+{
+	return sema->count;
+}
+
 static __inline__ void __lwp_sema_seize_isrdisable(lwp_sema *sema,u32 id,u32 wait,u32 *isrlevel)
 {
 	lwp_cntrl *exec;
