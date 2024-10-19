@@ -29,7 +29,7 @@ distribution.
 #include <ogc/exi.h>
 #include <ogc/irq.h>
 #include <ogc/lwp.h>
-#include <ogc/semaphore.h>
+#include <string.h>
 #include "lwip/debug.h"
 #include "lwip/err.h"
 #include "lwip/mem.h"
@@ -314,8 +314,9 @@ enum {
 struct w5500if {
 	s32 chan;
 	s32 dev;
+	s32 txQueued;
+	u16 txQueue[10];
 	lwpq_t unlockQueue;
-	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
 };
 
@@ -469,7 +470,16 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 		if (ir & W5500_Sn_IR_SENDOK) {
 			W5500_WriteReg(chan, W5500_S0_IR, W5500_Sn_IR_SENDOK);
-			LWP_SemPost(w5500if->txSemaphore);
+
+			if (w5500if->txQueued) {
+				w5500if->txQueued--;
+				memmove(&w5500if->txQueue[0], &w5500if->txQueue[1], w5500if->txQueued * sizeof(u16));
+
+				if (w5500if->txQueued) {
+					W5500_WriteReg16(chan, W5500_S0_TX_WR, w5500if->txQueue[0]);
+					W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_SEND);
+				}
+			}
 		}
 
 		if (ir & W5500_Sn_IR_RECV) {
@@ -558,6 +568,8 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 
 	w5500if->chan = chan;
 	w5500if->dev = dev;
+	w5500if->txQueued = 0;
+	w5500if->txQueue[0] = 0;
 
 	err |= !W5500_Reset(chan);
 
@@ -623,7 +635,7 @@ static err_t w5500_output(struct netif *netif, struct pbuf *p)
 		return ERR_CONN;
 	}
 
-	if (LWP_SemTimedWait(w5500if->txSemaphore, &(struct timespec){2, 500000000})) {
+	if (w5500if->txQueued < 0 || w5500if->txQueued >= 10) {
 		IRQ_Restore(level);
 		return ERR_IF;
 	}
@@ -632,16 +644,19 @@ static err_t w5500_output(struct netif *netif, struct pbuf *p)
 		LWP_ThreadSleep(w5500if->unlockQueue);
 	IRQ_Restore(level);
 
-	u16 wr;
-	W5500_ReadReg16(chan, W5500_S0_TX_WR, &wr);
+	u16 wr = w5500if->txQueue[w5500if->txQueued ? w5500if->txQueued - 1 : 0];
 
 	for (struct pbuf *q = p; q; q = q->next) {
 		W5500_WriteCmd(chan, W5500_TXBUF_S(0, wr), q->payload, q->len);
 		wr += q->len;
 	}
 
-	W5500_WriteReg16(chan, W5500_S0_TX_WR, wr);
-	W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_SEND);
+	w5500if->txQueue[w5500if->txQueued++] = wr;
+
+	if (w5500if->txQueued == 1) {
+		W5500_WriteReg16(chan, W5500_S0_TX_WR, w5500if->txQueue[0]);
+		W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_SEND);
+	}
 
 	EXI_Unlock(chan);
 	return ERR_OK;
@@ -670,7 +685,6 @@ err_t w5500if_init(struct netif *netif)
 	netif->flags = NETIF_FLAG_BROADCAST;
 
 	LWP_InitQueue(&w5500if->unlockQueue);
-	LWP_SemInit(&w5500if->txSemaphore, 1, 1);
 
 	w5500if->ethaddr = (struct eth_addr *)netif->hwaddr;
 	w5500_netif = netif;
@@ -695,7 +709,6 @@ err_t w5500if_init(struct netif *netif)
 		}
 	}
 
-	LWP_SemDestroy(w5500if->txSemaphore);
 	LWP_CloseQueue(w5500if->unlockQueue);
 
 	mem_free(w5500if);

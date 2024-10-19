@@ -29,7 +29,7 @@ distribution.
 #include <ogc/exi.h>
 #include <ogc/irq.h>
 #include <ogc/lwp.h>
-#include <ogc/semaphore.h>
+#include <string.h>
 #include "lwip/debug.h"
 #include "lwip/err.h"
 #include "lwip/mem.h"
@@ -673,8 +673,9 @@ enum {
 struct w6100if {
 	s32 chan;
 	s32 dev;
+	s32 txQueued;
+	u16 txQueue[10];
 	lwpq_t unlockQueue;
-	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
 };
 
@@ -827,7 +828,16 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 		if (ir & W6100_Sn_IR_SENDOK) {
 			W6100_WriteReg(chan, W6100_S0_IRCLR, W6100_Sn_IRCLR_SENDOK);
-			LWP_SemPost(w6100if->txSemaphore);
+
+			if (w6100if->txQueued) {
+				w6100if->txQueued--;
+				memmove(&w6100if->txQueue[0], &w6100if->txQueue[1], w6100if->txQueued * sizeof(u16));
+
+				if (w6100if->txQueued) {
+					W6100_WriteReg16(chan, W6100_S0_TX_WR, w6100if->txQueue[0]);
+					W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_SEND);
+				}
+			}
 		}
 
 		if (ir & W6100_Sn_IR_RECV) {
@@ -918,6 +928,8 @@ static bool W6100_Init(s32 chan, s32 dev, struct w6100if *w6100if)
 
 	w6100if->chan = chan;
 	w6100if->dev = dev;
+	w6100if->txQueued = 0;
+	w6100if->txQueue[0] = 0;
 
 	err |= !W6100_Reset(chan);
 
@@ -985,7 +997,7 @@ static err_t w6100_output(struct netif *netif, struct pbuf *p)
 		return ERR_CONN;
 	}
 
-	if (LWP_SemTimedWait(w6100if->txSemaphore, &(struct timespec){2, 500000000})) {
+	if (w6100if->txQueued < 0 || w6100if->txQueued >= 10) {
 		IRQ_Restore(level);
 		return ERR_IF;
 	}
@@ -994,16 +1006,19 @@ static err_t w6100_output(struct netif *netif, struct pbuf *p)
 		LWP_ThreadSleep(w6100if->unlockQueue);
 	IRQ_Restore(level);
 
-	u16 wr;
-	W6100_ReadReg16(chan, W6100_S0_TX_WR, &wr);
+	u16 wr = w6100if->txQueue[w6100if->txQueued ? w6100if->txQueued - 1 : 0];
 
 	for (struct pbuf *q = p; q; q = q->next) {
 		W6100_WriteCmd(chan, W6100_TXBUF_S(0, wr), q->payload, q->len);
 		wr += q->len;
 	}
 
-	W6100_WriteReg16(chan, W6100_S0_TX_WR, wr);
-	W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_SEND);
+	w6100if->txQueue[w6100if->txQueued++] = wr;
+
+	if (w6100if->txQueued == 1) {
+		W6100_WriteReg16(chan, W6100_S0_TX_WR, w6100if->txQueue[0]);
+		W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_SEND);
+	}
 
 	EXI_Unlock(chan);
 	return ERR_OK;
@@ -1032,7 +1047,6 @@ err_t w6100if_init(struct netif *netif)
 	netif->flags = NETIF_FLAG_BROADCAST;
 
 	LWP_InitQueue(&w6100if->unlockQueue);
-	LWP_SemInit(&w6100if->txSemaphore, 1, 1);
 
 	w6100if->ethaddr = (struct eth_addr *)netif->hwaddr;
 	w6100_netif = netif;
@@ -1057,7 +1071,6 @@ err_t w6100if_init(struct netif *netif)
 		}
 	}
 
-	LWP_SemDestroy(w6100if->txSemaphore);
 	LWP_CloseQueue(w6100if->unlockQueue);
 
 	mem_free(w6100if);
