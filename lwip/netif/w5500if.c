@@ -49,6 +49,9 @@ static vu32 *const _piReg = (u32 *)0xCC003000;
 #define W5500_TXBUF_S(n, addr) (W5500_BSB(n * 4 + 2) | W5500_ADDR(addr))
 #define W5500_RXBUF_S(n, addr) (W5500_BSB(n * 4 + 3) | W5500_ADDR(addr))
 
+#define W5500_INIT_S0_RXBUF_SIZE (16)
+#define W5500_INIT_S0_TXBUF_SIZE (16)
+
 enum {
 	Sn_MR         = 0x00, // Socket n Mode Register
 	Sn_CR,                // Socket n Command Register
@@ -311,11 +314,14 @@ enum {
 #define W5500_Sn_IMR_DISCON              (1 << 1) // DISCONNECTED Interrupt Mask
 #define W5500_Sn_IMR_CON                 (1 << 0) // CONNECTED Interrupt Mask
 
+#define W5500_TX_BUFSIZE  (W5500_INIT_S0_TXBUF_SIZE * 1024)
+#define W5500_TX_QUEUELEN ((W5500_TX_BUFSIZE * 27) / (1536 * 20))
+
 struct w5500if {
 	s32 chan;
 	s32 dev;
 	s32 txQueued;
-	u16 txQueue[10];
+	u16 txQueue[W5500_TX_QUEUELEN + 1];
 	lwpq_t unlockQueue;
 	struct eth_addr *ethaddr;
 };
@@ -472,11 +478,10 @@ static s32 ExiHandler(s32 chan, s32 dev)
 			W5500_WriteReg(chan, W5500_S0_IR, W5500_Sn_IR_SENDOK);
 
 			if (w5500if->txQueued) {
-				w5500if->txQueued--;
 				memmove(&w5500if->txQueue[0], &w5500if->txQueue[1], w5500if->txQueued * sizeof(u16));
 
-				if (w5500if->txQueued) {
-					W5500_WriteReg16(chan, W5500_S0_TX_WR, w5500if->txQueue[0]);
+				if (--w5500if->txQueued) {
+					W5500_WriteReg16(chan, W5500_S0_TX_WR, w5500if->txQueue[1]);
 					W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_SEND);
 				}
 			}
@@ -581,8 +586,8 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 	err |= !W5500_WriteReg(chan, W5500_SHAR4, w5500if->ethaddr->addr[4]);
 	err |= !W5500_WriteReg(chan, W5500_SHAR5, w5500if->ethaddr->addr[5]);
 
-	err |= !W5500_WriteReg(chan, W5500_S0_RXBUF_SIZE, 16);
-	err |= !W5500_WriteReg(chan, W5500_S0_TXBUF_SIZE, 16);
+	err |= !W5500_WriteReg(chan, W5500_S0_RXBUF_SIZE, W5500_INIT_S0_RXBUF_SIZE);
+	err |= !W5500_WriteReg(chan, W5500_S0_TXBUF_SIZE, W5500_INIT_S0_TXBUF_SIZE);
 
 	for (int n = 1; n < 8; n++) {
 		err |= !W5500_WriteReg(chan, W5500_REG_S(n, Sn_RXBUF_SIZE), 0);
@@ -635,7 +640,8 @@ static err_t w5500_output(struct netif *netif, struct pbuf *p)
 		return ERR_CONN;
 	}
 
-	if (w5500if->txQueued < 0 || w5500if->txQueued >= 10) {
+	if (w5500if->txQueued < 0 || w5500if->txQueued >= W5500_TX_QUEUELEN ||
+		(u16)(w5500if->txQueue[w5500if->txQueued] - w5500if->txQueue[0]) > (W5500_TX_BUFSIZE - p->tot_len)) {
 		IRQ_Restore(level);
 		return ERR_IF;
 	}
@@ -644,17 +650,17 @@ static err_t w5500_output(struct netif *netif, struct pbuf *p)
 		LWP_ThreadSleep(w5500if->unlockQueue);
 	IRQ_Restore(level);
 
-	u16 wr = w5500if->txQueue[w5500if->txQueued ? w5500if->txQueued - 1 : 0];
+	u16 wr = w5500if->txQueue[w5500if->txQueued];
 
 	for (struct pbuf *q = p; q; q = q->next) {
 		W5500_WriteCmd(chan, W5500_TXBUF_S(0, wr), q->payload, q->len);
 		wr += q->len;
 	}
 
-	w5500if->txQueue[w5500if->txQueued++] = wr;
+	w5500if->txQueue[++w5500if->txQueued] = wr;
 
 	if (w5500if->txQueued == 1) {
-		W5500_WriteReg16(chan, W5500_S0_TX_WR, w5500if->txQueue[0]);
+		W5500_WriteReg16(chan, W5500_S0_TX_WR, w5500if->txQueue[1]);
 		W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_SEND);
 	}
 

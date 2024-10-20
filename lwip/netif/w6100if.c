@@ -49,6 +49,9 @@ static vu32 *const _piReg = (u32 *)0xCC003000;
 #define W6100_TXBUF_S(n, addr) (W6100_BSB(n * 4 + 2) | W6100_ADDR(addr))
 #define W6100_RXBUF_S(n, addr) (W6100_BSB(n * 4 + 3) | W6100_ADDR(addr))
 
+#define W6100_INIT_S0_TX_BSR (16)
+#define W6100_INIT_S0_RX_BSR (16)
+
 enum {
 	Sn_MR      = 0x0000, // Socket n Mode Register
 	Sn_PSR     = 0x0004, // Socket n Prefer Source IPv6 Address Register
@@ -670,11 +673,14 @@ enum {
 #define W6100_Sn_MR2_DHAM               (1 << 1) // Destination Hardware Address Mode
 #define W6100_Sn_MR2_FARP               (1 << 0) // Force ARP
 
+#define W6100_TX_BUFSIZE  (W6100_INIT_S0_TX_BSR * 1024)
+#define W6100_TX_QUEUELEN ((W6100_TX_BUFSIZE * 27) / (1536 * 20))
+
 struct w6100if {
 	s32 chan;
 	s32 dev;
 	s32 txQueued;
-	u16 txQueue[10];
+	u16 txQueue[W6100_TX_QUEUELEN + 1];
 	lwpq_t unlockQueue;
 	struct eth_addr *ethaddr;
 };
@@ -830,11 +836,10 @@ static s32 ExiHandler(s32 chan, s32 dev)
 			W6100_WriteReg(chan, W6100_S0_IRCLR, W6100_Sn_IRCLR_SENDOK);
 
 			if (w6100if->txQueued) {
-				w6100if->txQueued--;
 				memmove(&w6100if->txQueue[0], &w6100if->txQueue[1], w6100if->txQueued * sizeof(u16));
 
-				if (w6100if->txQueued) {
-					W6100_WriteReg16(chan, W6100_S0_TX_WR, w6100if->txQueue[0]);
+				if (--w6100if->txQueued) {
+					W6100_WriteReg16(chan, W6100_S0_TX_WR, w6100if->txQueue[1]);
 					W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_SEND);
 				}
 			}
@@ -943,8 +948,8 @@ static bool W6100_Init(s32 chan, s32 dev, struct w6100if *w6100if)
 	err |= !W6100_WriteReg(chan, W6100_SHAR5, w6100if->ethaddr->addr[5]);
 	err |= !W6100_WriteReg(chan, W6100_NETLCKR, W6100_NETLCKR_LOCK);
 
-	err |= !W6100_WriteReg(chan, W6100_S0_TX_BSR, 16);
-	err |= !W6100_WriteReg(chan, W6100_S0_RX_BSR, 16);
+	err |= !W6100_WriteReg(chan, W6100_S0_TX_BSR, W6100_INIT_S0_TX_BSR);
+	err |= !W6100_WriteReg(chan, W6100_S0_RX_BSR, W6100_INIT_S0_RX_BSR);
 
 	for (int n = 1; n < 8; n++) {
 		err |= !W6100_WriteReg(chan, W6100_REG_S(n, Sn_TX_BSR), 0);
@@ -997,7 +1002,8 @@ static err_t w6100_output(struct netif *netif, struct pbuf *p)
 		return ERR_CONN;
 	}
 
-	if (w6100if->txQueued < 0 || w6100if->txQueued >= 10) {
+	if (w6100if->txQueued < 0 || w6100if->txQueued >= W6100_TX_QUEUELEN ||
+		(u16)(w6100if->txQueue[w6100if->txQueued] - w6100if->txQueue[0]) > (W6100_TX_BUFSIZE - p->tot_len)) {
 		IRQ_Restore(level);
 		return ERR_IF;
 	}
@@ -1006,17 +1012,17 @@ static err_t w6100_output(struct netif *netif, struct pbuf *p)
 		LWP_ThreadSleep(w6100if->unlockQueue);
 	IRQ_Restore(level);
 
-	u16 wr = w6100if->txQueue[w6100if->txQueued ? w6100if->txQueued - 1 : 0];
+	u16 wr = w6100if->txQueue[w6100if->txQueued];
 
 	for (struct pbuf *q = p; q; q = q->next) {
 		W6100_WriteCmd(chan, W6100_TXBUF_S(0, wr), q->payload, q->len);
 		wr += q->len;
 	}
 
-	w6100if->txQueue[w6100if->txQueued++] = wr;
+	w6100if->txQueue[++w6100if->txQueued] = wr;
 
 	if (w6100if->txQueued == 1) {
-		W6100_WriteReg16(chan, W6100_S0_TX_WR, w6100if->txQueue[0]);
+		W6100_WriteReg16(chan, W6100_S0_TX_WR, w6100if->txQueue[1]);
 		W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_SEND);
 	}
 
