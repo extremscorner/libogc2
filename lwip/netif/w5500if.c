@@ -322,6 +322,7 @@ struct w5500if {
 	s32 dev;
 	s32 txQueued;
 	u16 txQueue[W5500_TX_QUEUELEN + 1];
+	u16 rxQueue;
 	lwpq_t unlockQueue;
 	struct eth_addr *ethaddr;
 };
@@ -371,6 +372,7 @@ static bool W5500_WriteReg(s32 chan, W5500Reg addr, u8 data)
 	return W5500_WriteCmd(chan, W5500_OM(1) | addr, &data, 1);
 }
 
+#if 0
 static bool W5500_ReadReg16(s32 chan, W5500Reg16 addr, u16 *data)
 {
 	u16 tmp;
@@ -383,6 +385,7 @@ static bool W5500_ReadReg16(s32 chan, W5500Reg16 addr, u16 *data)
 
 	return true;
 }
+#endif
 
 static bool W5500_WriteReg16(s32 chan, W5500Reg16 addr, u16 data)
 {
@@ -490,12 +493,14 @@ static s32 ExiHandler(s32 chan, s32 dev)
 		if (ir & W5500_Sn_IR_RECV) {
 			W5500_WriteReg(chan, W5500_S0_IR, W5500_Sn_IR_RECV);
 
-			u16 rd, size;
-			W5500_ReadReg16(chan, W5500_S0_RX_RD, &rd);
-			W5500_ReadCmd(chan, W5500_RXBUF_S(0, rd), &size, sizeof(size));
-			rd += sizeof(size);
+			u16 rs, rd = w5500if->rxQueue;
+			W5500_ReadCmd(chan, W5500_RXBUF_S(0, rd), &rs, sizeof(rs));
+			w5500if->rxQueue = rd + rs;
 
-			struct pbuf *p = pbuf_alloc(PBUF_RAW, size - sizeof(size), PBUF_POOL);
+			rd += sizeof(rs);
+			rs -= sizeof(rs);
+
+			struct pbuf *p = pbuf_alloc(PBUF_RAW, rs, PBUF_POOL);
 
 			for (struct pbuf *q = p; q; q = q->next) {
 				W5500_ReadCmd(chan, W5500_RXBUF_S(0, rd), q->payload, q->len);
@@ -504,7 +509,7 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 			if (p) w5500_netif->input(p, w5500_netif);
 
-			W5500_WriteReg16(chan, W5500_S0_RX_RD, rd);
+			W5500_WriteReg16(chan, W5500_S0_RX_RD, w5500if->rxQueue);
 			W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_RECV);
 		}
 	}
@@ -575,6 +580,7 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 	w5500if->dev = dev;
 	w5500if->txQueued = 0;
 	w5500if->txQueue[0] = 0;
+	w5500if->rxQueue = 0;
 
 	err |= !W5500_Reset(chan);
 

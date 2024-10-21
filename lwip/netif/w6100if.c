@@ -681,6 +681,7 @@ struct w6100if {
 	s32 dev;
 	s32 txQueued;
 	u16 txQueue[W6100_TX_QUEUELEN + 1];
+	u16 rxQueue;
 	lwpq_t unlockQueue;
 	struct eth_addr *ethaddr;
 };
@@ -848,12 +849,14 @@ static s32 ExiHandler(s32 chan, s32 dev)
 		if (ir & W6100_Sn_IR_RECV) {
 			W6100_WriteReg(chan, W6100_S0_IRCLR, W6100_Sn_IRCLR_RECV);
 
-			u16 rd, size;
-			W6100_ReadReg16(chan, W6100_S0_RX_RD, &rd);
-			W6100_ReadCmd(chan, W6100_RXBUF_S(0, rd), &size, sizeof(size));
-			rd += sizeof(size);
+			u16 rs, rd = w6100if->rxQueue;
+			W6100_ReadCmd(chan, W6100_RXBUF_S(0, rd), &rs, sizeof(rs));
+			w6100if->rxQueue = rd + rs;
 
-			struct pbuf *p = pbuf_alloc(PBUF_RAW, size - sizeof(size), PBUF_POOL);
+			rd += sizeof(rs);
+			rs -= sizeof(rs);
+
+			struct pbuf *p = pbuf_alloc(PBUF_RAW, rs, PBUF_POOL);
 
 			for (struct pbuf *q = p; q; q = q->next) {
 				W6100_ReadCmd(chan, W6100_RXBUF_S(0, rd), q->payload, q->len);
@@ -862,7 +865,7 @@ static s32 ExiHandler(s32 chan, s32 dev)
 
 			if (p) w6100_netif->input(p, w6100_netif);
 
-			W6100_WriteReg16(chan, W6100_S0_RX_RD, rd);
+			W6100_WriteReg16(chan, W6100_S0_RX_RD, w6100if->rxQueue);
 			W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_RECV);
 		}
 	}
@@ -935,6 +938,7 @@ static bool W6100_Init(s32 chan, s32 dev, struct w6100if *w6100if)
 	w6100if->dev = dev;
 	w6100if->txQueued = 0;
 	w6100if->txQueue[0] = 0;
+	w6100if->rxQueue = 0;
 
 	err |= !W6100_Reset(chan);
 
