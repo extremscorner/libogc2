@@ -1990,7 +1990,7 @@ s32 SMB_WriteFile(const char *buffer, size_t size, off_t offset, SMBFILE sfid)
 		if(ret<0) goto failed;
 	}
 
-	ret = 0;
+	ret = SMB_ERROR;
 	if(SMBCheck(SMB_WRITE_ANDX,handle)==SMB_SUCCESS) {
 		ptr = handle->message.smb;
 		ret = getUShort(ptr,(SMB_HEADER_SIZE+5));
