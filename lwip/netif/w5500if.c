@@ -324,6 +324,7 @@ struct w5500if {
 	u16 txQueue[W5500_TX_QUEUELEN + 1];
 	u16 rxQueue;
 	lwpq_t unlockQueue;
+	lwpq_t syncQueue;
 	struct eth_addr *ethaddr;
 };
 
@@ -488,6 +489,8 @@ static s32 ExiHandler(s32 chan, s32 dev)
 					W5500_WriteReg(chan, W5500_S0_CR, W5500_Sn_CR_SEND);
 				}
 			}
+
+			LWP_ThreadSignal(w5500if->syncQueue);
 		}
 
 		if (ir & W5500_Sn_IR_RECV) {
@@ -646,10 +649,12 @@ static err_t w5500_output(struct netif *netif, struct pbuf *p)
 		return ERR_CONN;
 	}
 
-	if (w5500if->txQueued < 0 || w5500if->txQueued >= W5500_TX_QUEUELEN ||
+	while (w5500if->txQueued < 0 || w5500if->txQueued >= W5500_TX_QUEUELEN ||
 		(u16)(w5500if->txQueue[w5500if->txQueued] - w5500if->txQueue[0]) > (W5500_TX_BUFSIZE - p->tot_len)) {
-		IRQ_Restore(level);
-		return ERR_IF;
+		if (LWP_ThreadSleep(w5500if->syncQueue)) {
+			IRQ_Restore(level);
+			return ERR_IF;
+		}
 	}
 
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
@@ -697,6 +702,7 @@ err_t w5500if_init(struct netif *netif)
 	netif->flags = NETIF_FLAG_BROADCAST;
 
 	LWP_InitQueue(&w5500if->unlockQueue);
+	LWP_InitQueue(&w5500if->syncQueue);
 
 	w5500if->ethaddr = (struct eth_addr *)netif->hwaddr;
 	w5500_netif = netif;
@@ -721,6 +727,7 @@ err_t w5500if_init(struct netif *netif)
 		}
 	}
 
+	LWP_CloseQueue(w5500if->syncQueue);
 	LWP_CloseQueue(w5500if->unlockQueue);
 
 	mem_free(w5500if);

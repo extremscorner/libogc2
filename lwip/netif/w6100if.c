@@ -683,6 +683,7 @@ struct w6100if {
 	u16 txQueue[W6100_TX_QUEUELEN + 1];
 	u16 rxQueue;
 	lwpq_t unlockQueue;
+	lwpq_t syncQueue;
 	struct eth_addr *ethaddr;
 };
 
@@ -844,6 +845,8 @@ static s32 ExiHandler(s32 chan, s32 dev)
 					W6100_WriteReg(chan, W6100_S0_CR, W6100_Sn_CR_SEND);
 				}
 			}
+
+			LWP_ThreadSignal(w6100if->syncQueue);
 		}
 
 		if (ir & W6100_Sn_IR_RECV) {
@@ -1006,10 +1009,12 @@ static err_t w6100_output(struct netif *netif, struct pbuf *p)
 		return ERR_CONN;
 	}
 
-	if (w6100if->txQueued < 0 || w6100if->txQueued >= W6100_TX_QUEUELEN ||
+	while (w6100if->txQueued < 0 || w6100if->txQueued >= W6100_TX_QUEUELEN ||
 		(u16)(w6100if->txQueue[w6100if->txQueued] - w6100if->txQueue[0]) > (W6100_TX_BUFSIZE - p->tot_len)) {
-		IRQ_Restore(level);
-		return ERR_IF;
+		if (LWP_ThreadSleep(w6100if->syncQueue)) {
+			IRQ_Restore(level);
+			return ERR_IF;
+		}
 	}
 
 	while (!EXI_Lock(chan, dev, UnlockedHandler))
@@ -1057,6 +1062,7 @@ err_t w6100if_init(struct netif *netif)
 	netif->flags = NETIF_FLAG_BROADCAST;
 
 	LWP_InitQueue(&w6100if->unlockQueue);
+	LWP_InitQueue(&w6100if->syncQueue);
 
 	w6100if->ethaddr = (struct eth_addr *)netif->hwaddr;
 	w6100_netif = netif;
@@ -1081,6 +1087,7 @@ err_t w6100if_init(struct netif *netif)
 		}
 	}
 
+	LWP_CloseQueue(w6100if->syncQueue);
 	LWP_CloseQueue(w6100if->unlockQueue);
 
 	mem_free(w6100if);
