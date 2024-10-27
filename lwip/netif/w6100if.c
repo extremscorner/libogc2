@@ -955,6 +955,10 @@ static bool W6100_Init(s32 chan, s32 dev, struct w6100if *w6100if)
 	err |= !W6100_WriteReg(chan, W6100_SHAR5, w6100if->ethaddr->addr[5]);
 	err |= !W6100_WriteReg(chan, W6100_NETLCKR, W6100_NETLCKR_LOCK);
 
+	err |= !W6100_WriteReg(chan, W6100_PHYLCKR, W6100_PHYLCKR_UNLOCK);
+	err |= !W6100_WriteReg16(chan, W6100_PHYCR, W6100_PHYCR_MODE(0) | W6100_PHYCR_TE);
+	err |= !W6100_WriteReg(chan, W6100_PHYLCKR, W6100_PHYLCKR_LOCK);
+
 	err |= !W6100_WriteReg(chan, W6100_S0_TX_BSR, W6100_INIT_S0_TX_BSR);
 	err |= !W6100_WriteReg(chan, W6100_S0_RX_BSR, W6100_INIT_S0_RX_BSR);
 
