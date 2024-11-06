@@ -331,8 +331,8 @@ static void __sys_alarmhandler(void *arg)
 	__lwp_thread_dispatchdisable();
 	alarm = (alarm_st*)__lwp_objmgr_getnoprotection(&sys_alarm_objects,LWP_OBJMASKID(thealarm));
 	if(alarm) {
-		if(alarm->alarmhandler) alarm->alarmhandler(thealarm,alarm->cb_arg);
 		if(alarm->periodic) __lwp_wd_insert_ticks(&alarm->alarm,alarm->periodic);
+		if(alarm->alarmhandler) alarm->alarmhandler(thealarm,alarm->cb_arg);
 	}
 	__lwp_thread_dispatchunnest();
 }
