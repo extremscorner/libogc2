@@ -968,7 +968,7 @@ static bool diio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 
 static bool diio_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
 {
-	return true;
+	return false;
 }
 
 static bool diio_ClearStatus(void)

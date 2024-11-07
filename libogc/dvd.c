@@ -3668,6 +3668,7 @@ static bool __gcode_WriteSectors(sec_t sector,sec_t numSectors,const void *buffe
 {
 	dvdcmdblk blk;
 
+	if(!(__io_gcode.features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
