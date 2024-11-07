@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ogcsys.h>
 #include <gccore.h>
-#include <ogc/lwp_watchdog.h>
+#include <ogc/timesupp.h>
 #include <ogc/machine/processor.h>
 
 #include "aesndlib.h"

@@ -6,7 +6,7 @@
  ****************************************************************************/
 
 #include <errno.h>
-#include <ogc/lwp_watchdog.h>
+#include <ogc/timesupp.h>
 #include <ogcsys.h>
 #include <stdio.h>
 #include <stdlib.h>

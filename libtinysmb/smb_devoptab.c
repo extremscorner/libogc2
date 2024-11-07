@@ -14,8 +14,8 @@
 #include <dirent.h>
 
 #include <ogc/lwp.h>
-#include <ogc/lwp_watchdog.h>
 #include <ogc/mutex.h>
+#include <ogc/timesupp.h>
 
 #include "smb.h"
 

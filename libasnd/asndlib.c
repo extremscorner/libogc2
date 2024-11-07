@@ -31,7 +31,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ogcsys.h>
 #include <gccore.h>
-#include <ogc/lwp_watchdog.h>
+#include <ogc/timesupp.h>
 #include <ogc/machine/processor.h>
 
 #include "asndlib.h"

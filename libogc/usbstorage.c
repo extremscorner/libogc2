@@ -42,7 +42,7 @@ distribution.
 #include "asm.h"
 #include "processor.h"
 #include "disc_io.h"
-#include "lwp_watchdog.h"
+#include "timesupp.h"
 
 #define	HEAP_SIZE					(18*1024)
 #define	TAG_START					0x0BADC0DE

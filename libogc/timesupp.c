@@ -129,8 +129,8 @@ int __syscall_clock_getres(clockid_t clock_id, struct timespec *res)
 	switch (clock_id) {
 		case CLOCK_REALTIME:
 		case CLOCK_MONOTONIC:
-			res->tv_sec = 0;
-			res->tv_nsec = ticks_to_nanosecs(1);
+			res->tv_sec = ticks_to_secs(1);
+			res->tv_nsec = tick_nanosecs(1);
 			return 0;
 		default:
 			errno = EINVAL;

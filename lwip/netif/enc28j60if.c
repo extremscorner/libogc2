@@ -29,10 +29,10 @@ distribution.
 #include <ogc/exi.h>
 #include <ogc/irq.h>
 #include <ogc/lwp.h>
-#include <ogc/lwp_watchdog.h>
 #include <ogc/machine/asm.h>
 #include <ogc/machine/processor.h>
 #include <ogc/semaphore.h>
+#include <ogc/timesupp.h>
 #include <unistd.h>
 #include "lwip/debug.h"
 #include "lwip/err.h"

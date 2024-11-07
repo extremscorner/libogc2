@@ -41,7 +41,7 @@ distribution.
 #include "cache.h"
 #include "dsp.h"
 #include "lwp.h"
-#include "lwp_watchdog.h"
+#include "timesupp.h"
 #include "exi.h"
 #include "card.h"
 

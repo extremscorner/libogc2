@@ -9,7 +9,7 @@
 #include "system.h"
 #include "video.h"
 #include "video_types.h"
-#include "lwp_watchdog.h"
+#include "timesupp.h"
 #include "gx.h"
 #include "gx_regdef.h"
 
