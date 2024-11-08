@@ -3558,7 +3558,7 @@ u32 DVD_SetAutoInvalidation(u32 auto_inv)
 	return ret;
 }
 
-static bool __gcdvd_Startup(void)
+static bool __gcdvd_Startup(DISC_INTERFACE *disc)
 {
 	DVD_Init();
 
@@ -3574,7 +3574,7 @@ static bool __gcdvd_Startup(void)
 	return true;
 }
 
-static bool __gcdvd_IsInserted(void)
+static bool __gcdvd_IsInserted(DISC_INTERFACE *disc)
 {
 	u32 status = 0;
 	DVD_LowGetStatus(&status, NULL);
@@ -3585,7 +3585,7 @@ static bool __gcdvd_IsInserted(void)
 	return false;
 }
 
-static bool __gcdvd_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
+static bool __gcdvd_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
@@ -3599,24 +3599,24 @@ static bool __gcdvd_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 	return true;
 }
 
-static bool __gcdvd_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
+static bool __gcdvd_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,const void *buffer)
 {
 	return false;
 }
 
-static bool __gcdvd_ClearStatus(void)
+static bool __gcdvd_ClearStatus(DISC_INTERFACE *disc)
 {
 	return true;
 }
 
-static bool __gcdvd_Shutdown(void)
+static bool __gcdvd_Shutdown(DISC_INTERFACE *disc)
 {
 	dvdcmdblk blk;
 	DVD_StopMotor(&blk);
 	return true;
 }
 
-static bool __gcode_Startup(void)
+static bool __gcode_Startup(DISC_INTERFACE *disc)
 {
 	dvdcmdblk blk;
 
@@ -3629,16 +3629,16 @@ static bool __gcode_Startup(void)
 		return false;
 
 	if(__dvd_driveinfo.pad[1] == 'w')
-		__io_gcode.features |= FEATURE_MEDIUM_CANWRITE;
+		disc->features |= FEATURE_MEDIUM_CANWRITE;
 	else
-		__io_gcode.features &= ~FEATURE_MEDIUM_CANWRITE;
+		disc->features &= ~FEATURE_MEDIUM_CANWRITE;
 
 	__dvd_gcode_writebufsize = __dvd_driveinfo.pad[3] + 1;
 
 	return true;
 }
 
-static bool __gcode_IsInserted(void)
+static bool __gcode_IsInserted(DISC_INTERFACE *disc)
 {
 	if(DVD_LowGetCoverStatus() == 1)
 		return false;
@@ -3646,7 +3646,7 @@ static bool __gcode_IsInserted(void)
 	return true;
 }
 
-static bool __gcode_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
+static bool __gcode_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
@@ -3660,11 +3660,11 @@ static bool __gcode_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 	return true;
 }
 
-static bool __gcode_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
+static bool __gcode_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,const void *buffer)
 {
 	dvdcmdblk blk;
 
-	if(!(__io_gcode.features & FEATURE_MEDIUM_CANWRITE)) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
@@ -3675,12 +3675,12 @@ static bool __gcode_WriteSectors(sec_t sector,sec_t numSectors,const void *buffe
 	return true;
 }
 
-static bool __gcode_ClearStatus(void)
+static bool __gcode_ClearStatus(DISC_INTERFACE *disc)
 {
 	return true;
 }
 
-static bool __gcode_Shutdown(void)
+static bool __gcode_Shutdown(DISC_INTERFACE *disc)
 {
 	return true;
 }

@@ -46,12 +46,14 @@
 
 typedef uint64_t sec_t;
 
-typedef bool (* FN_MEDIUM_STARTUP)(void) ;
-typedef bool (* FN_MEDIUM_ISINSERTED)(void) ;
-typedef bool (* FN_MEDIUM_READSECTORS)(sec_t sector, sec_t numSectors, void* buffer) ;
-typedef bool (* FN_MEDIUM_WRITESECTORS)(sec_t sector, sec_t numSectors, const void* buffer) ;
-typedef bool (* FN_MEDIUM_CLEARSTATUS)(void) ;
-typedef bool (* FN_MEDIUM_SHUTDOWN)(void) ;
+typedef struct DISC_INTERFACE_STRUCT DISC_INTERFACE ;
+
+typedef bool (* FN_MEDIUM_STARTUP)(DISC_INTERFACE* disc) ;
+typedef bool (* FN_MEDIUM_ISINSERTED)(DISC_INTERFACE* disc) ;
+typedef bool (* FN_MEDIUM_READSECTORS)(DISC_INTERFACE* disc, sec_t sector, sec_t numSectors, void* buffer) ;
+typedef bool (* FN_MEDIUM_WRITESECTORS)(DISC_INTERFACE* disc, sec_t sector, sec_t numSectors, const void* buffer) ;
+typedef bool (* FN_MEDIUM_CLEARSTATUS)(DISC_INTERFACE* disc) ;
+typedef bool (* FN_MEDIUM_SHUTDOWN)(DISC_INTERFACE* disc) ;
 
 struct DISC_INTERFACE_STRUCT {
 	unsigned long			ioType ;
@@ -63,7 +65,5 @@ struct DISC_INTERFACE_STRUCT {
 	FN_MEDIUM_CLEARSTATUS	clearStatus ;
 	FN_MEDIUM_SHUTDOWN		shutdown ;
 } ;
-
-typedef struct DISC_INTERFACE_STRUCT DISC_INTERFACE ;
 
 #endif	// define OGC_DISC_IO_INCLUDE

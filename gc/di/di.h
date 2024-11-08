@@ -88,7 +88,7 @@ typedef int(*read_func)(void*,uint32_t,uint32_t);
 typedef int(*read_func_async)(void*,uint32_t,uint32_t,ipccallback);
 
 extern int di_fd;
-extern const DISC_INTERFACE __io_wiidvd;
+extern DISC_INTERFACE __io_wiidvd;
 
 int DI_Init(void);
 void DI_LoadDVDX(bool load);

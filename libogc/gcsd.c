@@ -123,108 +123,108 @@ static bool __gcsd_shutdown(int n)
 }
 
 
-static bool __gcsda_startup(void)
+static bool __gcsda_startup(DISC_INTERFACE *disc)
 {
 	bool ret;
 
 	ret = __gcsd_startup(0);
 
 	if(sdgecko_getDevice(0) == EXI_DEVICE_0) {
-		__io_gcsda.features |= FEATURE_GAMECUBE_SLOTA;
-		__io_gcsda.features &= ~FEATURE_GAMECUBE_PORT1;
+		disc->features |= FEATURE_GAMECUBE_SLOTA;
+		disc->features &= ~FEATURE_GAMECUBE_PORT1;
 	} else {
-		__io_gcsda.features |= FEATURE_GAMECUBE_PORT1;
-		__io_gcsda.features &= ~FEATURE_GAMECUBE_SLOTA;
+		disc->features |= FEATURE_GAMECUBE_PORT1;
+		disc->features &= ~FEATURE_GAMECUBE_SLOTA;
 	}
 
 	return ret;
 }
 
-static bool __gcsda_isInserted(void)
+static bool __gcsda_isInserted(DISC_INTERFACE *disc)
 {
 	return __gcsd_isInserted(0);
 }
 
-static bool __gcsda_readSectors(sec_t sector, sec_t numSectors, void *buffer)
+static bool __gcsda_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
 	return __gcsd_readSectors(0, sector, numSectors, buffer);
 }
 
-static bool __gcsda_writeSectors(sec_t sector, sec_t numSectors, const void *buffer)
+static bool __gcsda_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return __gcsd_writeSectors(0, sector, numSectors, buffer);
 }
 
-static bool __gcsda_clearStatus(void)
+static bool __gcsda_clearStatus(DISC_INTERFACE *disc)
 {
 	return __gcsd_clearStatus(0);
 }
 
-static bool __gcsda_shutdown(void)
+static bool __gcsda_shutdown(DISC_INTERFACE *disc)
 {
 	return __gcsd_shutdown(0);
 }
 
 
 
-static bool __gcsdb_startup(void)
+static bool __gcsdb_startup(DISC_INTERFACE *disc)
 {
 	return __gcsd_startup(1);
 }
 
-static bool __gcsdb_isInserted(void)
+static bool __gcsdb_isInserted(DISC_INTERFACE *disc)
 {
 	return __gcsd_isInserted(1);
 }
 
-static bool __gcsdb_readSectors(sec_t sector, sec_t numSectors, void *buffer)
+static bool __gcsdb_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
 	return __gcsd_readSectors(1, sector, numSectors, buffer);
 }
 
-static bool __gcsdb_writeSectors(sec_t sector, sec_t numSectors, const void *buffer)
+static bool __gcsdb_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return __gcsd_writeSectors(1, sector, numSectors, buffer);
 }
 
-static bool __gcsdb_clearStatus(void)
+static bool __gcsdb_clearStatus(DISC_INTERFACE *disc)
 {
 	return __gcsd_clearStatus(1);
 }
 
-static bool __gcsdb_shutdown(void)
+static bool __gcsdb_shutdown(DISC_INTERFACE *disc)
 {
 	return __gcsd_shutdown(1);
 }
 
 
 
-static bool __gcsd2_startup(void)
+static bool __gcsd2_startup(DISC_INTERFACE *disc)
 {
 	return __gcsd_startup(2);
 }
 
-static bool __gcsd2_isInserted(void)
+static bool __gcsd2_isInserted(DISC_INTERFACE *disc)
 {
 	return __gcsd_isInserted(2);
 }
 
-static bool __gcsd2_readSectors(sec_t sector, sec_t numSectors, void *buffer)
+static bool __gcsd2_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
 	return __gcsd_readSectors(2, sector, numSectors, buffer);
 }
 
-static bool __gcsd2_writeSectors(sec_t sector, sec_t numSectors, const void *buffer)
+static bool __gcsd2_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return __gcsd_writeSectors(2, sector, numSectors, buffer);
 }
 
-static bool __gcsd2_clearStatus(void)
+static bool __gcsd2_clearStatus(DISC_INTERFACE *disc)
 {
 	return __gcsd_clearStatus(2);
 }
 
-static bool __gcsd2_shutdown(void)
+static bool __gcsd2_shutdown(DISC_INTERFACE *disc)
 {
 	return __gcsd_shutdown(2);
 }

@@ -858,7 +858,7 @@ The following is for implementing a DISC_INTERFACE
 as used by libfat
 */
 
-static bool __usbstorage_Startup(void)
+static bool __usbstorage_Startup(DISC_INTERFACE *disc)
 {
 	if(USB_Initialize() < 0 || USBStorage_Initialize() < 0)
 		return false;
@@ -866,7 +866,7 @@ static bool __usbstorage_Startup(void)
 	return true;
 }
 
-static bool __usbstorage_IsInserted(void)
+static bool __usbstorage_IsInserted(DISC_INTERFACE *disc)
 {
 	usb_device_entry *buffer;
 	u8 device_count;
@@ -969,7 +969,7 @@ static bool __usbstorage_IsInserted(void)
 	return __mounted;
 }
 
-static bool __usbstorage_ReadSectors(sec_t sector, sec_t numSectors, void *buffer)
+static bool __usbstorage_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
 	s32 retval;
 
@@ -981,7 +981,7 @@ static bool __usbstorage_ReadSectors(sec_t sector, sec_t numSectors, void *buffe
 	return retval >= 0;
 }
 
-static bool __usbstorage_WriteSectors(sec_t sector, sec_t numSectors, const void *buffer)
+static bool __usbstorage_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	s32 retval;
 
@@ -993,12 +993,12 @@ static bool __usbstorage_WriteSectors(sec_t sector, sec_t numSectors, const void
 	return retval >= 0;
 }
 
-static bool __usbstorage_ClearStatus(void)
+static bool __usbstorage_ClearStatus(DISC_INTERFACE *disc)
 {
 	return true;
 }
 
-static bool __usbstorage_Shutdown(void)
+static bool __usbstorage_Shutdown(DISC_INTERFACE *disc)
 {
 	if (__vid != 0 || __pid != 0)
 		USBStorage_Close(&__usbfd);
@@ -1008,7 +1008,7 @@ static bool __usbstorage_Shutdown(void)
 
 void USBStorage_Deinitialize(void)
 {
-	__usbstorage_Shutdown();
+	__usbstorage_Shutdown(&__io_usbstorage);
 	LWP_CloseQueue(__usbstorage_waitq);
 	__inited = false;
 }

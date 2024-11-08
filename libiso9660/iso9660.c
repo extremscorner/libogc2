@@ -79,7 +79,7 @@ typedef struct dentry_s
 
 typedef struct iso9660mount_s
 {
-	const DISC_INTERFACE *disc_interface;
+	DISC_INTERFACE *disc_interface;
 	u8 read_buffer[BUFFER_SIZE] __attribute__((aligned(32)));
 	u8 cluster_buffer[BUFFER_SIZE] __attribute__((aligned(32)));
 	u32 cache_start;
@@ -118,7 +118,7 @@ static int __read(MOUNT_DESCR *mdescr, void *ptr, u64 offset, size_t len)
 	u32 end_sector = (offset + len - 1) / SECTOR_SIZE;
 	u32 sectors = MIN(BUFFER_SIZE / SECTOR_SIZE, end_sector - sector + 1);
 	u32 sector_offset = offset % SECTOR_SIZE;
-	const DISC_INTERFACE *disc = mdescr->disc_interface;
+	DISC_INTERFACE *disc = mdescr->disc_interface;
 
 	len = MIN(BUFFER_SIZE - sector_offset, len);
 	if (mdescr->cache_sectors && sector >= mdescr->cache_start && (sector + sectors) <= (mdescr->cache_start + mdescr->cache_sectors))
@@ -127,7 +127,7 @@ static int __read(MOUNT_DESCR *mdescr, void *ptr, u64 offset, size_t len)
 		return len;
 	}
 
-	if (!disc->readSectors(sector, BUFFER_SIZE / SECTOR_SIZE, mdescr->read_buffer))
+	if (!disc->readSectors(disc, sector, BUFFER_SIZE / SECTOR_SIZE, mdescr->read_buffer))
 	{
 		mdescr->cache_sectors = 0;
 		return -1;
@@ -847,11 +847,11 @@ static void cleanup_recursive(PATH_ENTRY *entry)
 static struct pvd_s* read_volume_descriptor(MOUNT_DESCR *mdescr, u8 descriptor)
 {
 	u8 sector;
-	const DISC_INTERFACE *disc = mdescr->disc_interface;
+	DISC_INTERFACE *disc = mdescr->disc_interface;
 
 	for (sector = 16; sector < 32; sector++)
 	{
-		if (!disc->readSectors(sector, 1, mdescr->read_buffer))
+		if (!disc->readSectors(disc, sector, 1, mdescr->read_buffer))
 			return NULL;
 		if (!memcmp(mdescr->read_buffer + 1, "CD001\1", 6))
 		{
@@ -928,7 +928,7 @@ static bool read_directories(MOUNT_DESCR *mdescr)
 	return true;
 }
 
-static MOUNT_DESCR *_ISO9660_mdescr_constructor(const DISC_INTERFACE *disc_interface)
+static MOUNT_DESCR *_ISO9660_mdescr_constructor(DISC_INTERFACE *disc_interface)
 {
 	MOUNT_DESCR *mdescr = NULL;
 
@@ -951,7 +951,7 @@ static MOUNT_DESCR *_ISO9660_mdescr_constructor(const DISC_INTERFACE *disc_inter
 	return mdescr;
 }
 
-bool ISO9660_Mount(const char* name, const DISC_INTERFACE *disc_interface)
+bool ISO9660_Mount(const char *name, DISC_INTERFACE *disc_interface)
 {
 	char *nameCopy;
 	devoptab_t *devops = NULL;
@@ -961,10 +961,10 @@ bool ISO9660_Mount(const char* name, const DISC_INTERFACE *disc_interface)
 	if (!name || strlen(name) > 8 || !disc_interface)
 		return false;
 
-	if (!disc_interface->startup())
+	if (!disc_interface->startup(disc_interface))
 		return false;
 
-	if (!disc_interface->isInserted())
+	if (!disc_interface->isInserted(disc_interface))
 		return false;
 
 	sprintf(devname, "%s:", name);
@@ -1002,7 +1002,7 @@ bool ISO9660_Mount(const char* name, const DISC_INTERFACE *disc_interface)
 }
 
 
-bool ISO9660_Unmount(const char* name)
+bool ISO9660_Unmount(const char *name)
 {
 	devoptab_t *devops;
 	MOUNT_DESCR *mdescr;
