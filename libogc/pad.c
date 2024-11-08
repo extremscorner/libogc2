@@ -78,8 +78,6 @@ static sys_resetinfo pad_resetinfo = {
 	127
 };
 
-extern void udelay(int);
-
 static s32 __pad_onreset(s32 final)
 {
 	u32 ret;

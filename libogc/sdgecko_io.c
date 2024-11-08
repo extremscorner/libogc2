@@ -13,6 +13,7 @@
 #include "card_cmn.h"
 //#include "card_fat.h"
 #include "card_io.h"
+#include "timesupp.h"
 
 //#define _CARDIO_DEBUG
 #ifdef _CARDIO_DEBUG
@@ -85,8 +86,6 @@ static u16 _ioCrc16Table[2][256];
 static u32 _initType[MAX_DRIVE];
 static u32 _ioAddressingType[MAX_DRIVE];
 static u32 _ioTransferMode[MAX_DRIVE];
-
-extern unsigned long gettick(void);
 
 static __inline__ u32 __check_response(s32 drv_no,u8 res)
 {

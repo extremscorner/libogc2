@@ -45,6 +45,7 @@ distribution.
 #include "ogcsys.h"
 #include "system.h"
 #include "dvd.h"
+#include "timesupp.h"
 
 //#define _DVD_DEBUG
 
@@ -412,13 +413,8 @@ s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb);
 s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb);
 s32 DVD_GcodeLowWrite(u32 len,u32 offset,dvdcallbacklow cb);
 
-extern void udelay(int us);
-extern u32 diff_msec(unsigned long long start,unsigned long long end);
-extern void __MaskIrq(u32);
-extern void __UnmaskIrq(u32);
 extern syssramex* __SYS_LockSramEx(void);
 extern u32 __SYS_UnlockSramEx(u32 write);
-extern s64 __SYS_GetSystemTime(void);
 
 static u8 err2num(u32 errorcode)
 {

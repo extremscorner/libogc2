@@ -6,6 +6,7 @@
 #include "exi.h"
 #include "cache.h"
 #include "bba.h"
+#include "timesupp.h"
 #include "uip_pbuf.h"
 #include "uip_netif.h"
 #include "uip_arp.h"
@@ -229,11 +230,6 @@ static void bba_ins(u32 reg,void *val,u32 len);
 static void bba_outs(u32 reg,void *val,u32 len);
 
 static void bba_devpoll(u16 *pstatus);
-
-extern void udelay(int us);
-extern u32 diff_msec(long long start,long long end);
-extern u32 diff_usec(long long start,long long end);
-extern long long gettime();
 
 static __inline__ void bba_cmd_insnosel(u32 reg,void *val,u32 len)
 {

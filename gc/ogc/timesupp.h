@@ -48,17 +48,19 @@
 extern "C" {
 #endif
 
-extern u32 gettick(void);
-extern u64 gettime(void);
-extern void settime(u64);
+u32 gettick(void);
+u64 gettime(void);
+void settime(u64 time);
 
-extern void __SYS_SetTime(s64 time);
-extern s64 __SYS_GetSystemTime(void);
+void __SYS_SetTime(s64 time);
+s64 __SYS_GetSystemTime(void);
 
 u32 diff_sec(u64 start,u64 end);
 u32 diff_msec(u64 start,u64 end);
 u32 diff_usec(u64 start,u64 end);
 u32 diff_nsec(u64 start,u64 end);
+
+void udelay(u32 usec);
 
 #ifdef __cplusplus
 	}

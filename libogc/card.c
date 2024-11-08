@@ -41,9 +41,9 @@ distribution.
 #include "cache.h"
 #include "dsp.h"
 #include "lwp.h"
-#include "timesupp.h"
 #include "exi.h"
 #include "card.h"
+#include "timesupp.h"
 
 //#define _CARD_DEBUG
 

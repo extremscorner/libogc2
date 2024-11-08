@@ -35,8 +35,6 @@ static AESNDPB	*modvoice = NULL;
 #ifdef _GCMOD_DEBUG
 static u64 mixtime = 0;
 static u64 reqcbtime = 0;
-extern u32 diff_usec(unsigned long long start,unsigned long long end);
-extern u32 diff_msec(unsigned long long start,unsigned long long end);
 #endif
 
 static void* player(void *arg)

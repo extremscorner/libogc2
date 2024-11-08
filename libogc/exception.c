@@ -63,7 +63,6 @@ static int reload_timer = -1;
 
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
-extern void udelay(int us);
 extern void fpu_exceptionhandler(frame_context*);
 extern void irq_exceptionhandler(frame_context*);
 extern void dec_exceptionhandler(frame_context*);

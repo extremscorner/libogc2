@@ -45,8 +45,6 @@ static u8_t uip_reassflags;
 static u8_t uip_reasstmr;
 static s64 uip_reasstime = 0;
 
-extern s64 gettime(void);
-
 static struct uip_pbuf* uip_copyfrom_pbuf(struct uip_pbuf *p,u16_t *offset,u8_t *buffer,u16_t len)
 {
 	u16_t l;

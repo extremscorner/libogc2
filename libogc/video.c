@@ -45,6 +45,7 @@ video.c -- VIDEO subsystem
 #include "system.h"
 #include "video.h"
 #include "video_types.h"
+#include "timesupp.h"
 
 //#define _VIDEO_DEBUG
 
@@ -1652,8 +1653,6 @@ static VIPositionCallback positionCB = NULL;
 static vu16* const _viReg = (u16*)0xCC002000;
 
 extern void __VIClearFramebuffer(void*,u32,u32);
-
-extern void udelay(int us);
 
 #ifdef _VIDEO_DEBUG
 static u32 messages$128 = 0;
