@@ -9,16 +9,6 @@
 
 #include <sys/time.h>
 
-u32 gettick(void)
-{
-	u32 result;
-	__asm__ __volatile__ (
-		"mftb	%0\n"
-		: "=r" (result)
-	);
-	return result;
-}
-
 u64 gettime(void)
 {
 	u32 tmp;

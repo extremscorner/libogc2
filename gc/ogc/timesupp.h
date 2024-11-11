@@ -48,7 +48,11 @@
 extern "C" {
 #endif
 
-u32 gettick(void);
+static inline u32 gettick(void)
+{
+	return __builtin_ppc_mftb();
+}
+
 u64 gettime(void);
 void settime(u64 time);
 
