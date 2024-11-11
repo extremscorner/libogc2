@@ -50,6 +50,7 @@
 /**
  *	@brief Handle the handshake data from the wiiboard.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param wb		A pointer to a wii_board_t structure.
  *	@param data		The data read in from the device.
  *	@param len		The length of the data block, in bytes.
@@ -95,7 +96,7 @@ int wii_board_handshake(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* dat
 /**
  *	@brief The wii board disconnected.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param wb		A pointer to a wii_board_t structure.
  */
 void wii_board_disconnected(struct wii_board_t* wb)
 {
@@ -110,9 +111,9 @@ void wii_board_disconnected(struct wii_board_t* wb)
  *	@param msg		The message specified in the event packet.
  */
 void wii_board_event(struct wii_board_t* wb, ubyte* msg)
-{ 
-	wb->rtr = (msg[0]<<8)|msg[1];
-	wb->rbr = (msg[2]<<8)|msg[3];
-	wb->rtl = (msg[4]<<8)|msg[5];
-	wb->rbl = (msg[6]<<8)|msg[7];	
+{
+	wb->rtr = BIG_ENDIAN_SHORT(*(uword*)(msg + 0));
+	wb->rbr = BIG_ENDIAN_SHORT(*(uword*)(msg + 2));
+	wb->rtl = BIG_ENDIAN_SHORT(*(uword*)(msg + 4));
+	wb->rbl = BIG_ENDIAN_SHORT(*(uword*)(msg + 6));
 }

@@ -45,8 +45,10 @@
 #define WIIUSE_INTERNAL_H_INCLUDED
 
 #if defined(__linux__)
-	#include <arpa/inet.h>				/* htons() */
 	#include <bluetooth/bluetooth.h>
+	#include <endian.h>
+#else
+	#include <sys/endian.h>
 #endif
 
 #include "definitions.h"

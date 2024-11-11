@@ -47,11 +47,12 @@
 #include "classic.h"
 #include "io.h"
 
-static void classic_ctrl_pressed_buttons(struct classic_ctrl_t* cc, short now);
+static void classic_ctrl_pressed_buttons(struct classic_ctrl_t* cc, uword now);
 
 /**
  *	@brief Handle the handshake data from the classic controller.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param cc		A pointer to a classic_ctrl_t structure.
  *	@param data		The data read in from the device.
  *	@param len		The length of the data block, in bytes.
@@ -145,7 +146,6 @@ void classic_ctrl_disconnected(struct classic_ctrl_t* cc)
 }
 
 
-
 /**
  *	@brief Handle classic controller event.
  *
@@ -161,7 +161,7 @@ void classic_ctrl_event(struct classic_ctrl_t* cc, ubyte* msg) {
 		msg[i] = (msg[i] ^ 0x17) + 0x17;
 	*/
 	if (cc->type==2) {
-		classic_ctrl_pressed_buttons(cc, BIG_ENDIAN_SHORT(*(short*)(msg + 8)));
+		classic_ctrl_pressed_buttons(cc, LITTLE_ENDIAN_SHORT(*(uword*)(msg + 8)));
 
 		/* 12-bit little endian values adjusted to 8-bit */
 		cc->ljs.pos.x = (msg[0] >> 4) | (msg[1] << 4);
@@ -173,10 +173,10 @@ void classic_ctrl_event(struct classic_ctrl_t* cc, ubyte* msg) {
 		cc->rs_raw = cc->btns & CLASSIC_CTRL_BUTTON_FULL_R ? 0x1F : 0;
 	}
 	else {
-		classic_ctrl_pressed_buttons(cc, BIG_ENDIAN_SHORT(*(short*)(msg + 4)));
+		classic_ctrl_pressed_buttons(cc, LITTLE_ENDIAN_SHORT(*(uword*)(msg + 4)));
 
 		/* left/right buttons */
-		cc->ls_raw = (((msg[2] & 0x60) >> 2) | ((msg[3] & 0xE0) >> 5));
+		cc->ls_raw = ((msg[2] & 0x60) >> 2) | ((msg[3] & 0xE0) >> 5);
 		cc->rs_raw = (msg[3] & 0x1F);
 
 		/*
@@ -207,7 +207,7 @@ void classic_ctrl_event(struct classic_ctrl_t* cc, ubyte* msg) {
  *	@param cc		A pointer to a classic_ctrl_t structure.
  *	@param msg		The message byte specified in the event packet.
  */
-static void classic_ctrl_pressed_buttons(struct classic_ctrl_t* cc, short now) {
+static void classic_ctrl_pressed_buttons(struct classic_ctrl_t* cc, uword now) {
 	/* message is inverted (0 is active, 1 is inactive) */
 	now = ~now & CLASSIC_CTRL_BUTTON_ALL;
 

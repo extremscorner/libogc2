@@ -180,20 +180,26 @@
    extern "C" {
 #endif /* __cplusplus */
 
+#ifndef bswap16
 static inline u16 bswap16(u16 val)
 {
 	return __builtin_bswap16(val);
 }
+#endif
 
+#ifndef bswap32
 static inline u32 bswap32(u32 val)
 {
 	return __builtin_bswap32(val);
 }
+#endif
 
+#ifndef bswap64
 static inline u64 bswap64(u64 val)
 {
 	return __builtin_bswap64(val);
 }
+#endif
 
 // Basic I/O
 

@@ -47,12 +47,13 @@
 #include "guitar_hero_3.h"
 #include "io.h"
 
-static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now);
+static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, uword now);
 
 /**
  *	@brief Handle the handshake data from the guitar.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param wm		A pointer to a wiimote_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param data		The data read in from the device.
  *	@param len		The length of the data block, in bytes.
  *
@@ -96,7 +97,7 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, u
 /**
  *	@brief The guitar disconnected.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  */
 void guitar_hero_3_disconnected(struct guitar_hero_3_t* gh3) 
 {
@@ -104,11 +105,10 @@ void guitar_hero_3_disconnected(struct guitar_hero_3_t* gh3)
 }
 
 
-
 /**
  *	@brief Handle guitar event.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param msg		The message specified in the event packet.
  */
 void guitar_hero_3_event(struct guitar_hero_3_t* gh3, ubyte* msg) {
@@ -119,7 +119,7 @@ void guitar_hero_3_event(struct guitar_hero_3_t* gh3, ubyte* msg) {
 	for (i = 0; i < 6; ++i)
 		msg[i] = (msg[i] ^ 0x17) + 0x17;
 	*/
-	guitar_hero_3_pressed_buttons(gh3, BIG_ENDIAN_SHORT(*(short*)(msg + 4)));
+	guitar_hero_3_pressed_buttons(gh3, LITTLE_ENDIAN_SHORT(*(uword*)(msg + 4)));
 
 	gh3->js.pos.x = (msg[0] & GUITAR_HERO_3_JS_MASK);
 	gh3->js.pos.y = (msg[1] & GUITAR_HERO_3_JS_MASK);
@@ -161,10 +161,10 @@ void guitar_hero_3_event(struct guitar_hero_3_t* gh3, ubyte* msg) {
 /**
  *	@brief Find what buttons are pressed.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param msg		The message byte specified in the event packet.
  */
-static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now) {
+static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, uword now) {
 	/* message is inverted (0 is active, 1 is inactive) */
 	now = ~now & GUITAR_HERO_3_BUTTON_ALL;
 

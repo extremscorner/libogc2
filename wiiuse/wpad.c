@@ -327,7 +327,6 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 	data->ir.error_cnt = lstate->ir.error_cnt;
 	data->ir.glitch_cnt = lstate->ir.glitch_cnt;
 
-	data->btns_l = lstate->btns_h;
 	if(data->data_present & WPAD_DATA_ACCEL) {
 		calculate_orientation(accel_calib, &data->accel, &data->orient, smoothed);
 		calculate_gforce(accel_calib, &data->accel, &data->gforce);
@@ -345,7 +344,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 				calc_joystick_state(&nc->js,nc->js.pos.x,nc->js.pos.y);
 				calculate_orientation(&nc->accel_calib,&nc->accel,&nc->orient,smoothed);
 				calculate_gforce(&nc->accel_calib,&nc->accel,&nc->gforce);
-				data->btns_h |= (data->exp.nunchuk.btns<<16);
+				data->btns_h |= (nc->btns<<16);
 			}
 			break;
 
@@ -357,7 +356,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 				cc->l_shoulder = ((f32)cc->ls_raw/0x1F);
 				calc_joystick_state(&cc->ljs, cc->ljs.pos.x, cc->ljs.pos.y);
 				calc_joystick_state(&cc->rjs, cc->rjs.pos.x, cc->rjs.pos.y);
-				data->btns_h |= (data->exp.classic.btns<<16);
+				data->btns_h |= (cc->btns<<16);
 			}
 			break;
 
@@ -389,7 +388,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 
 				gh3->whammy_bar = (gh3->wb_raw - GUITAR_HERO_3_WHAMMY_BAR_MIN) / (float)(GUITAR_HERO_3_WHAMMY_BAR_MAX - GUITAR_HERO_3_WHAMMY_BAR_MIN);
 				calc_joystick_state(&gh3->js, gh3->js.pos.x, gh3->js.pos.y);
-				data->btns_h |= (data->exp.gh3.btns<<16);
+				data->btns_h |= (gh3->btns<<16);
 			}
 			break;
 
@@ -404,6 +403,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 				break;
 		}
 	}
+	data->btns_l = lstate->btns_h;
 	data->btns_d = data->btns_h & ~data->btns_l;
 	data->btns_u = ~data->btns_h & data->btns_l;
 	*lstate = *data;

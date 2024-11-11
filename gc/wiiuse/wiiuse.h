@@ -26,23 +26,23 @@
 #define WIIMOTE_LED_4					0x80
 
 /* button codes */
-#define WIIMOTE_BUTTON_TWO				0x0001
-#define WIIMOTE_BUTTON_ONE				0x0002
-#define WIIMOTE_BUTTON_B				0x0004
-#define WIIMOTE_BUTTON_A				0x0008
-#define WIIMOTE_BUTTON_MINUS			0x0010
-#define WIIMOTE_BUTTON_ZACCEL_BIT6		0x0020
-#define WIIMOTE_BUTTON_ZACCEL_BIT7		0x0040
-#define WIIMOTE_BUTTON_HOME				0x0080
-#define WIIMOTE_BUTTON_LEFT				0x0100
-#define WIIMOTE_BUTTON_RIGHT			0x0200
-#define WIIMOTE_BUTTON_DOWN				0x0400
-#define WIIMOTE_BUTTON_UP				0x0800
-#define WIIMOTE_BUTTON_PLUS				0x1000
-#define WIIMOTE_BUTTON_ZACCEL_BIT4		0x2000
-#define WIIMOTE_BUTTON_ZACCEL_BIT5		0x4000
-#define WIIMOTE_BUTTON_UNKNOWN			0x8000
-#define WIIMOTE_BUTTON_ALL				0x1F9F
+#define WIIMOTE_BUTTON_LEFT				0x0001
+#define WIIMOTE_BUTTON_RIGHT			0x0002
+#define WIIMOTE_BUTTON_DOWN				0x0004
+#define WIIMOTE_BUTTON_UP				0x0008
+#define WIIMOTE_BUTTON_PLUS				0x0010
+#define WIIMOTE_BUTTON_ZACCEL_BIT4		0x0020
+#define WIIMOTE_BUTTON_ZACCEL_BIT5		0x0040
+#define WIIMOTE_BUTTON_UNKNOWN			0x0080
+#define WIIMOTE_BUTTON_TWO				0x0100
+#define WIIMOTE_BUTTON_ONE				0x0200
+#define WIIMOTE_BUTTON_B				0x0400
+#define WIIMOTE_BUTTON_A				0x0800
+#define WIIMOTE_BUTTON_MINUS			0x1000
+#define WIIMOTE_BUTTON_ZACCEL_BIT6		0x2000
+#define WIIMOTE_BUTTON_ZACCEL_BIT7		0x4000
+#define WIIMOTE_BUTTON_HOME				0x8000
+#define WIIMOTE_BUTTON_ALL				0x9F1F
 
 /* nunchuk button codes */
 #define NUNCHUK_BUTTON_Z				0x01
@@ -50,34 +50,34 @@
 #define NUNCHUK_BUTTON_ALL				0x03
 
 /* classic controller button codes */
-#define CLASSIC_CTRL_BUTTON_UP			0x0001
-#define CLASSIC_CTRL_BUTTON_LEFT		0x0002
-#define CLASSIC_CTRL_BUTTON_ZR			0x0004
-#define CLASSIC_CTRL_BUTTON_X			0x0008
-#define CLASSIC_CTRL_BUTTON_A			0x0010
-#define CLASSIC_CTRL_BUTTON_Y			0x0020
-#define CLASSIC_CTRL_BUTTON_B			0x0040
-#define CLASSIC_CTRL_BUTTON_ZL			0x0080
-#define CLASSIC_CTRL_BUTTON_FULL_R		0x0200
-#define CLASSIC_CTRL_BUTTON_PLUS		0x0400
-#define CLASSIC_CTRL_BUTTON_HOME		0x0800
-#define CLASSIC_CTRL_BUTTON_MINUS		0x1000
-#define CLASSIC_CTRL_BUTTON_FULL_L		0x2000
-#define CLASSIC_CTRL_BUTTON_DOWN		0x4000
-#define CLASSIC_CTRL_BUTTON_RIGHT		0x8000
-#define CLASSIC_CTRL_BUTTON_ALL			0xFEFF
+#define CLASSIC_CTRL_BUTTON_FULL_R		0x0002
+#define CLASSIC_CTRL_BUTTON_PLUS		0x0004
+#define CLASSIC_CTRL_BUTTON_HOME		0x0008
+#define CLASSIC_CTRL_BUTTON_MINUS		0x0010
+#define CLASSIC_CTRL_BUTTON_FULL_L		0x0020
+#define CLASSIC_CTRL_BUTTON_DOWN		0x0040
+#define CLASSIC_CTRL_BUTTON_RIGHT		0x0080
+#define CLASSIC_CTRL_BUTTON_UP			0x0100
+#define CLASSIC_CTRL_BUTTON_LEFT		0x0200
+#define CLASSIC_CTRL_BUTTON_ZR			0x0400
+#define CLASSIC_CTRL_BUTTON_X			0x0800
+#define CLASSIC_CTRL_BUTTON_A			0x1000
+#define CLASSIC_CTRL_BUTTON_Y			0x2000
+#define CLASSIC_CTRL_BUTTON_B			0x4000
+#define CLASSIC_CTRL_BUTTON_ZL			0x8000
+#define CLASSIC_CTRL_BUTTON_ALL			0xFFFE
 
 /* guitar hero 3 button codes */
-#define GUITAR_HERO_3_BUTTON_STRUM_UP	0x0001
-#define GUITAR_HERO_3_BUTTON_YELLOW		0x0008
-#define GUITAR_HERO_3_BUTTON_GREEN		0x0010
-#define GUITAR_HERO_3_BUTTON_BLUE		0x0020
-#define GUITAR_HERO_3_BUTTON_RED		0x0040
-#define GUITAR_HERO_3_BUTTON_ORANGE		0x0080
-#define GUITAR_HERO_3_BUTTON_PLUS		0x0400
-#define GUITAR_HERO_3_BUTTON_MINUS		0x1000
-#define GUITAR_HERO_3_BUTTON_STRUM_DOWN	0x4000
-#define GUITAR_HERO_3_BUTTON_ALL		0xFEFF
+#define GUITAR_HERO_3_BUTTON_PLUS		0x0004
+#define GUITAR_HERO_3_BUTTON_MINUS		0x0010
+#define GUITAR_HERO_3_BUTTON_STRUM_DOWN	0x0040
+#define GUITAR_HERO_3_BUTTON_STRUM_UP	0x0100
+#define GUITAR_HERO_3_BUTTON_YELLOW		0x0800
+#define GUITAR_HERO_3_BUTTON_GREEN		0x1000
+#define GUITAR_HERO_3_BUTTON_BLUE		0x2000
+#define GUITAR_HERO_3_BUTTON_RED		0x4000
+#define GUITAR_HERO_3_BUTTON_ORANGE		0x8000
+#define GUITAR_HERO_3_BUTTON_ALL		0xFFFE
 
 /* guitar hero world tour touch bar codes */
 #define GUITAR_HERO_3_TOUCH_AVAILABLE	0x1000
@@ -457,10 +457,10 @@ typedef struct nunchuk_t {
  *	@brief Classic controller expansion device.
  */
 typedef struct classic_ctrl_t {
-	short btns;						/**< what buttons have just been pressed	*/
-	short btns_last;				/**< what buttons have just been pressed	*/
-	short btns_held;				/**< what buttons are being held down		*/
-	short btns_released;			/**< what buttons were just released this	*/
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
 
 	ubyte rs_raw;
 	ubyte ls_raw;
@@ -479,19 +479,20 @@ typedef struct classic_ctrl_t {
  *	@brief Guitar Hero 3 expansion device.
  */
 typedef struct guitar_hero_3_t {
-	short btns;						/**< what buttons have just been pressed	*/
-	short btns_last;				/**< what buttons have just been pressed	*/
-	short btns_held;				/**< what buttons are being held down		*/
-	short btns_released;			/**< what buttons were just released this	*/
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
 
 	ubyte wb_raw;
-	float whammy_bar;				/**< whammy bar (range 0-1)					*/
-
 	ubyte tb_raw;
+
+	float whammy_bar;				/**< whammy bar (range 0-1)					*/
 	int touch_bar;					/**< touch bar								*/
 
 	struct joystick_t js;			/**< joystick calibration					*/
 } guitar_hero_3_t;
+
 
 /**
   * @struct wii_board_t
@@ -514,12 +515,18 @@ typedef struct wii_board_t {
 	float y;
 } wii_board_t;
 
+
+/**
+  * @struct motion_plus_t
+  * @brief Wii Motion Plus expansion device.
+  */
 typedef struct motion_plus_t
 {
 	short rx, ry, rz;
 	ubyte status;
 	ubyte ext;
 } motion_plus_t;
+
 
 /**
  *	@struct expansion_t
@@ -554,7 +561,7 @@ typedef enum win_bt_stack_t {
  *	@brief Significant data from the previous event.
  */
 typedef struct wiimote_state_t {
-	unsigned short btns;
+	uword btns;
 
 	struct ir_t ir;
 	struct vec3w_t accel;
@@ -641,10 +648,10 @@ typedef struct wiimote_t {
 
 	WCONST struct ir_t ir;					/**< IR data								*/
 
-	WCONST unsigned short btns;				/**< what buttons are down					*/
-	WCONST unsigned short btns_last;		/**< what buttons were down before			*/
-	WCONST unsigned short btns_held;		/**< what buttons are and were held down	*/
-	WCONST unsigned short btns_released;	/**< what buttons were just released		*/
+	WCONST uword btns;						/**< what buttons are down					*/
+	WCONST uword btns_last;					/**< what buttons were down before			*/
+	WCONST uword btns_held;					/**< what buttons are and were held down	*/
+	WCONST uword btns_released;				/**< what buttons were just released		*/
 
 	WCONST struct wiimote_state_t lstate;	/**< last saved state						*/
 
