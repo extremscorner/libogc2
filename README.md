@@ -15,7 +15,7 @@
 
 ### Subprojects
 
-[cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [wii-examples](https://github.com/extremscorner/wii-examples)
+[cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [wii-examples](https://github.com/extremscorner/wii-examples)
 
 ## Installing
 
