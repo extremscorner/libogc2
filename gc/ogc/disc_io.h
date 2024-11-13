@@ -55,15 +55,21 @@ typedef bool (* FN_MEDIUM_WRITESECTORS)(DISC_INTERFACE* disc, sec_t sector, sec_
 typedef bool (* FN_MEDIUM_CLEARSTATUS)(DISC_INTERFACE* disc) ;
 typedef bool (* FN_MEDIUM_SHUTDOWN)(DISC_INTERFACE* disc) ;
 
+#ifdef LIBOGC_INTERNAL
+ #define DISC_INTERFACE_CONST
+#else
+ #define DISC_INTERFACE_CONST const
+#endif
+
 struct DISC_INTERFACE_STRUCT {
-	unsigned long			ioType ;
-	unsigned long			features ;
-	FN_MEDIUM_STARTUP		startup ;
-	FN_MEDIUM_ISINSERTED	isInserted ;
-	FN_MEDIUM_READSECTORS	readSectors ;
-	FN_MEDIUM_WRITESECTORS	writeSectors ;
-	FN_MEDIUM_CLEARSTATUS	clearStatus ;
-	FN_MEDIUM_SHUTDOWN		shutdown ;
+	DISC_INTERFACE_CONST unsigned long			ioType ;
+	DISC_INTERFACE_CONST unsigned long			features ;
+	DISC_INTERFACE_CONST FN_MEDIUM_STARTUP		startup ;
+	DISC_INTERFACE_CONST FN_MEDIUM_ISINSERTED	isInserted ;
+	DISC_INTERFACE_CONST FN_MEDIUM_READSECTORS	readSectors ;
+	DISC_INTERFACE_CONST FN_MEDIUM_WRITESECTORS	writeSectors ;
+	DISC_INTERFACE_CONST FN_MEDIUM_CLEARSTATUS	clearStatus ;
+	DISC_INTERFACE_CONST FN_MEDIUM_SHUTDOWN		shutdown ;
 } ;
 
 #endif	// define OGC_DISC_IO_INCLUDE
