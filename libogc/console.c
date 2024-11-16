@@ -78,12 +78,11 @@ static const unsigned int color_table[] =
 };
 
 static u32 do_xfb_copy = FALSE;
-static struct _console_data_s stdcon;
+static struct _console_data_s _console_data;
 static struct _console_data_s *curr_con = NULL;
 static void *_console_buffer = NULL;
 
-static s32 __gecko_status = -1;
-static u32 __gecko_safe = 0;
+static FILE *stdcon = NULL;
 
 extern u8 console_font_8x16[];
 
@@ -265,7 +264,7 @@ static void __console_clear_to_cursor(void) {
 void __console_init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride)
 {
 	unsigned int level;
-	console_data_s *con = &stdcon;
+	console_data_s *con = &_console_data;
 
 	_CPU_ISR_Disable(level);
 
@@ -287,18 +286,19 @@ void __console_init(void *framebuffer,int xstart,int ystart,int xres,int yres,in
 
 	__console_clear();
 
-	devoptab_list[STD_OUT] = &dotab_stdout;
-	devoptab_list[STD_ERR] = &dotab_stdout;
 	_CPU_ISR_Restore(level);
 
-	setvbuf(stdout, NULL , _IONBF, 0);
-	setvbuf(stderr, NULL , _IONBF, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	devoptab_list[STD_OUT] = &dotab_stdout;
+	devoptab_list[STD_ERR] = &dotab_stdout;
 }
 
 void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride)
 {
 	unsigned int level;
-	console_data_s *con = &stdcon;
+	console_data_s *con = &_console_data;
 
 	_CPU_ISR_Disable(level);
 
@@ -325,15 +325,15 @@ void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_str
 
 	__console_clear();
 
-	devoptab_list[STD_OUT] = &dotab_stdout;
-	devoptab_list[STD_ERR] = &dotab_stdout;
-
 	VIDEO_SetPostRetraceCallback(__console_vipostcb);
 
 	_CPU_ISR_Restore(level);
 
-	setvbuf(stdout, NULL , _IONBF, 0);
-	setvbuf(stderr, NULL , _IONBF, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	devoptab_list[STD_OUT] = &dotab_stdout;
+	devoptab_list[STD_ERR] = &dotab_stdout;
 }
 
 static int __console_parse_escsequence(const char *pchr)
@@ -512,21 +512,16 @@ static int __console_parse_escsequence(const char *pchr)
 
 ssize_t __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
 {
-	size_t i = 0;
+	ssize_t i = -1;
 	const char *tmp = ptr;
 	console_data_s *con;
 	char chr;
 
-	if(__gecko_status>=0) {
-		if(__gecko_safe)
-			usb_sendbuffer_safe(__gecko_status,ptr,len);
-		else
-			usb_sendbuffer(__gecko_status,ptr,len);
-	}
+	if(stdcon) i = fwrite(ptr,1,len,stdcon);
 
-	if(!curr_con) return -1;
+	if(!curr_con) return i;
 	con = curr_con;
-	if(!tmp || len<=0) return -1;
+	if(!tmp || len<=0) return i;
 
 	i = 0;
 	while(*tmp!='\0' && i<len)
@@ -642,22 +637,73 @@ void CON_GetPosition(int *col, int *row)
 	}
 }
 
-void CON_EnableGecko(int channel,int safe)
+static s32 __gecko_chan = -1;
+
+static int __gecko_write(void *c,const char *buf,int n)
 {
-	if(channel && (channel>1 || !usb_isgeckoalive(channel))) channel = -1;
-
-	__gecko_status = channel;
-	__gecko_safe = safe;
-
-	if(__gecko_status!=-1) {
-		devoptab_list[STD_OUT] = &dotab_stdout;
-		devoptab_list[STD_ERR] = &dotab_stdout;
-
-		// line buffered output for threaded apps when only using the usbgecko
-		if(!curr_con) {
-			setvbuf(stdout, NULL, _IOLBF, 0);
-			setvbuf(stderr, NULL, _IOLBF, 0);
-		}
-	}
+	s32 chan = *(s32*)c;
+	return usb_sendbuffer(chan,buf,n);
 }
 
+static int __gecko_write_safe(void *c,const char *buf,int n)
+{
+	s32 chan = *(s32*)c;
+	return usb_sendbuffer_safe(chan,buf,n);
+}
+
+void CON_EnableGecko(s32 chan,bool safe)
+{
+	if(chan>=0 && !usb_isgeckoalive(chan))
+		return;
+
+	fclose(stdcon);
+	stdcon = NULL;
+
+	if(chan<0) return;
+	__gecko_chan = chan;
+
+	stdcon = fwopen(&__gecko_chan, safe ? __gecko_write_safe : __gecko_write);
+	if(!stdcon) return;
+	setvbuf(stdcon, NULL, _IOLBF, 0);
+
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	devoptab_list[STD_OUT] = &dotab_stdout;
+	devoptab_list[STD_ERR] = &dotab_stdout;
+}
+
+extern void __SYS_EnableBarnacle(s32 chn,u32 dev);
+
+extern s32 InitializeUART(void);
+extern s32 WriteUARTN(void *buf,u32 len);
+
+static int __uart_write(void *c,const char *buf,int n)
+{
+	if(InitializeUART()!=0)
+		return -1;
+
+	if(WriteUARTN((void*)buf,n)!=0)
+		return -1;
+
+	return n;
+}
+
+void CON_EnableBarnacle(s32 chan,s32 dev)
+{
+	fclose(stdcon);
+	stdcon = NULL;
+
+	if(chan<0) return;
+	__SYS_EnableBarnacle(chan, dev);
+
+	stdcon = fwopen(NULL, __uart_write);
+	if(!stdcon) return;
+	setvbuf(stdcon, NULL, _IOLBF, 0);
+
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	devoptab_list[STD_OUT] = &dotab_stdout;
+	devoptab_list[STD_ERR] = &dotab_stdout;
+}

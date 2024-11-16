@@ -617,8 +617,8 @@ s32 KEYBOARD_Init(keyPressCallback keypress_cb)
 				return -6;
 			}
 
+			setvbuf(stdin, NULL, _IONBF, 0);
 			devoptab_list[STD_IN] = &std_in;
-			setvbuf(stdin, NULL , _IONBF, 0);
 			_readKey_cb = keypress_cb;
 		}
 		_kbd_thread_running = true;

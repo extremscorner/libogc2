@@ -64,15 +64,26 @@ void CON_GetMetrics(int *cols, int *rows);
 void CON_GetPosition(int *cols, int *rows);
 
 /*!
- * \fn CON_EnableGecko(int channel, int safe)
- * \brief Enable or disable the USB gecko console.
+ * \fn CON_EnableGecko(s32 chan,bool safe)
+ * \brief Enable or disable the USB Gecko console.
  *
- * \param[in] channel EXI channel, or -1 ¨to disable the gecko console
+ * \param[in] chan EXI channel, or -1 to disable the USB Gecko console
  * \param[in] safe If true, use safe mode (wait for peer)
  *
  * \return none
  */
-void CON_EnableGecko(int channel,int safe);
+void CON_EnableGecko(s32 chan,bool safe);
+
+/*!
+ * \fn CON_EnableBarnacle(s32 chan,s32 dev)
+ * \brief Enable or disable the UART console.
+ *
+ * \param[in] chan EXI channel, or -1 to disable the UART console
+ * \param[in] dev EXI device
+ *
+ * \return none
+ */
+void CON_EnableBarnacle(s32 chan,s32 dev);
 
 #ifdef __cplusplus
 	}
