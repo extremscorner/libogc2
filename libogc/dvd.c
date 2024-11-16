@@ -3693,7 +3693,9 @@ DISC_INTERFACE __io_gcdvd = {
 	__gcdvd_ReadSectors,
 	__gcdvd_WriteSectors,
 	__gcdvd_ClearStatus,
-	__gcdvd_Shutdown
+	__gcdvd_Shutdown,
+	0x7fffff,
+	2048
 };
 
 DISC_INTERFACE __io_gcode = {
@@ -3704,5 +3706,7 @@ DISC_INTERFACE __io_gcode = {
 	__gcode_ReadSectors,
 	__gcode_WriteSectors,
 	__gcode_ClearStatus,
-	__gcode_Shutdown
+	__gcode_Shutdown,
+	(u32)~0,
+	512
 };
