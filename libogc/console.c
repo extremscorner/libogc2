@@ -661,9 +661,15 @@ static int __gecko_write_safe(void *c,const char *buf,int n)
 	return usb_sendbuffer_safe(chan,buf,n);
 }
 
+static int __gecko_close(void *c)
+{
+	*(s32*)c = -1;
+	return 0;
+}
+
 void CON_EnableGecko(s32 chan,bool safe)
 {
-	if(chan>=0 && !usb_isgeckoalive(chan)) return;
+	if(chan>=0 && (__gecko_chan==chan || !usb_isgeckoalive(chan))) return;
 
 	fclose(stdcon);
 	stdcon = NULL;
@@ -671,7 +677,7 @@ void CON_EnableGecko(s32 chan,bool safe)
 	if(chan<0) return;
 	__gecko_chan = chan;
 
-	stdcon = fwopen(&__gecko_chan, safe ? __gecko_write_safe : __gecko_write);
+	stdcon = funopen(&__gecko_chan, NULL, safe ? __gecko_write_safe : __gecko_write, NULL, __gecko_close);
 	if(!stdcon) return;
 	setvbuf(stdcon, NULL, _IOLBF, 0);
 
