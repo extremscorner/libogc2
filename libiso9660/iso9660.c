@@ -103,6 +103,7 @@ typedef struct dstate_s
 	DIR_ENTRY entry;
 	u32 index;
 	bool inUse;
+	MOUNT_DESCR *mdescr;
 } DIR_STATE_STRUCT;
 
 static MOUNT_DESCR* _ISO9660_getMountDescrFromPath(const char *path, devoptab_t **pdevops);
@@ -157,10 +158,10 @@ static int _read(MOUNT_DESCR *mdescr, void *ptr, u64 offset, size_t len)
 	return read;
 }
 
-static void stat_entry(DIR_ENTRY *entry, struct stat *st)
+static void stat_entry(MOUNT_DESCR *mdescr, DIR_ENTRY *entry, struct stat *st)
 {
-	st->st_dev = 69;
-	st->st_ino = (ino_t) entry->sector;
+	st->st_dev = mdescr->disc_interface->ioType;
+	st->st_ino = entry->sector;
 	st->st_mode = (is_dir(entry) ? S_IFDIR : S_IFREG) | (S_IRUSR | S_IRGRP | S_IROTH);
 	st->st_nlink = 1;
 	st->st_uid = 1;
@@ -324,7 +325,7 @@ static bool path_entry_from_path(MOUNT_DESCR *mdescr, PATH_ENTRY *path_entry, co
 		while (childIndex < dir->childCount && !found && !notFound)
 		{
 			entry = &dir->children[childIndex];
-			if (dirnameLength == strnlen(entry->table_entry.name, ISO_MAXPATHLEN - 1) && !strncasecmp(pathPosition, entry->table_entry.name, dirnameLength))
+			if (dirnameLength == strnlen(entry->table_entry.name, ISO_MAXPATHLEN) && !strncasecmp(pathPosition, entry->table_entry.name, dirnameLength))
 				found = true;
 			if (!found)
 				childIndex++;
@@ -368,7 +369,7 @@ static bool find_in_directory(MOUNT_DESCR *mdescr, DIR_ENTRY *entry, PATH_ENTRY 
 	for (childIdx = 0; childIdx < parent->childCount; childIdx++)
 	{
 		PATH_ENTRY *child = parent->children + childIdx;
-		if (nl == strnlen(child->table_entry.name, ISO_MAXPATHLEN - 1) && !strncasecmp(base, child->table_entry.name, nl))
+		if (nl == strnlen(child->table_entry.name, ISO_MAXPATHLEN) && !strncasecmp(base, child->table_entry.name, nl))
 		{
 			return read_directory(mdescr, entry, child);
 		}
@@ -379,7 +380,7 @@ static bool find_in_directory(MOUNT_DESCR *mdescr, DIR_ENTRY *entry, PATH_ENTRY 
 	for (childIdx = 0; childIdx < entry->fileCount; childIdx++)
 	{
 		DIR_ENTRY *child = entry->children + childIdx;
-		if (nl == strnlen(child->name, ISO_MAXPATHLEN - 1) && !strncasecmp(base, child->name, nl))
+		if (nl == strnlen(child->name, ISO_MAXPATHLEN) && !strncasecmp(base, child->name, nl))
 		{
 			memcpy(entry, child, sizeof(DIR_ENTRY));
 			return true;
@@ -579,7 +580,7 @@ static int _ISO9660_fstat_r(struct _reent *r, void *fd, struct stat *st)
 		return -1;
 	}
 
-	stat_entry(&file->entry, st);
+	stat_entry(file->mdescr, &file->entry, st);
 	return 0;
 }
 
@@ -601,7 +602,7 @@ static int _ISO9660_stat_r(struct _reent *r, const char *path, struct stat *st)
 		return -1;
 	}
 
-	stat_entry(&entry, st);
+	stat_entry(mdescr, &entry, st);
 	if (entry.children)
 		free(entry.children);
 
@@ -663,6 +664,7 @@ static DIR_ITER* _ISO9660_diropen_r(struct _reent *r, DIR_ITER *dirState, const 
 
 	state->index = 0;
 	state->inUse = true;
+	state->mdescr = mdescr;
 	return dirState;
 }
 
@@ -699,7 +701,7 @@ static int _ISO9660_dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filena
 
 	entry = &state->entry.children[state->index++];
 	strncpy(filename, entry->name, ISO_MAXPATHLEN);
-	stat_entry(entry, st);
+	stat_entry(state->mdescr, entry, st);
 	return 0;
 }
 
@@ -721,27 +723,36 @@ static int _ISO9660_dirclose_r(struct _reent *r, DIR_ITER *dirState)
 
 static int _ISO9660_statvfs_r(struct _reent *r, const char *path, struct statvfs *buf)
 {
+	MOUNT_DESCR *mdescr;
+
+	mdescr = _ISO9660_getMountDescrFromPath(path, NULL);
+	if (mdescr == NULL)
+	{
+		r->_errno = ENODEV;
+		return -1;
+	}
+
 	// FAT clusters = POSIX blocks
 	buf->f_bsize = SECTOR_SIZE; // File system block size.
 	buf->f_frsize = SECTOR_SIZE; // Fundamental file system block size.
 
-	//buf->f_blocks	= totalsectors; // Total number of blocks on file system in units of f_frsize. 
+	buf->f_blocks = 0; // Total number of blocks on file system in units of f_frsize. 
 	buf->f_bfree = 0; // Total number of free blocks. 
 	buf->f_bavail = 0; // Number of free blocks available to non-privileged process. 
 
 	// Treat requests for info on inodes as clusters
-	//buf->f_files = totalentries;	// Total number of file serial numbers. 
+	buf->f_files = 0; // Total number of file serial numbers. 
 	buf->f_ffree = 0; // Total number of free file serial numbers. 
 	buf->f_favail = 0; // Number of file serial numbers available to non-privileged process. 
 
 	// File system ID. 32bit ioType value
-	buf->f_fsid = 0; //??!!? 
+	buf->f_fsid = mdescr->disc_interface->ioType;
 
 	// Bit mask of f_flag values.
 	buf->f_flag = ST_NOSUID // No support for ST_ISUID and ST_ISGID file mode bits
 			| ST_RDONLY; // Read only file system
 	// Maximum filename length.
-	buf->f_namemax = 208;
+	buf->f_namemax = ISO_MAXPATHLEN - 1;
 	return 0;
 }
 
@@ -965,6 +976,9 @@ bool ISO9660_Mount(const char *name, DISC_INTERFACE *disc_interface)
 		return false;
 
 	if (!disc_interface->isInserted(disc_interface))
+		return false;
+
+	if (disc_interface->bytesPerSector != SECTOR_SIZE)
 		return false;
 
 	sprintf(devname, "%s:", name);

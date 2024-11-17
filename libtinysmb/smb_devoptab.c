@@ -1035,12 +1035,11 @@ static int dentry_to_stat(SMBDIRENTRY *dentry, struct stat *st)
 
 	st->st_dev = 0;
 	st->st_ino = 0;
-
 	st->st_mode = ((dentry->attributes & SMB_SRCH_DIRECTORY) ? S_IFDIR : S_IFREG);
 	st->st_nlink = 1;
 	st->st_uid = 1; // Faked
-	st->st_rdev = st->st_dev;
 	st->st_gid = 2; // Faked
+	st->st_rdev = st->st_dev;
 	st->st_size = dentry->size;
 	st->st_atim.tv_nsec = dentry->atime%10000000*100;
 	st->st_atim.tv_sec = dentry->atime/10000000 - 11644473600LL;

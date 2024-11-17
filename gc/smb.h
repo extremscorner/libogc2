@@ -107,7 +107,7 @@ typedef void* SMBFILE;
   u64 mtime;
   u32 attributes;
   u16 sid;
-  char name[768]; //unicode
+  char name[765+1]; //unicode
 } SMBDIRENTRY;
 
 /**
