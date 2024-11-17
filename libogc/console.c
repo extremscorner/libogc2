@@ -517,7 +517,7 @@ ssize_t __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
 	console_data_s *con;
 	char chr;
 
-	if(stdcon) i = fwrite(ptr,1,len,stdcon);
+	if(stdcon) i = _fwrite_r(r,ptr,1,len,stdcon);
 
 	if(!curr_con) return i;
 	con = curr_con;
@@ -642,19 +642,28 @@ static s32 __gecko_chan = -1;
 static int __gecko_write(void *c,const char *buf,int n)
 {
 	s32 chan = *(s32*)c;
+
+	if(!usb_isgeckoalive(chan)) {
+		errno = ENXIO;
+		return -1;
+	}
 	return usb_sendbuffer(chan,buf,n);
 }
 
 static int __gecko_write_safe(void *c,const char *buf,int n)
 {
 	s32 chan = *(s32*)c;
+
+	if(!usb_isgeckoalive(chan)) {
+		errno = ENXIO;
+		return -1;
+	}
 	return usb_sendbuffer_safe(chan,buf,n);
 }
 
 void CON_EnableGecko(s32 chan,bool safe)
 {
-	if(chan>=0 && !usb_isgeckoalive(chan))
-		return;
+	if(chan>=0 && !usb_isgeckoalive(chan)) return;
 
 	fclose(stdcon);
 	stdcon = NULL;
