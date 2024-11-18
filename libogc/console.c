@@ -669,6 +669,7 @@ static int __gecko_close(void *c)
 
 void CON_EnableGecko(s32 chan,bool safe)
 {
+	if(chan<0 && __gecko_chan==-1) return;
 	if(chan>=0 && (__gecko_chan==chan || !usb_isgeckoalive(chan))) return;
 
 	fclose(stdcon);
@@ -706,6 +707,8 @@ static int __uart_write(void *c,const char *buf,int n)
 
 void CON_EnableBarnacle(s32 chan,s32 dev)
 {
+	if(chan<0 && __gecko_chan>=0) return;
+
 	fclose(stdcon);
 	stdcon = NULL;
 
