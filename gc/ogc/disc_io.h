@@ -40,9 +40,9 @@
 #define FEATURE_GAMECUBE_PORT2      0x00000040
 #define FEATURE_GAMECUBE_PORT1      0x00000080
 #define FEATURE_GAMECUBE_DVD        0x00000100
-#define FEATURE_WII_SD              0x00000200
-#define FEATURE_WII_USB             0x00000400
-#define FEATURE_WII_DVD             0x00000800
+#define FEATURE_WII_SD              0x00001000
+#define FEATURE_WII_USB             0x00002000
+#define FEATURE_WII_DVD             0x00004000
 
 typedef uint64_t sec_t;
 

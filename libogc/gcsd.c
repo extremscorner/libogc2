@@ -238,7 +238,7 @@ DISC_INTERFACE __io_gcsda = {
 	__gcsda_writeSectors,
 	__gcsda_clearStatus,
 	__gcsda_shutdown,
-	(u32)~0,
+	0x100000000,
 	512
 };
 
@@ -251,7 +251,7 @@ DISC_INTERFACE __io_gcsdb = {
 	__gcsdb_writeSectors,
 	__gcsdb_clearStatus,
 	__gcsdb_shutdown,
-	(u32)~0,
+	0x100000000,
 	512
 };
 
@@ -264,6 +264,6 @@ DISC_INTERFACE __io_gcsd2 = {
 	__gcsd2_writeSectors,
 	__gcsd2_clearStatus,
 	__gcsd2_shutdown,
-	(u32)~0,
+	0x100000000,
 	512
 };
