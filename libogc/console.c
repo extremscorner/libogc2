@@ -17,10 +17,10 @@
 #include <stdio.h>
 #include <sys/iosupport.h>
 
-static int __console_fstat(struct _reent *r,void *fd,struct stat *st);
+static int __console_fstat_r(struct _reent *r,void *fd,struct stat *st);
 
 //---------------------------------------------------------------------------------
-static const devoptab_t dotab_stdout = {
+static devoptab_t dotab_stdout = {
 //---------------------------------------------------------------------------------
 	"stdout",	// device name
 	0,			// size of file structure
@@ -29,7 +29,7 @@ static const devoptab_t dotab_stdout = {
 	__console_write,	// device write
 	NULL,		// device read
 	NULL,		// device seek
-	__console_fstat,	// device fstat
+	__console_fstat_r,	// device fstat
 	NULL,		// device stat
 	NULL,		// device link
 	NULL,		// device unlink
@@ -512,16 +512,14 @@ static int __console_parse_escsequence(const char *pchr)
 
 ssize_t __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
 {
-	ssize_t i = -1;
+	size_t i;
 	const char *tmp = ptr;
 	console_data_s *con;
 	char chr;
 
-	if(stdcon) i = _fwrite_r(r,ptr,1,len,stdcon);
-
-	if(!curr_con) return i;
+	if(!curr_con) return -1;
 	con = curr_con;
-	if(!tmp || len<=0) return i;
+	if(!tmp || len<=0) return -1;
 
 	i = 0;
 	while(*tmp!='\0' && i<len)
@@ -595,7 +593,18 @@ ssize_t __console_write(struct _reent *r,void *fd,const char *ptr,size_t len)
 	return i;
 }
 
-static int __console_fstat(struct _reent *r,void *fd,struct stat *st)
+static ssize_t __console_write_r(struct _reent *r,void *fd,const char *ptr,size_t len)
+{
+	ssize_t ret = __console_write(r,fd,ptr,len);
+
+	if(stdcon) {
+		if(ret!=-1) _fwrite_r(r,ptr,1,len,stdcon);
+		else ret = _fwrite_r(r,ptr,1,len,stdcon);
+	}
+	return ret;
+}
+
+static int __console_fstat_r(struct _reent *r,void *fd,struct stat *st)
 {
 	memset(st, 0, sizeof(struct stat));
 	st->st_mode = S_IFCHR;
@@ -685,6 +694,8 @@ void CON_EnableGecko(s32 chan,bool safe)
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
+	dotab_stdout.write_r = __console_write_r;
+
 	devoptab_list[STD_OUT] = &dotab_stdout;
 	devoptab_list[STD_ERR] = &dotab_stdout;
 }
@@ -721,6 +732,8 @@ void CON_EnableBarnacle(s32 chan,s32 dev)
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
+
+	dotab_stdout.write_r = __console_write_r;
 
 	devoptab_list[STD_OUT] = &dotab_stdout;
 	devoptab_list[STD_ERR] = &dotab_stdout;

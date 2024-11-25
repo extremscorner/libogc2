@@ -241,8 +241,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 {
 	GX_AbortFrame();
 	VIDEO_SetFramebuffer(exception_xfb);
-	__console_init(exception_xfb,20,20,640,574,1280);
-	CON_EnableGecko(1, true);
+	__console_init(exception_xfb,0,0,640,576,1280);
 
 	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
 
