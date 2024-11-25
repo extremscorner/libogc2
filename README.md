@@ -4,7 +4,9 @@
 
 ## Projects using libogc2
 
+- [240p Test Suite](https://github.com/ArtemioUrbina/240pTestSuite) - Video suite for game consoles
 - [CleanRip](https://github.com/emukidid/cleanrip) - GameCube/Wii disc image creation tool
+- [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - GameCube optical drive emulator
 - [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - GameCube bootloader
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
@@ -24,6 +26,9 @@ Follow the instructions from [pacman-packages](https://github.com/extremscorner/
 ```
 sudo (dkp-)pacman -S libogc2 libogc2-docs libogc2-examples
 ```
+
+When asked for a `libogc2-libfat` provider, `libogc2-libdvm` is generally preferred, but `libogc2-libfat` may be chosen if you have concerns regarding exFAT's legal status.
+If you have a need for `libogc2-libdvm` without exFAT support, please open an issue.
 
 ## Migrating from libogc
 
