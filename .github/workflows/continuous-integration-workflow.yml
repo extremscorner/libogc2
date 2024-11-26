@@ -16,18 +16,18 @@ jobs:
         sudo sed -i '/^\[dkp-libs\]$/,$d' /opt/devkitpro/pacman/etc/pacman.conf
         sudo echo -e '[extremscorner-devkitpro]\nServer = https://packages.extremscorner.org/devkitpro/linux/$arch' >> /opt/devkitpro/pacman/etc/pacman.conf
         sudo dkp-pacman -Sy
-        sudo dkp-pacman -S --noconfirm --ask 4 gamecube-tools-git ppc-libmad
+        sudo dkp-pacman -S --noconfirm --ask 4 gamecube-tools-git libogc2-cmake ppc-libmad
 
     - name: Checkout libogc2
       uses: actions/checkout@main
       with:
         path: libogc2
 
-    - name: Checkout libfat
+    - name: Checkout libdvm
       uses: actions/checkout@main
       with:
-        repository: extremscorner/libfat
-        path: libfat
+        repository: extremscorner/libdvm
+        path: libdvm
 
     - name: Checkout libntfs
       uses: actions/checkout@main
@@ -39,9 +39,9 @@ jobs:
       run: make install
       working-directory: libogc2
 
-    - name: Build libfat
-      run: make ogc-install
-      working-directory: libfat
+    - name: Build libdvm
+      run: catnip install cube wii
+      working-directory: libdvm
 
     - name: Build libntfs
       run: make install
