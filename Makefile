@@ -21,7 +21,7 @@ include	$(DEVKITPPC)/base_rules
 BUILD		:=	build
 
 DATESTRING	:=	$(shell date +%Y%m%d)
-VERSTRING	:=	$(LIBOGC_MAJOR).$(LIBOGC_MINOR).$(LIBOGC_PATCH)
+VERSTRING	:=	$(shell printf "r%s.%s" "$$(git rev-list --count HEAD)" "$$(git rev-parse --short=7 HEAD)")
 
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(PLATFORM)),)
@@ -335,6 +335,6 @@ clean:
 #---------------------------------------------------------------------------------
 docs: install-headers
 #---------------------------------------------------------------------------------
-	doxygen Doxyfile
+	VERSTRING="$(VERSTRING)" doxygen Doxyfile
 
 -include $(DEPSDIR)/*.d
