@@ -296,8 +296,6 @@ static s32 __card_writecmd0(s32 drv_no)
 	cmd[0] = 0x40;
 	crc = __make_crc7(cmd,5);
 
-	for(cnt=0;cnt<128;cnt++) dummy[cnt] = 0xff;
-
 	__exi_wait(drv_no);
 
 	if(EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
@@ -305,10 +303,9 @@ static s32 __card_writecmd0(s32 drv_no)
 		return CARDIO_ERROR_NOCARD;
 	}
 
-	
 	cnt = 0;
 	while(cnt<20) {
-		if(EXI_ImmEx(drv_no,dummy,128,EXI_WRITE)==0) {
+		if(EXI_ImmEx(drv_no,dummy,128,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -347,7 +344,6 @@ static s32 __card_writecmd(s32 drv_no,void *buf,s32 len)
 {
 	u8 crc,*ptr;
 	u8 dummy[32];
-	u32 cnt;
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
@@ -362,9 +358,7 @@ static s32 __card_writecmd(s32 drv_no,void *buf,s32 len)
 		return CARDIO_ERROR_NOCARD;
 	}
 
-	for(cnt=0;cnt<32;cnt++) dummy[cnt] = 0xff;
-	
-	if(EXI_ImmEx(drv_no,dummy,10,EXI_WRITE)==0) {
+	if(EXI_ImmEx(drv_no,dummy,10,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -410,8 +404,7 @@ static s32 __card_readresponse(s32 drv_no,void *buf,s32 len)
 	ret = CARDIO_ERROR_READY;
 	ptr = buf;
 	for(cnt=0;cnt<16;cnt++) {
-		*ptr = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -423,8 +416,7 @@ static s32 __card_readresponse(s32 drv_no,void *buf,s32 len)
 	}
 	if(cnt>=16) ret = CARDIO_ERROR_IOTIMEOUT;
 	if(len>1 && ret==CARDIO_ERROR_READY) {
-		*(++ptr) = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,len-1,EXI_READWRITE)==0) ret = CARDIO_ERROR_IOERROR;
+		if(EXI_ImmEx(drv_no,ptr+1,len-1,EXI_READ)==0) ret = CARDIO_ERROR_IOERROR;
 	}
 	
 	EXI_Deselect(drv_no);
@@ -439,8 +431,6 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	ptr = buf;
-	
 	__exi_wait(drv_no);
 
 	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
@@ -451,8 +441,8 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 	}
 
 	ret = CARDIO_ERROR_READY;
-	*ptr = 0xff;
-	if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+	ptr = buf;
+	if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -461,8 +451,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 	kprintf("sd response(%d): %02x\n",__LINE__,((u8*)buf)[0]);
 #endif
 
-	*ptr = 0xff;
-	if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -473,8 +462,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 
 	startT = gettick();
 	while(*ptr&0x80) {
-		*ptr = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -484,8 +472,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 #endif
 		if(!(*ptr&0x80)) break;
 		if(__card_checktimeout(drv_no,startT,1500)!=0) {
-			*ptr = 0xff;
-			if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+			if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 				EXI_Deselect(drv_no);
 				EXI_Unlock(drv_no);
 				return CARDIO_ERROR_IOERROR;
@@ -500,8 +487,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 
 	tmp = *ptr;
 	while(*ptr!=0xff) {
-		*ptr = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -511,8 +497,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 #endif
 		if(*ptr==0xff) break;
 		if(__card_checktimeout(drv_no,startT,1500)!=0) {
-			*ptr = 0xff;
-			if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+			if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 				EXI_Deselect(drv_no);
 				EXI_Unlock(drv_no);
 				return CARDIO_ERROR_IOERROR;
@@ -527,8 +512,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 	*ptr = tmp;
 
 	if(len>1 && ret==CARDIO_ERROR_READY) {
-		*(++ptr) = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,len-1,EXI_READWRITE)==0) ret = CARDIO_ERROR_IOERROR;
+		if(EXI_ImmEx(drv_no,ptr+1,len-1,EXI_READ)==0) ret = CARDIO_ERROR_IOERROR;
 	}
 	
 	EXI_Deselect(drv_no);
@@ -543,8 +527,6 @@ static s32 __card_datares(s32 drv_no,void *buf)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	ptr = buf;
-	
 	__exi_wait(drv_no);
 
 	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
@@ -555,8 +537,8 @@ static s32 __card_datares(s32 drv_no,void *buf)
 	}
 
 	ret = CARDIO_ERROR_READY;
-	*ptr = 0xff;
-	if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+	ptr = buf;
+	if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -566,8 +548,7 @@ static s32 __card_datares(s32 drv_no,void *buf)
 #endif
 	startT = gettick();
 	while(*ptr&0x10) {
-		*ptr = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -577,8 +558,7 @@ static s32 __card_datares(s32 drv_no,void *buf)
 #endif
 		if(!(*ptr&0x10)) break;
 		if(__card_checktimeout(drv_no,startT,1500)!=0) {
-			*ptr = 0xff;
-			if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+			if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 				EXI_Deselect(drv_no);
 				EXI_Unlock(drv_no);
 				return CARDIO_ERROR_IOERROR;
@@ -591,8 +571,8 @@ static s32 __card_datares(s32 drv_no,void *buf)
 		}
 	}
 
-	*(++ptr) = 0xff;
-	if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+	ptr++;
+	if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -600,8 +580,7 @@ static s32 __card_datares(s32 drv_no,void *buf)
 
 	startT = gettick();
 	while(!*ptr) {
-		*ptr = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -611,8 +590,7 @@ static s32 __card_datares(s32 drv_no,void *buf)
 #endif
 		if(*ptr) break;
 		if(__card_checktimeout(drv_no,startT,1500)!=0) {
-			*ptr = 0xff;
-			if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+			if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 				EXI_Deselect(drv_no);
 				EXI_Unlock(drv_no);
 				return CARDIO_ERROR_IOERROR;
@@ -656,8 +634,6 @@ static s32 __card_dataresponse(s32 drv_no)
 static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 {
 	u8 *ptr;
-	u32 cnt;
-	u8 res[2];
 	u16 crc,crc_org;
 	s32 startT,ret;
 
@@ -674,8 +650,7 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 
 	ret = CARDIO_ERROR_READY;
 	ptr = buf;
-	*ptr = 0xff;
-	if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -686,8 +661,7 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 	
 	startT = gettick();
 	while(*ptr!=0xfe) {
-		*ptr = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -697,8 +671,7 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 #endif
 		if(*ptr==0xfe) break;
 		if(__card_checktimeout(drv_no,startT,1500)!=0) {
-			*ptr = 0xff;
-			if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
+			if(EXI_ImmEx(drv_no,ptr,1,EXI_READ)==0) {
 				EXI_Deselect(drv_no);
 				EXI_Unlock(drv_no);
 				return CARDIO_ERROR_IOERROR;
@@ -718,8 +691,7 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 			return CARDIO_ERROR_IOERROR;
 		}
 	} else {
-		for(cnt=0;cnt<len;cnt++) ptr[cnt] = 0xff;
-		if(EXI_ImmEx(drv_no,ptr,len,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,ptr,len,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
@@ -729,16 +701,14 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 		usleep(1);
 	}
 
-	res[0] = res[1] = 0xff;
-	if(EXI_ImmEx(drv_no,res,2,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,&crc_org,2,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
 	}
 #ifdef _CARDIO_DEBUG
-	printf("sd response: %04x\n",*(u16*)res);
+	printf("sd response: %04x\n",crc_org);
 #endif
-	crc_org = ((res[0]<<8)&0xff00)|(res[1]&0xff);
 
 	EXI_Deselect(drv_no);
 	EXI_Unlock(drv_no);
@@ -755,12 +725,10 @@ static s32 __card_datawrite(s32 drv_no,void *buf,u32 len)
 {
 	u8 dummy[32];
 	u16 crc;
-	u32 cnt;
 	s32 ret;
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	for(cnt=0;cnt<32;cnt++) dummy[cnt] = 0xff;
 	crc = __make_crc16(buf,len);
 
 	__exi_wait(drv_no);
@@ -796,12 +764,10 @@ static s32 __card_multidatawrite(s32 drv_no,void *buf,u32 len)
 {
 	u8 dummy[32];
 	u16 crc;
-	u32 cnt;
 	s32 ret;
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	for(cnt=0;cnt<32;cnt++) dummy[cnt] = 0xff;
 	crc = __make_crc16(buf,len);
 	
 	__exi_wait(drv_no);
@@ -835,12 +801,10 @@ static s32 __card_multidatawrite(s32 drv_no,void *buf,u32 len)
 
 static s32 __card_multiwritestop(s32 drv_no)
 {
-	s32 ret,cnt,startT;
+	s32 startT,ret;
 	u8 dummy[32];
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
-
-	for(cnt=0;cnt<32;cnt++) dummy[cnt] = 0xff;
 
 	__exi_wait(drv_no);
 	
@@ -857,29 +821,25 @@ static s32 __card_multiwritestop(s32 drv_no)
 		return CARDIO_ERROR_IOERROR;
 	}
 
-	dummy[0] = 0xff;
-	if(EXI_ImmEx(drv_no,dummy,1,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,dummy,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
 	}
 	
-	dummy[0] = 0xff;
-	if(EXI_ImmEx(drv_no,dummy,1,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,dummy,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
 	}
 	
-	dummy[0] = 0xff;
-	if(EXI_ImmEx(drv_no,dummy,1,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,dummy,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
 	}
 	
-	dummy[0] = 0xff;
-	if(EXI_ImmEx(drv_no,dummy,1,EXI_READWRITE)==0) {
+	if(EXI_ImmEx(drv_no,dummy,1,EXI_READ)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_IOERROR;
@@ -888,16 +848,14 @@ static s32 __card_multiwritestop(s32 drv_no)
 	startT = gettick();
 	ret = CARDIO_ERROR_READY;
 	while(dummy[0]==0) {
-		dummy[0] = 0xff;
-		if(EXI_ImmEx(drv_no,dummy,1,EXI_READWRITE)==0) {
+		if(EXI_ImmEx(drv_no,dummy,1,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
 		}
 		if(dummy[0]) break;
 		if(__card_checktimeout(drv_no,startT,1500)!=0) {
-			dummy[0] = 0xff;
-			if(EXI_ImmEx(drv_no,dummy,1,EXI_READWRITE)==0) {
+			if(EXI_ImmEx(drv_no,dummy,1,EXI_READ)==0) {
 				EXI_Deselect(drv_no);
 				EXI_Unlock(drv_no);
 				return CARDIO_ERROR_IOERROR;

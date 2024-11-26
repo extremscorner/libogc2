@@ -514,11 +514,10 @@ s32 EXI_Imm(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 
 	exi->imm_buff = pData;
 	exi->imm_len = nLen;
+	val = 0xffffffff;
 	if(nMode==EXI_WRITE) exi->imm_len = 0;
-	if(nMode!=EXI_READ) {
-		val = __lswx(pData,nLen);
-		_exiReg[nChn][4] = val;
-	}
+	if(nMode!=EXI_READ) val = __lswx(pData,nLen);
+	_exiReg[nChn][4] = val;
 	_exiReg[nChn][3] = (((nLen-1)&0x03)<<4)|((nMode&0x03)<<2)|0x01;
 
 	_CPU_ISR_Restore(level);
@@ -708,16 +707,17 @@ s32 EXI_GetIDEx(s32 nChn,s32 nDev,u32 *nId)
 	s32 ret;
 	u32 reg;
 
-	*nId = 0xffffffff;
 	if(nDev==sdgecko_getDevice(nChn)
-		&& sdgecko_isInitialized(nChn))
+		&& sdgecko_isInitialized(nChn)) {
+		*nId = 0xffffffff;
 		return 1;
+	}
 
 	ret = 0;
 	reg = 0;
 	if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==0) return 0;
 	if(EXI_ImmEx(nChn,&reg,2,EXI_WRITE)==0) ret |= 0x01;
-	if(EXI_ImmEx(nChn,nId,4,EXI_READWRITE)==0) ret |= 0x02;
+	if(EXI_ImmEx(nChn,nId,4,EXI_READ)==0) ret |= 0x02;
 	if(EXI_Deselect(nChn)==0) ret |= 0x04;
 
 	if(ret) return 0;
