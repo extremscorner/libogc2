@@ -1056,6 +1056,7 @@ static s32 __card_setblocklen(s32 drv_no,u32 block_len)
 static s32 __card_readcsd(s32 drv_no)
 {
 	s32 ret;
+	u8 crc;
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 #ifdef _CARDIO_DEBUG
@@ -1068,12 +1069,17 @@ static s32 __card_readcsd(s32 drv_no)
 		return ret;
 	}
 	if((ret=__card_response1(drv_no))!=0) return ret;
-	return __card_dataread(drv_no,g_CSD[drv_no],16);
+	if((ret=__card_dataread(drv_no,g_CSD[drv_no],16))==CARDIO_OP_IOERR_CRC) {
+		crc = __make_crc7(g_CSD[drv_no],15)|0x01;
+		ret = (crc!=g_CSD[drv_no][15])?CARDIO_ERROR_FATALERROR:CARDIO_ERROR_READY;
+	}
+	return ret;
 }
 
 static s32 __card_readcid(s32 drv_no)
 {
 	s32 ret;
+	u8 crc;
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 #ifdef _CARDIO_DEBUG
@@ -1086,7 +1092,11 @@ static s32 __card_readcid(s32 drv_no)
 		return ret;
 	}
 	if((ret=__card_response1(drv_no))!=0) return ret;
-	return __card_dataread(drv_no,g_CID[drv_no],16);
+	if((ret=__card_dataread(drv_no,g_CID[drv_no],16))==CARDIO_OP_IOERR_CRC) {
+		crc = __make_crc7(g_CID[drv_no],15)|0x01;
+		ret = (crc!=g_CID[drv_no][15])?CARDIO_ERROR_FATALERROR:CARDIO_ERROR_READY;
+	}
+	return ret;
 }
 
 static s32 __card_sd_status(s32 drv_no)
@@ -1097,10 +1107,6 @@ static s32 __card_sd_status(s32 drv_no)
 #ifdef _CARDIO_DEBUG
 	printf("__card_sd_status(%d)\n",drv_no);
 #endif
-	if(_ioPageSize[drv_no]!=64) {
-		_ioPageSize[drv_no] = 64;
-		if((ret=__card_setblocklen(drv_no,_ioPageSize[drv_no]))!=0) return ret;
-	}
 	if((ret=__card_sendappcmd(drv_no))!=0) return ret;
 	if((ret=__card_sendcmd(drv_no,0x0D,NULL))!=0) return ret;
 	if((ret=__card_response2(drv_no))!=0) return ret;
@@ -1262,8 +1268,10 @@ s32 sdgecko_initIO(s32 drv_no)
 			if(_ioResponse[drv_no][1]&0x40) _ioAddressingType[drv_no] = CARDIO_ADDRESSING_BLOCK;
 		}
 
+		if(__card_readcsd(drv_no)!=0) goto exit;
+
 		_ioPageSize[drv_no] = PAGE_SIZE512;
-		if(__card_setblocklen(drv_no,_ioPageSize[drv_no])!=0) goto exit; 
+		if(__card_setblocklen(drv_no,_ioPageSize[drv_no])!=0) goto exit;
 
 		if(__card_sd_status(drv_no)!=0) goto exit;
 

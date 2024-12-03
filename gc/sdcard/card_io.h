@@ -13,10 +13,13 @@
 #define MANUFACTURER_ID(drv_no)				((u8)(g_CID[drv_no][0]))
 
 /* CSD Register */
+#define CSD_STRUCTURE(drv_no)				((u8)((g_CSD[drv_no][0]>>6)&0x03))
 #define READ_BL_LEN(drv_no)					((u8)(g_CSD[drv_no][5]&0x0f))
-#define WRITE_BL_LEN(drv_no)				((u8)((g_CSD[drv_no][12]&0x03)<<2)|((g_CSD[drv_no][13]>>6)&0x03))
+#define WRITE_BL_LEN(drv_no)				((u8)(((g_CSD[drv_no][12]&0x03)<<2)|((g_CSD[drv_no][13]>>6)&0x03)))
 #define C_SIZE(drv_no)						((u16)(((g_CSD[drv_no][6]&0x03)<<10)|(g_CSD[drv_no][7]<<2)|((g_CSD[drv_no][8]>>6)&0x03)))
-#define C_SIZE_MULT(drv_no)					((u8)((g_CSD[drv_no][9]&0x03)<<1)|((g_CSD[drv_no][10]>>7)&0x01))
+#define C_SIZE_MULT(drv_no)					((u8)(((g_CSD[drv_no][9]&0x03)<<1)|((g_CSD[drv_no][10]>>7)&0x01)))
+#define C_SIZE1(drv_no)						((u32)(((g_CSD[drv_no][7]&0x3f)<<16)|(g_CSD[drv_no][8]<<8)|(g_CSD[drv_no][9])))
+#define C_SIZE2(drv_no)						((u32)(((g_CSD[drv_no][6]&0x0f)<<24)|(g_CSD[drv_no][7]<<16)|(g_CSD[drv_no][8]<<8)|(g_CSD[drv_no][9])))
 
 #ifdef __cplusplus
    extern "C" {
