@@ -37,7 +37,7 @@
 #include <gctypes.h>
 #include <ogc/disc_io.h>
 
-#define DEVICE_TYPE_WII_SD (('W'<<24)|('I'<<16)|('S'<<8)|'D')
+#define DEVICE_TYPE_WII_SD (('W'<<24)|('S'<<16)|('D'<<8)|'0')
 
 extern DISC_INTERFACE __io_wiisd;
 
