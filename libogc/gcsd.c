@@ -106,8 +106,8 @@ static bool __gcsd_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSect
 {
 	s32 ret,chan = (disc->ioType&0xff)-'0';
 
-	if((u32)sector != sector) return false;
-	if((u32)numSectors != numSectors) return false;
+	if((sector + numSectors) < sector) return false;
+	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(numSectors == 1)
@@ -126,8 +126,8 @@ static bool __gcsd_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSec
 	s32 ret,chan = (disc->ioType&0xff)-'0';
 
 	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
-	if((u32)sector != sector) return false;
-	if((u32)numSectors != numSectors) return false;
+	if((sector + numSectors) < sector) return false;
+	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(numSectors == 1)

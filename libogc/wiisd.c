@@ -114,8 +114,13 @@
 #define	SDIO_STATUS_CARD_INITIALIZED	0x10000
 #define SDIO_STATUS_CARD_SDHC			0x100000
 
-#define READ_BL_LEN					((u8)(__sd0_csd[5]&0x0f))
-#define WRITE_BL_LEN				((u8)(((__sd0_csd[12]&0x03)<<2)|((__sd0_csd[13]>>6)&0x03)))
+#define CSD_STRUCTURE				((u8)((__sd0_csd[13]>>6)&0x03))
+#define READ_BL_LEN					((u8)(__sd0_csd[10]&0x0f))
+#define WRITE_BL_LEN				((u8)(((__sd0_csd[1]&0x03)<<2)|((__sd0_csd[2]>>6)&0x03)))
+#define C_SIZE						((u16)(((__sd0_csd[11]&0x03)<<10)|(__sd0_csd[4]<<2)|((__sd0_csd[5]>>6)&0x03)))
+#define C_SIZE_MULT					((u8)(((__sd0_csd[6]&0x03)<<1)|((__sd0_csd[7]>>7)&0x01)))
+#define C_SIZE1						((u32)(((__sd0_csd[4]&0x3f)<<16)|(__sd0_csd[5]<<8)|__sd0_csd[6]))
+#define C_SIZE2						((u32)(((__sd0_csd[11]&0x0f)<<24)|(__sd0_csd[4]<<16)|(__sd0_csd[5]<<8)|__sd0_csd[6]))
 
 struct _sdiorequest
 {
@@ -140,7 +145,7 @@ static s32 __sd0_fd = -1;
 static u16 __sd0_rca = 0;
 static s32 __sd0_initialized = 0;
 static s32 __sd0_sdhc = 0;
-//static u8 __sd0_csd[16];
+static u8 __sd0_csd[16];
 static u8 __sd0_cid[16];
  
 static s32 __sdio_initialized = 0;
@@ -356,7 +361,6 @@ static s32 __sd0_setbuswidth(u32 bus_width)
 	return ret;		
 }
 
-#if 0
 static s32 __sd0_getcsd(void)
 {
 	s32 ret;
@@ -365,7 +369,6 @@ static s32 __sd0_getcsd(void)
  
 	return ret;
 }
-#endif
 
 static s32 __sd0_getcid(void)
 {
@@ -468,6 +471,9 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 	else
 		__sd0_sdhc = 0;
  
+	ret = __sd0_getcsd();
+	if(ret<0) return false;
+ 
 	ret = __sdio_setbuswidth(4);
 	if(ret<0) return false;
  
@@ -490,6 +496,20 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 	}
 	__sd0_deselect();
 
+	switch(CSD_STRUCTURE) {
+		case 0:
+			disc->numberOfSectors = ((C_SIZE + 1) << (C_SIZE_MULT + 2)) << (READ_BL_LEN - 9);
+			break;
+		case 1:
+			disc->numberOfSectors = (C_SIZE1 + 1LL) << 10;
+			break;
+		case 2:
+			disc->numberOfSectors = (C_SIZE2 + 1LL) << 10;
+			break;
+		default:
+			disc->numberOfSectors = 0;
+			break;
+	}
 	__sd0_initialized = 1;
 	return true;
 
@@ -547,8 +567,8 @@ static bool sdio_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSector
 	u32 secs_to_read;
 	u8 *dest = (u8*)buffer;
 
-	if((u32)sector != sector) return false;
-	if((u32)numSectors != numSectors) return false;
+	if((sector + numSectors) < sector) return false;
+	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	ret = __sd0_select();
@@ -582,8 +602,8 @@ static bool sdio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSecto
 	u8 *src = (u8*)buffer;
 
 	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
-	if((u32)sector != sector) return false;
-	if((u32)numSectors != numSectors) return false;
+	if((sector + numSectors) < sector) return false;
+	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	ret = __sd0_select();
@@ -637,7 +657,7 @@ DISC_INTERFACE __io_wiisd = {
 	sdio_WriteSectors,
 	sdio_ClearStatus,
 	sdio_Shutdown,
-	0x100000000,
+	0,
 	512
 };
 
