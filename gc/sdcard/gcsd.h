@@ -37,7 +37,7 @@
 #include <gccore.h>
 #include <ogc/disc_io.h>
 
-#define DEVICE_TYPE_GC_SD(x) (('G'<<24)|('S'<<16)|('D'<<8)|('0'+(x)))
+#define DEVICE_TYPE_GAMECUBE_SD(x) (('G'<<24)|('S'<<16)|('D'<<8)|('0'+(x)))
 
 extern DISC_INTERFACE __io_gcsda;
 extern DISC_INTERFACE __io_gcsdb;

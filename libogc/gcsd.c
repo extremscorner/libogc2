@@ -43,6 +43,9 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 	s32 ret,chan = (disc->ioType&0xff)-'0';
 	u32 dev;
 
+	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
+	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
+
 	if(!__gcsd_init) {
 		sdgecko_initBufferPool();
 		sdgecko_initIODefault();
@@ -104,6 +107,10 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 static bool __gcsd_isInserted(DISC_INTERFACE *disc)
 {
 	s32 chan = (disc->ioType&0xff)-'0';
+
+	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
+	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
+
 	return sdgecko_isInserted(chan);
 }
 
@@ -111,9 +118,14 @@ static bool __gcsd_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSect
 {
 	s32 ret,chan = (disc->ioType&0xff)-'0';
 
+	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
+	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANREAD)) return false;
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
+	if(disc->bytesPerSector != PAGE_SIZE512) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!sdgecko_isInitialized(chan)) return false;
 
 	if(numSectors == 1)
 		ret = sdgecko_readSector(chan, buffer, sector);
@@ -130,10 +142,14 @@ static bool __gcsd_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSec
 {
 	s32 ret,chan = (disc->ioType&0xff)-'0';
 
+	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
+	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
 	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
+	if(disc->bytesPerSector != PAGE_SIZE512) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!sdgecko_isInitialized(chan)) return false;
 
 	if(numSectors == 1)
 		ret = sdgecko_writeSector(chan, buffer, sector);
@@ -154,12 +170,16 @@ static bool __gcsd_clearStatus(DISC_INTERFACE *disc)
 static bool __gcsd_shutdown(DISC_INTERFACE *disc)
 {
 	s32 chan = (disc->ioType&0xff)-'0';
+
+	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
+	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
+
 	sdgecko_doUnmount(chan);
 	return true;
 }
 
 DISC_INTERFACE __io_gcsda = {
-	DEVICE_TYPE_GC_SD(0),
+	DEVICE_TYPE_GAMECUBE_SD(0),
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_SLOTA,
 	__gcsd_startup,
 	__gcsd_isInserted,
@@ -168,11 +188,11 @@ DISC_INTERFACE __io_gcsda = {
 	__gcsd_clearStatus,
 	__gcsd_shutdown,
 	0,
-	512
+	PAGE_SIZE512
 };
 
 DISC_INTERFACE __io_gcsdb = {
-	DEVICE_TYPE_GC_SD(1),
+	DEVICE_TYPE_GAMECUBE_SD(1),
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_SLOTB,
 	__gcsd_startup,
 	__gcsd_isInserted,
@@ -181,11 +201,11 @@ DISC_INTERFACE __io_gcsdb = {
 	__gcsd_clearStatus,
 	__gcsd_shutdown,
 	0,
-	512
+	PAGE_SIZE512
 };
 
 DISC_INTERFACE __io_gcsd2 = {
-	DEVICE_TYPE_GC_SD(2),
+	DEVICE_TYPE_GAMECUBE_SD(2),
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_PORT2,
 	__gcsd_startup,
 	__gcsd_isInserted,
@@ -194,5 +214,5 @@ DISC_INTERFACE __io_gcsd2 = {
 	__gcsd_clearStatus,
 	__gcsd_shutdown,
 	0,
-	512
+	PAGE_SIZE512
 };
