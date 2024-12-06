@@ -25,6 +25,8 @@
 #define C_SIZE_MULT(drv_no)					((u8)(((g_CSD[drv_no][9]&0x03)<<1)|((g_CSD[drv_no][10]>>7)&0x01)))
 #define C_SIZE1(drv_no)						((u32)(((g_CSD[drv_no][7]&0x3f)<<16)|(g_CSD[drv_no][8]<<8)|g_CSD[drv_no][9]))
 #define C_SIZE2(drv_no)						((u32)(((g_CSD[drv_no][6]&0x0f)<<24)|(g_CSD[drv_no][7]<<16)|(g_CSD[drv_no][8]<<8)|g_CSD[drv_no][9]))
+#define PERM_WRITE_PROTECT(drv_no)			((u8)((g_CSD[drv_no][14]>>5)&0x01))
+#define TMP_WRITE_PROTECT(drv_no)			((u8)((g_CSD[drv_no][14]>>4)&0x01))
 
 #ifdef __cplusplus
    extern "C" {

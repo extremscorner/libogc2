@@ -74,6 +74,11 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 			}
 		}
 
+		if(PERM_WRITE_PROTECT(chan) || TMP_WRITE_PROTECT(chan))
+			disc->features &= ~FEATURE_MEDIUM_CANWRITE;
+		else
+			disc->features |= FEATURE_MEDIUM_CANWRITE;
+
 		switch(CSD_STRUCTURE(chan)) {
 			case 0:
 				disc->numberOfSectors = ((C_SIZE(chan) + 1) << (C_SIZE_MULT(chan) + 2)) << (READ_BL_LEN(chan) - 9);

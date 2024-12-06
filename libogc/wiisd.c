@@ -121,6 +121,8 @@
 #define C_SIZE_MULT					((u8)(((__sd0_csd[6]&0x03)<<1)|((__sd0_csd[7]>>7)&0x01)))
 #define C_SIZE1						((u32)(((__sd0_csd[4]&0x3f)<<16)|(__sd0_csd[5]<<8)|__sd0_csd[6]))
 #define C_SIZE2						((u32)(((__sd0_csd[11]&0x0f)<<24)|(__sd0_csd[4]<<16)|(__sd0_csd[5]<<8)|__sd0_csd[6]))
+#define PERM_WRITE_PROTECT			((u8)((__sd0_csd[3]>>5)&0x01))
+#define TMP_WRITE_PROTECT			((u8)((__sd0_csd[3]>>4)&0x01))
 
 struct _sdiorequest
 {
@@ -495,6 +497,9 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 		return false;
 	}
 	__sd0_deselect();
+
+	if(PERM_WRITE_PROTECT || TMP_WRITE_PROTECT)
+		disc->features &= ~FEATURE_MEDIUM_CANWRITE;
 
 	switch(CSD_STRUCTURE) {
 		case 0:
