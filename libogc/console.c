@@ -681,6 +681,9 @@ void CON_EnableGecko(s32 chan,bool safe)
 	if(chan<0 && __gecko_chan==-1) return;
 	if(chan>=0 && (__gecko_chan==chan || !usb_isgeckoalive(chan))) return;
 
+	fflush(stdout);
+	fflush(stderr);
+
 	fclose(stdcon);
 	stdcon = NULL;
 
@@ -689,10 +692,7 @@ void CON_EnableGecko(s32 chan,bool safe)
 
 	stdcon = funopen(&__gecko_chan, NULL, safe ? __gecko_write_safe : __gecko_write, NULL, __gecko_close);
 	if(!stdcon) return;
-	setvbuf(stdcon, NULL, _IOLBF, 0);
-
-	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stderr, NULL, _IONBF, 0);
+	setlinebuf(stdcon);
 
 	dotab_stdout.write_r = __console_write_r;
 
@@ -720,6 +720,9 @@ void CON_EnableBarnacle(s32 chan,s32 dev)
 {
 	if(chan<0 && __gecko_chan>=0) return;
 
+	fflush(stdout);
+	fflush(stderr);
+
 	fclose(stdcon);
 	stdcon = NULL;
 
@@ -728,10 +731,7 @@ void CON_EnableBarnacle(s32 chan,s32 dev)
 
 	stdcon = fwopen(NULL, __uart_write);
 	if(!stdcon) return;
-	setvbuf(stdcon, NULL, _IOLBF, 0);
-
-	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stderr, NULL, _IONBF, 0);
+	setlinebuf(stdcon);
 
 	dotab_stdout.write_r = __console_write_r;
 
