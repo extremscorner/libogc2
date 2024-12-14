@@ -28,6 +28,30 @@
 #define PERM_WRITE_PROTECT(drv_no)			((u8)((g_CSD[drv_no][14]>>5)&0x01))
 #define TMP_WRITE_PROTECT(drv_no)			((u8)((g_CSD[drv_no][14]>>4)&0x01))
 
+/* SD Status */
+#define DAT_BUS_WIDTH(drv_no)				((u8)((g_CardStatus[drv_no][0]>>6)&0x03))
+#define SECURED_MODE(drv_no)				((u8)((g_CardStatus[drv_no][0]>>5)&0x01))
+#define SECURE_CMD_STATUS(drv_no)			((u8)(g_CardStatus[drv_no][1]&0x07))
+#define SD_CARD_TYPE(drv_no)				((u16)((g_CardStatus[drv_no][2]<<8)|g_CardStatus[drv_no][3]))
+#define SIZE_OF_PROTECTED_AREA(drv_no)		((u32)((g_CardStatus[drv_no][4]<<24)|(g_CardStatus[drv_no][5]<<16)|(g_CardStatus[drv_no][6]<<8)|g_CardStatus[drv_no][7]))
+#define SPEED_CLASS(drv_no)					((u8)(g_CardStatus[drv_no][8]))
+#define PERFORMANCE_MOVE(drv_no)			((u8)(g_CardStatus[drv_no][9]))
+#define AU_SIZE(drv_no)						((u8)((g_CardStatus[drv_no][10]>>4)&0x0f))
+#define ERASE_SIZE(drv_no)					((u16)((g_CardStatus[drv_no][11]<<8)|g_CardStatus[drv_no][12]))
+#define ERASE_TIMEOUT(drv_no)				((u8)((g_CardStatus[drv_no][13]>>2)&0x3f))
+#define ERASE_OFFSET(drv_no)				((u8)(g_CardStatus[drv_no][13]&0x03))
+#define UHS_SPEED_GRADE(drv_no)				((u8)((g_CardStatus[drv_no][14]>>4)&0x0f))
+#define UHS_AU_SIZE(drv_no)					((u8)(g_CardStatus[drv_no][14]&0x0f))
+#define VIDEO_SPEED_CLASS(drv_no)			((u8)(g_CardStatus[drv_no][15]))
+#define VSC_AU_SIZE(drv_no)					((u16)(((g_CardStatus[drv_no][16]&0x03)<<8)|g_CardStatus[drv_no][17]))
+#define SUS_ADDR(drv_no)					((u32)((g_CardStatus[drv_no][18]<<14)|(g_CardStatus[drv_no][19]<<6)|((g_CardStatus[drv_no][20]>>2)&0x3f)))
+#define APP_PERF_CLASS(drv_no)				((u8)(g_CardStatus[drv_no][21]&0x0f))
+#define PERFORMANCE_ENHANCE(drv_no)			((u8)(g_CardStatus[drv_no][22]))
+#define WP_UPC_SUPPORT(drv_no)				((u8)((g_CardStatus[drv_no][24]>>3)&0x01))
+#define BOOT_PARTITION_SUPPORT(drv_no)		((u8)((g_CardStatus[drv_no][24]>>2)&0x01))
+#define DISCARD_SUPPORT(drv_no)				((u8)((g_CardStatus[drv_no][24]>>1)&0x01))
+#define FULE_SUPPORT(drv_no)				((u8)(g_CardStatus[drv_no][24]&0x01))
+
 #ifdef __cplusplus
    extern "C" {
 #endif /* __cplusplus */
@@ -44,6 +68,7 @@ enum {
 
 extern u8 g_CSD[MAX_DRIVE][16];
 extern u8 g_CID[MAX_DRIVE][16];
+extern u8 g_CardStatus[MAX_DRIVE][64];
 extern u8 g_mCode[MAX_MI_NUM];
 extern u16 g_dCode[MAX_MI_NUM][MAX_DI_NUM];
 
