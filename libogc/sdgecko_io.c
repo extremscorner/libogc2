@@ -74,6 +74,7 @@ static cardiocallback _ioRetryCB = NULL;
 static lwpq_t _ioEXILock[MAX_DRIVE];
 
 static u32 _ioPageSize[MAX_DRIVE];
+static u32 _ioReadSector[MAX_DRIVE];
 static u32 _ioFlag[MAX_DRIVE];
 static u32 _ioError[MAX_DRIVE];
 static bool _ioCardInserted[MAX_DRIVE];
@@ -891,9 +892,16 @@ static s32 __card_response2(s32 drv_no)
 
 static s32 __card_sendcmd(s32 drv_no,u8 cmd,u8 *arg)
 {
+	s32 ret;
 	u8 ccmd[5] = {0,0,0,0,0};
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
+
+	if(cmd==0x0C) _ioReadSector[drv_no] = ~0;
+	else if(_ioReadSector[drv_no]!=~0) {
+		if((ret=__card_sendcmd(drv_no,0x0C,NULL))!=0) return ret;
+		if((ret=__card_stopresponse(drv_no))!=0) return ret;
+	}
 
 	ccmd[0] = cmd;
 	if(arg) {
@@ -976,14 +984,13 @@ static s32 __card_sendopcond(s32 drv_no)
 static s32 __card_sendCMD8(s32 drv_no)
 {
 	s32 ret;
-	u8 ccmd[5] = {0,0,0,0,0};
+	u8 arg[4] = {0,0,0,0};
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	ccmd[0] = 0x08;
-	ccmd[3] = 0x01;
-	ccmd[4] = 0xAA;
-	if((ret=__card_writecmd(drv_no,ccmd,5))!=0){
+	arg[2] = 0x01;
+	arg[3] = 0xAA;
+	if((ret=__card_sendcmd(drv_no,0x08,arg))!=0) {
 #ifdef _CARDIO_DEBUG
 		printf("__card_sendCMD8(%d): sd write cmd failed.\n",ret);
 #endif
@@ -1121,11 +1128,21 @@ static s32 __card_softreset(s32 drv_no)
 #ifdef _CARDIO_DEBUG
 	printf("__card_softreset(%d)\n",drv_no);
 #endif
-	if((ret=__card_writecmd0(drv_no))!=0) {
+	if(_ioFlag[drv_no]!=INITIALIZING) {
+		_ioFlag[drv_no] = INITIALIZING;
+		if((ret=__card_sendcmd(drv_no,0x00,NULL))!=0) {
 #ifdef _CARDIO_DEBUG
-		printf("__card_softreset(%d): sd write cmd0 failed.\n",ret);
+			printf("__card_softreset(%d): sd write cmd failed.\n",ret);
 #endif
-		return ret;
+			return ret;
+		}
+	} else {
+		if((ret=__card_writecmd0(drv_no))!=0) {
+#ifdef _CARDIO_DEBUG
+			printf("__card_softreset(%d): sd write cmd0 failed.\n",ret);
+#endif
+			return ret;
+		}
 	}
 	if((ret=__card_readresponse(drv_no,_ioResponse[drv_no],1))!=0) {
 		if(_ioTransferMode[drv_no]!=CARDIO_TRANSFER_IMM) {
@@ -1213,6 +1230,7 @@ void sdgecko_initIODefault(void)
 	for(i=0;i<MAX_DRIVE;++i) {
 		_ioRetryCnt = 0;
 		_ioError[i] = 0;
+		_ioReadSector[i] = ~0;
 		_ioCardInserted[i] = FALSE;
 		_ioFlag[i] = NOT_INITIALIZED;
 		_initType[i] = TYPE_SD;
@@ -1379,7 +1397,6 @@ s32 sdgecko_readSector(s32 drv_no,void *buf,u32 sector_no)
 
 	// SDHC support fix
 	__convert_sector(drv_no,sector_no,arg);
-
 	if((ret=__card_sendcmd(drv_no,0x11,arg))!=0) return ret;
 	if((ret=__card_response1(drv_no))!=0) return ret;
 
@@ -1411,11 +1428,11 @@ s32 sdgecko_readSectors(s32 drv_no,u32 sector_no,u32 num_sectors,void *buf)
 		if((ret=__card_setblocklen(drv_no,_ioPageSize[drv_no]))!=0) return ret;
 	}
 
-	// SDHC support fix
-	__convert_sector(drv_no,sector_no,arg);
-
-	if((ret=__card_sendcmd(drv_no,0x12,arg))!=0) return ret;
-	if((ret=__card_response1(drv_no))!=0) return ret;
+	if(_ioReadSector[drv_no]!=sector_no) {
+		__convert_sector(drv_no,sector_no,arg);
+		if((ret=__card_sendcmd(drv_no,0x12,arg))!=0) return ret;
+		if((ret=__card_response1(drv_no))!=0) return ret;
+	}
 
 	for(i=0;i<num_sectors;i++) {
 		if((ret=__card_dataread(drv_no,ptr,_ioPageSize[drv_no]))!=0) {
@@ -1424,10 +1441,10 @@ s32 sdgecko_readSectors(s32 drv_no,u32 sector_no,u32 num_sectors,void *buf)
 			return ret;
 		}
 		ptr += _ioPageSize[drv_no];
+		sector_no++;
 	}
-
-	if((ret=__card_sendcmd(drv_no,0x0C,NULL))!=0) return ret;
-	return __card_stopresponse(drv_no);
+	_ioReadSector[drv_no] = sector_no;
+	return ret;
 }
 
 s32 sdgecko_writeSector(s32 drv_no,const void *buf,u32 sector_no)
@@ -1452,9 +1469,9 @@ s32 sdgecko_writeSector(s32 drv_no,const void *buf,u32 sector_no)
 
 	// SDHC support fix
 	__convert_sector(drv_no,sector_no,arg);
-
 	if((ret=__card_sendcmd(drv_no,0x18,arg))!=0) return ret;
 	if((ret=__card_response1(drv_no))!=0) return ret;
+
 	if((ret=__card_datawrite(drv_no,ptr,_ioPageSize[drv_no]))!=0) return ret;
 	if((ret=__card_dataresponse(drv_no))!=0) return ret;
 	if((ret=__card_sendcmd(drv_no,0x0D,NULL))!=0) return ret;
@@ -1495,7 +1512,6 @@ s32 sdgecko_writeSectors(s32 drv_no,u32 sector_no,u32 num_sectors,const void *bu
 
 	// SDHC support fix
 	__convert_sector(drv_no,sector_no,arg);
-	
 	if((ret=__card_sendcmd(drv_no,0x19,arg))!=0) return ret;
 	if((ret=__card_response1(drv_no))!=0) return ret;
 
@@ -1519,10 +1535,8 @@ s32 sdgecko_doUnmount(s32 drv_no)
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
 	if(_ioCardInserted[drv_no]==TRUE) {
-		if(_ioFlag[drv_no]==INITIALIZED) {
-			_ioFlag[drv_no] = INITIALIZING;
+		if(_ioFlag[drv_no]==INITIALIZED)
 			__card_softreset(drv_no);
-		}
 		_ioFlag[drv_no] = NOT_INITIALIZED;
 		_ioCardInserted[drv_no] = FALSE;
 		if(drv_no!=2 && _ioCardSelect[drv_no]==EXI_DEVICE_0) {
