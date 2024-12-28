@@ -2101,6 +2101,7 @@ static void __VIInit(u32 vimode)
 	interlace = (vimode&0x01);
 	progressive = (vimode&0x02);
 
+	*(u32*)0x800000cc = vi_mode;
 	cur_timing = __gettiming(vimode);
 
 	//reset the interface
@@ -2546,14 +2547,17 @@ void* VIDEO_GetCurrentFramebuffer(void)
 void VIDEO_Init(void)
 {
 	u32 level,vimode = 0;
+	u32 *tvInBootrom = (u32*)0x800000cc;
 
 	if(video_initialized) return;
 	video_initialized = 1;
 
 	_CPU_ISR_Disable(level);
 
-	if(!(_viReg[1]&0x0001))
-		__VIInit(VI_TVMODE_NTSC_INT);
+	if(!(_viReg[1]&0x0001)) {
+		GXRModeObj *rmode = VIDEO_GetPreferredMode(NULL);
+		__VIInit(rmode->viTVMode);
+	}
 
 	retraceCount = 0;
 	changed = 0;
@@ -2582,9 +2586,10 @@ void VIDEO_Init(void)
 
 	HorVer.nonInter = VIDEO_GetScanMode();
 	HorVer.tv = _SHIFTR(_viReg[1],8,2);
+	if(HorVer.tv==VI_NTSC && (*tvInBootrom==VI_PAL || *tvInBootrom==VI_EURGB60)) HorVer.tv = VI_EURGB60;
 
 	vimode = HorVer.nonInter;
-	if(HorVer.tv!=VI_DEBUG) vimode += (HorVer.tv<<2);
+	if(HorVer.tv!=VI_DEBUG) vimode |= (HorVer.tv<<2);
 	currTiming = __gettiming(vimode);
 	currTvMode = HorVer.tv;
 
