@@ -202,7 +202,7 @@ cube: gc/ogc/libversion.h
 
 
 #---------------------------------------------------------------------------------
-gc/ogc/libversion.h : Makefile
+gc/ogc/libversion.h: .git/HEAD .git/index Makefile
 #---------------------------------------------------------------------------------
 	@echo "#ifndef __OGC_LIBVERSION_H__" > $@
 	@echo "#define __OGC_LIBVERSION_H__" >> $@
@@ -211,10 +211,12 @@ gc/ogc/libversion.h : Makefile
 	@echo "#define _V_MINOR_	$(LIBOGC_MINOR)" >> $@
 	@echo "#define _V_PATCH_	$(LIBOGC_PATCH)" >> $@
 	@echo >> $@
-	@echo "#define _V_DATE_			__DATE__" >> $@
-	@echo "#define _V_TIME_			__TIME__" >> $@
+	@echo "#define _V_DATE_			$$(git log -1 --format=%cd --date=format-local:'"%b %e %Y"')" >> $@
+	@echo "#define _V_TIME_			$$(git log -1 --format=%cd --date=format-local:'"%H:%M:%S"')" >> $@
 	@echo >> $@
-	@echo '#define _V_STRING "libOGC Release '$(LIBOGC_MAJOR).$(LIBOGC_MINOR).$(LIBOGC_PATCH)'"' >> $@
+	@echo '#define _V_STRING "libogc2 '$(VERSTRING)'"' >> $@
+	@echo >> $@
+	@echo "#define _LIBOGC2_REVISION_	$$(git rev-list --count HEAD)" >> $@
 	@echo >> $@
 	@echo "#endif // __OGC_LIBVERSION_H__" >> $@
 
