@@ -93,7 +93,7 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 				disc->numberOfSectors = (C_SIZE2(chan) + 1LL) << 10;
 				break;
 			default:
-				disc->numberOfSectors = 0;
+				disc->numberOfSectors = ~0;
 				break;
 		}
 

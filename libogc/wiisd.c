@@ -9,7 +9,7 @@
    Michael Wiedenbauer (shagkur)
    Dave Murphy (WinterMute)
    Sven Peter <svpe@gmx.net>
-	
+
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
 
@@ -31,6 +31,7 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 #if defined(HW_RVL)
 
 #include <stdlib.h>
@@ -49,18 +50,18 @@
 
 #define PAGE_SIZE512				512
 
-#define	SDIOHCR_RESPONSE			0x10
+#define SDIOHCR_RESPONSE			0x10
 #define SDIOHCR_HOSTCONTROL			0x28
-#define	SDIOHCR_POWERCONTROL		0x29
-#define	SDIOHCR_CLOCKCONTROL		0x2c
-#define	SDIOHCR_TIMEOUTCONTROL		0x2e
-#define	SDIOHCR_SOFTWARERESET		0x2f
- 
+#define SDIOHCR_POWERCONTROL		0x29
+#define SDIOHCR_CLOCKCONTROL		0x2c
+#define SDIOHCR_TIMEOUTCONTROL		0x2e
+#define SDIOHCR_SOFTWARERESET		0x2f
+
 #define SDIOHCR_HOSTCONTROL_4BIT	0x02
 #define SDIOHCR_HOSTCONTROL_HS		0x04
 
-#define	SDIO_DEFAULT_TIMEOUT		0xe
- 
+#define SDIO_DEFAULT_TIMEOUT		0xe
+
 #define IOCTL_SDIO_WRITEHCREG		0x01
 #define IOCTL_SDIO_READHCREG		0x02
 #define IOCTL_SDIO_READCREG			0x03
@@ -75,28 +76,28 @@
 #define IOCTL_SDIO_GETOCR			0x0C
 #define IOCTL_SDIO_READDATA			0x0D
 #define IOCTL_SDIO_WRITEDATA		0x0E
- 
+
 #define SDIOCMD_TYPE_BC				1
 #define SDIOCMD_TYPE_BCR			2
 #define SDIOCMD_TYPE_AC				3
 #define SDIOCMD_TYPE_ADTC			4
- 
+
 #define SDIO_RESPONSE_NONE			0
 #define SDIO_RESPONSE_R1			1
 #define SDIO_RESPONSE_R1B			2
-#define SDIO_RESPOSNE_R2			3
+#define SDIO_RESPONSE_R2			3
 #define SDIO_RESPONSE_R3			4
 #define SDIO_RESPONSE_R4			5
 #define SDIO_RESPONSE_R5			6
 #define SDIO_RESPONSE_R6			7
- 
+
 #define SDIO_CMD_GOIDLE				0x00
-#define	SDIO_CMD_ALL_SENDCID		0x02
+#define SDIO_CMD_ALL_SENDCID		0x02
 #define SDIO_CMD_SENDRCA			0x03
 #define SDIO_CMD_SWITCHFUNC			0x06
 #define SDIO_CMD_SELECT				0x07
 #define SDIO_CMD_DESELECT			0x07
-#define	SDIO_CMD_SENDIFCOND			0x08
+#define SDIO_CMD_SENDIFCOND			0x08
 #define SDIO_CMD_SENDCSD			0x09
 #define SDIO_CMD_SENDCID			0x0A
 #define SDIO_CMD_SENDSTATUS			0x0D
@@ -106,14 +107,14 @@
 #define SDIO_CMD_WRITEBLOCK			0x18
 #define SDIO_CMD_WRITEMULTIBLOCK	0x19
 #define SDIO_CMD_APPCMD				0x37
- 
+
 #define SDIO_ACMD_SETBUSWIDTH		0x06
 #define SDIO_ACMD_SENDSCR			0x33
-#define	SDIO_ACMD_SENDOPCOND		0x29
+#define SDIO_ACMD_SENDOPCOND		0x29
 
-#define	SDIO_STATUS_CARD_INSERTED		0x1
+#define SDIO_STATUS_CARD_INSERTED		0x1
 #define SDIO_STATUS_CARD_LOCKED			0x4
-#define	SDIO_STATUS_CARD_INITIALIZED	0x10000
+#define SDIO_STATUS_CARD_INITIALIZED	0x10000
 #define SDIO_STATUS_CARD_SDHC			0x100000
 
 #define CSD_STRUCTURE				((u8)((__sd0_csd[13]>>6)&0x03))
@@ -140,13 +141,13 @@ struct _sdiorequest
 	u32 isdma;
 	u32 pad0;
 };
- 
+
 struct _sdioresponse
 {
 	u32 rsp_fields[3];
 	u32 acmd12_response;
 };
- 
+
 static s32 __sd0_fd = -1;
 static u16 __sd0_rca = 0;
 static s32 __sd0_initialized = 0;
@@ -154,9 +155,9 @@ static s32 __sd0_sdhc = 0;
 static u8 __sd0_csd[16];
 static u8 __sd0_cid[16];
 static u8 __sd0_functions[64] ATTRIBUTE_ALIGN(32);
- 
+
 static bool __sdio_initialized = false;
- 
+
 static char _sd0_fs[] ATTRIBUTE_ALIGN(32) = "/dev/sdio/slot0";
 
 static s32 __sdio_sendcommand(u32 cmd,u32 cmd_type,u32 rsp_type,u32 arg,u32 blk_cnt,u32 blk_size,void *buffer,void *reply,u32 rlen)
@@ -175,7 +176,7 @@ static s32 __sdio_sendcommand(u32 cmd,u32 cmd_type,u32 rsp_type,u32 arg,u32 blk_
 	request->dma_addr = buffer;
 	request->isdma = ((buffer!=NULL)?1:0);
 	request->pad0 = 0;
- 
+
 	if(request->isdma || __sd0_sdhc == 1) {
 		iovec[0].data = request;
 		iovec[0].len = sizeof(struct _sdiorequest);
@@ -186,22 +187,22 @@ static s32 __sdio_sendcommand(u32 cmd,u32 cmd_type,u32 rsp_type,u32 arg,u32 blk_
 		ret = IOS_Ioctlv(__sd0_fd,IOCTL_SDIO_SENDCMD,2,1,iovec);
 	} else
 		ret = IOS_Ioctl(__sd0_fd,IOCTL_SDIO_SENDCMD,request,sizeof(struct _sdiorequest),response,sizeof(struct _sdioresponse));
- 
+
 	if(reply && !(rlen>16)) memcpy(reply,response,rlen);
 
 //	printf("  cmd= %08x\n", cmd);
 
 	return ret;
 }
- 
+
 static s32 __sdio_setclock(u32 set)
 {
 	s32 ret;
- 	STACK_ALIGN(u32,clock,1,32);
+	STACK_ALIGN(u32,clock,1,32);
 
 	*clock = set;
 	ret = IOS_Ioctl(__sd0_fd,IOCTL_SDIO_SETCLK,clock,sizeof(u32),NULL,0);
- 
+
 	return ret;
 }
 
@@ -209,35 +210,35 @@ static s32 __sdio_getstatus(void)
 {
 	s32 ret;
 	STACK_ALIGN(u32,status,1,32);
- 
+
 	ret = IOS_Ioctl(__sd0_fd,IOCTL_SDIO_GETSTATUS,NULL,0,status,sizeof(u32));
 	if(ret<0) return ret;
- 
+
 	return *status;
 }
- 
+
 static s32 __sdio_resetcard(void)
 {
 	s32 ret;
- 	STACK_ALIGN(u32,status,1,32);
+	STACK_ALIGN(u32,status,1,32);
 
 	__sd0_rca = 0;
 	ret = IOS_Ioctl(__sd0_fd,IOCTL_SDIO_RESETCARD,NULL,0,status,sizeof(u32));
 	if(ret<0) return ret;
- 
+
 	__sd0_rca = (u16)(*status>>16);
 	return (*status&0xffff);
 }
- 
+
 static s32 __sdio_gethcr(u8 reg, u8 size, u32 *val)
 {
 	s32 ret;
 	STACK_ALIGN(u32,hcr_value,1,32);
 	STACK_ALIGN(u32,hcr_query,6,32);
- 
+
 	if(val==NULL) return IPC_EINVAL;
- 
- 	*hcr_value = 0;
+
+	*hcr_value = 0;
 	*val = 0;
 	hcr_query[0] = reg;
 	hcr_query[1] = 0;
@@ -247,15 +248,15 @@ static s32 __sdio_gethcr(u8 reg, u8 size, u32 *val)
 	hcr_query[5] = 0;
 	ret = IOS_Ioctl(__sd0_fd,IOCTL_SDIO_READHCREG,(void*)hcr_query,24,hcr_value,sizeof(u32));
 	*val = *hcr_value;
- 
+
 	return ret;
 }
- 
+
 static s32 __sdio_sethcr(u8 reg, u8 size, u32 data)
 {
 	s32 ret;
 	STACK_ALIGN(u32,hcr_query,6,32);
- 
+
 	hcr_query[0] = reg;
 	hcr_query[1] = 0;
 	hcr_query[2] = 0;
@@ -263,7 +264,7 @@ static s32 __sdio_sethcr(u8 reg, u8 size, u32 data)
 	hcr_query[4] = data;
 	hcr_query[5] = 0;
 	ret = IOS_Ioctl(__sd0_fd,IOCTL_SDIO_WRITEHCREG,(void*)hcr_query,24,NULL,0);
- 
+
 	return ret;
 }
 
@@ -283,19 +284,19 @@ static s32 __sdio_waithcr(u8 reg, u8 size, u8 unset, u32 mask)
 
 	return -1;
 }
- 
+
 static s32 __sdio_setbuswidth(u32 bus_width)
 {
 	s32 ret;
 	u32 hc_reg = 0;
- 
+
 	ret = __sdio_gethcr(SDIOHCR_HOSTCONTROL, 1, &hc_reg);
 	if(ret<0) return ret;
- 
+
 	hc_reg &= 0xff;
 	hc_reg &= ~SDIOHCR_HOSTCONTROL_4BIT;
 	if(bus_width==4) hc_reg |= SDIOHCR_HOSTCONTROL_4BIT;
- 
+
 	return __sdio_sethcr(SDIOHCR_HOSTCONTROL, 1, hc_reg);
 }
 
@@ -319,10 +320,10 @@ static s32 __sd0_getstatus(void)
 {
 	s32 ret;
 	u32 status = 0;
- 
+
 	ret = __sdio_sendcommand(SDIO_CMD_SENDSTATUS,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,(__sd0_rca<<16),0,0,NULL,&status,sizeof(u32));
 	if(ret<0) return ret;
- 
+
 	return status;
 }
 #endif
@@ -331,77 +332,77 @@ static s32 __sd0_getrca(void)
 {
 	s32 ret;
 	u32 rca;
- 
-	ret = __sdio_sendcommand(SDIO_CMD_SENDRCA,0,SDIO_RESPONSE_R5,0,0,0,NULL,&rca,sizeof(rca));	
+
+	ret = __sdio_sendcommand(SDIO_CMD_SENDRCA,0,SDIO_RESPONSE_R5,0,0,0,NULL,&rca,sizeof(rca));
 	if(ret<0) return ret;
 
 	__sd0_rca = (u16)(rca>>16);
 	return (rca&0xffff);
 }
- 
+
 static s32 __sd0_select(void)
 {
 	s32 ret;
- 
+
 	ret = __sdio_sendcommand(SDIO_CMD_SELECT,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1B,(__sd0_rca<<16),0,0,NULL,NULL,0);
- 
+
 	return ret;
 }
- 
+
 static s32 __sd0_deselect(void)
 {
 	s32 ret;
- 
+
 	ret = __sdio_sendcommand(SDIO_CMD_DESELECT,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1B,0,0,0,NULL,NULL,0);
- 
+
 	return ret;
 }
- 
+
 static s32 __sd0_setblocklength(u32 blk_len)
 {
 	s32 ret;
- 
+
 	ret = __sdio_sendcommand(SDIO_CMD_SETBLOCKLEN,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,blk_len,0,0,NULL,NULL,0);
- 
+
 	return ret;
 }
- 
+
 static s32 __sd0_setbuswidth(u32 bus_width)
 {
 	u16 val;
 	s32 ret;
- 
+
 	val = 0x0000;
 	if(bus_width==4) val = 0x0002;
- 
+
 	ret = __sdio_sendcommand(SDIO_CMD_APPCMD,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,(__sd0_rca<<16),0,0,NULL,NULL,0);
 	if(ret<0) return ret;
- 
+
 	ret = __sdio_sendcommand(SDIO_ACMD_SETBUSWIDTH,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,val,0,0,NULL,NULL,0);
 	if(ret<0) return ret;
- 
+
 	return __sdio_setbuswidth(bus_width);
 }
 
 static s32 __sd0_getcsd(void)
 {
 	s32 ret;
- 
-	ret = __sdio_sendcommand(SDIO_CMD_SENDCSD,SDIOCMD_TYPE_AC,SDIO_RESPOSNE_R2,(__sd0_rca<<16),0,0,NULL,__sd0_csd,sizeof(__sd0_csd));
- 
+
+	ret = __sdio_sendcommand(SDIO_CMD_SENDCSD,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R2,(__sd0_rca<<16),0,0,NULL,__sd0_csd,sizeof(__sd0_csd));
+
 	return ret;
 }
 
 static s32 __sd0_getcid(void)
 {
 	s32 ret;
- 
-	ret = __sdio_sendcommand(SDIO_CMD_ALL_SENDCID,0,SDIO_RESPOSNE_R2,(__sd0_rca<<16),0,0,NULL,__sd0_cid,sizeof(__sd0_cid));
- 
+
+	ret = __sdio_sendcommand(SDIO_CMD_ALL_SENDCID,0,SDIO_RESPONSE_R2,(__sd0_rca<<16),0,0,NULL,__sd0_cid,sizeof(__sd0_cid));
+
 	return ret;
 }
 
-static	bool __sd0_initio(DISC_INTERFACE *disc)
+static bool __sd0_initio(DISC_INTERFACE *disc)
 {
 	s32 ret;
 	s32 tries;
@@ -411,7 +412,7 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 
 	__sdio_resetcard();
 	status = __sdio_getstatus();
-	
+
 	if(!(status & SDIO_STATUS_CARD_INSERTED))
 		return false;
 
@@ -467,7 +468,7 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 		tries = 10;
 		while(tries-- > 0)
 		{
-			ret = __sdio_sendcommand(SDIO_CMD_APPCMD, SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,0,0,0,NULL,NULL,0);
+			ret = __sdio_sendcommand(SDIO_CMD_APPCMD,SDIOCMD_TYPE_AC,SDIO_RESPONSE_R1,0,0,0,NULL,NULL,0);
 			if(ret < 0) goto fail;
 			ret = __sdio_sendcommand(SDIO_ACMD_SENDOPCOND, 0, SDIO_RESPONSE_R3, 0x40300000, 0, 0, NULL, &resp, sizeof(resp));
 			if(ret < 0) goto fail;
@@ -556,7 +557,7 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 			disc->numberOfSectors = (C_SIZE2 + 1LL) << 10;
 			break;
 		default:
-			disc->numberOfSectors = 0;
+			disc->numberOfSectors = ~0;
 			break;
 	}
 	__sd0_deselect();
@@ -575,7 +576,7 @@ static bool sdio_Deinitialize(void)
 {
 	if(__sd0_fd>=0)
 		IOS_Close(__sd0_fd);
- 
+
 	__sd0_fd = -1;
 	__sd0_initialized = 0;
 	return true;

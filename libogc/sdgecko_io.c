@@ -977,6 +977,7 @@ static s32 __card_sendopcond(s32 drv_no)
 	return CARDIO_ERROR_READY;
 }
 
+#if defined(HW_RVL)
 static s32 __card_sendCMD6(s32 drv_no,u32 switch_func)
 {
 	s32 ret;
@@ -997,6 +998,7 @@ static s32 __card_sendCMD6(s32 drv_no,u32 switch_func)
 	if((ret=__card_response1(drv_no))!=0) return ret;
 	return __card_dataread(drv_no,_ioResponse[drv_no],64);
 }
+#endif
 
 static s32 __card_sendCMD8(s32 drv_no)
 {
