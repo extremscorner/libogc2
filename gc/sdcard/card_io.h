@@ -19,6 +19,7 @@
 
 /* CSD Register */
 #define CSD_STRUCTURE(drv_no)				((u8)((g_CSD[drv_no][0]>>6)&0x03))
+#define TRAN_SPEED(drv_no)					((u8)(g_CSD[drv_no][3]))
 #define CCC(drv_no)							((u16)((g_CSD[drv_no][4]<<4)|((g_CSD[drv_no][5]>>4)&0x0f)))
 #define READ_BL_LEN(drv_no)					((u8)(g_CSD[drv_no][5]&0x0f))
 #define C_SIZE(drv_no)						((u16)(((g_CSD[drv_no][6]&0x03)<<10)|(g_CSD[drv_no][7]<<2)|((g_CSD[drv_no][8]>>6)&0x03)))

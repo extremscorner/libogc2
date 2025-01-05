@@ -117,6 +117,7 @@
 #define SDIO_STATUS_CARD_SDHC			0x100000
 
 #define CSD_STRUCTURE				((u8)((__sd0_csd[13]>>6)&0x03))
+#define TRAN_SPEED					((u8)(__sd0_csd[8]))
 #define CCC							((u16)((__sd0_csd[9]<<4)|((__sd0_csd[10]>>4)&0x0f)))
 #define READ_BL_LEN					((u8)(__sd0_csd[10]&0x0f))
 #define C_SIZE						((u16)(((__sd0_csd[11]&0x03)<<10)|(__sd0_csd[4]<<2)|((__sd0_csd[5]>>6)&0x03)))
@@ -517,7 +518,7 @@ static	bool __sd0_initio(DISC_INTERFACE *disc)
 			return false;
 		}
 
-		if(__sd0_functions[13] & (1 << 1)) {
+		if(((u16*)__sd0_functions)[6] & (1 << 1)) {
 			ret = __sdio_sendcommand(SDIO_CMD_SWITCHFUNC, 1, SDIO_RESPONSE_R1, 0x80fffff1, 1, sizeof(__sd0_functions), __sd0_functions, NULL, 0);
 			if(ret<0) {
 				__sd0_deselect();

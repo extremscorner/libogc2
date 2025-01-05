@@ -977,6 +977,27 @@ static s32 __card_sendopcond(s32 drv_no)
 	return CARDIO_ERROR_READY;
 }
 
+static s32 __card_sendCMD6(s32 drv_no,u32 switch_func)
+{
+	s32 ret;
+	u8 arg[4] = {0,0,0,0};
+
+	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
+
+	arg[0] = (switch_func>>24)&0xff;
+	arg[1] = (switch_func>>16)&0xff;
+	arg[2] = (switch_func>>8)&0xff;
+	arg[3] = switch_func&0xff;
+	if((ret=__card_sendcmd(drv_no,0x06,arg))!=0) {
+#ifdef _CARDIO_DEBUG
+		printf("__card_sendCMD6(%d): sd write cmd failed.\n",ret);
+#endif
+		return ret;
+	}
+	if((ret=__card_response1(drv_no))!=0) return ret;
+	return __card_dataread(drv_no,_ioResponse[drv_no],64);
+}
+
 static s32 __card_sendCMD8(s32 drv_no)
 {
 	s32 ret;
@@ -1238,6 +1259,7 @@ s32 sdgecko_initIO(s32 drv_no)
 {
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
+	if(_ioCardFreq[drv_no]>EXI_SPEED32MHZ) _ioCardFreq[drv_no] = EXI_SPEED32MHZ;
 	if(_ioRetryCnt>=3) _ioCardFreq[drv_no] = EXI_SPEED16MHZ;
 	if(_ioRetryCnt>=6) {
 		_ioRetryCnt = 0;
@@ -1283,6 +1305,15 @@ s32 sdgecko_initIO(s32 drv_no)
 		_ioPageSize[drv_no] = PAGE_SIZE512;
 		if(__card_setblocklen(drv_no,_ioPageSize[drv_no])!=0) goto exit;
 
+#if defined(HW_RVL)
+		if(CCC(drv_no)&(1<<10) && _ioCardFreq[drv_no]==EXI_SPEED32MHZ) {
+			if(__card_sendCMD6(drv_no,0x00fffff0)!=0) goto exit;
+			if(((u16*)_ioResponse[drv_no])[6]&(1<<1)) {
+				if(__card_sendCMD6(drv_no,0x80fffff1)!=0) goto exit;
+				if((_ioResponse[drv_no][16]&0xf)==1) _ioCardFreq[drv_no] = EXI_SPEED64MHZ;
+			}
+		}
+#endif
 		if(__card_sd_status(drv_no)!=0) goto exit;
 
 		_ioRetryCnt = 0;
