@@ -40,7 +40,7 @@ jobs:
       working-directory: libogc2
 
     - name: Build libdvm
-      run: catnip install cube wii
+      run: catnip install gamecube wii
       working-directory: libdvm
 
     - name: Build libntfs
