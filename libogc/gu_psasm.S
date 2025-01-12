@@ -40,15 +40,15 @@
 	.globl	ps_guMtxConcat
 	//r3 = mtxA, r4 = mtxB, r5 = mtxAB
 ps_guMtxConcat:
-	stwu		r1,-64(r1)
+	stwu		sp,-64(sp)
 	psq_l		A00_A01,0(r3),0,0
-	stfd		fr14,8(r1)
+	stfd		fr14,8(sp)
 	psq_l		B00_B01,0(r4),0,0
 	lis			r6,Unit01@ha
 	psq_l		B02_B03,8(r4),0,0
-	stfd		fr15,16(r1)
+	stfd		fr15,16(sp)
 	addi		r6,r6,Unit01@l
-	stfd		fr31,40(r1)
+	stfd		fr31,40(sp)
 	psq_l		B10_B11,16(r4),0,0
 	ps_muls0	D00_D01,B00_B01,A00_A01
 	psq_l		A10_A11,16(r3),0,0
@@ -81,15 +81,15 @@ ps_guMtxConcat:
 	ps_madds1	D20_D21,B10_B11,A20_A21,D20_D21
 	ps_madds1	D22_D23,B12_B13,A20_A21,D22_D23
 	ps_madds0	D20_D21,B20_B21,A22_A23,D20_D21
-	lfd			fr14,8(r1)
+	lfd			fr14,8(sp)
 	psq_st		D12_D13,24(r5),0,0
 	ps_madds0	D22_D23,B22_B23,A22_A23,D22_D23
 	psq_st		D20_D21,32(r5),0,0
 	ps_madds1	D22_D23,UNIT01,A22_A23,D22_D23
-	lfd			fr15,16(r1)
+	lfd			fr15,16(sp)
 	psq_st		D22_D23,40(r5),0,0
-	lfd			fr31,40(r1)
-	addi		r1,r1,64
+	lfd			fr31,40(sp)
+	addi		sp,sp,64
 	blr
 
 	.globl ps_guMtxIdentity
@@ -684,7 +684,7 @@ ps_guVecMultiplySR:
     ps_madd		fr11,fr3,fr7,fr10
     psq_st		fr11,4(r5),1,0      // store Y  
     ps_madd		fr13,fr5,fr7,fr12
-    psq_st		fr13,8(r5),1,0      //  sore Z
+    psq_st		fr13,8(r5),1,0      // store Z
 	blr
 
 	.globl ps_quQuatScale

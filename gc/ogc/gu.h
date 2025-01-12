@@ -444,7 +444,7 @@ void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad);
 #define guQuatAdd				c_guQuatAdd
 #define guQuatSub				c_guQuatSub
 #define guQuatMultiply			c_guQuatMultiply
-#define guQuatNoramlize			c_guQuatNormalize
+#define guQuatNormalize			c_guQuatNormalize
 #define guQuatInverse			c_guQuatInverse
 #define guQuatMtx				c_guQuatMtx
 
@@ -482,6 +482,7 @@ void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad);
 #define guQuatMultiply			ps_guQuatMultiply
 #define guQuatNormalize			ps_guQuatNormalize
 #define guQuatInverse			ps_guQuatInverse
+#define guQuatMtx				c_guQuatMtx
 
 #define guMtxIdentity			ps_guMtxIdentity
 #define guMtxCopy				ps_guMtxCopy
@@ -499,6 +500,7 @@ void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad);
 #define guMtxRotTrig			ps_guMtxRotTrig
 #define guMtxRotAxisRad			ps_guMtxRotAxisRad
 #define guMtxReflect			ps_guMtxReflect
+#define guMtxQuat				c_guMtxQuat
 
 #endif //MTX_USE_PS
 

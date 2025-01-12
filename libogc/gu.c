@@ -1236,16 +1236,19 @@ void c_guQuatMtx(guQuaternion *a,const Mtx m)
 void c_guMtxQuat(Mtx m,const guQuaternion *a)
 {
 	guMtxRowCol(m,0,0) = 1.0f - 2.0f*a->y*a->y - 2.0f*a->z*a->z;
-	guMtxRowCol(m,1,0) = 2.0f*a->x*a->y - 2.0f*a->z*a->w;
-	guMtxRowCol(m,2,0) = 2.0f*a->x*a->z + 2.0f*a->y*a->w;
+	guMtxRowCol(m,0,1) = 2.0f*a->x*a->y - 2.0f*a->w*a->z;
+	guMtxRowCol(m,0,2) = 2.0f*a->x*a->z + 2.0f*a->w*a->y;
+	guMtxRowCol(m,0,3) = 0.0f;
 
-	guMtxRowCol(m,0,1) = 2.0f*a->x*a->y + 2.0f*a->z*a->w;
+	guMtxRowCol(m,1,0) = 2.0f*a->x*a->y + 2.0f*a->w*a->z;
 	guMtxRowCol(m,1,1) = 1.0f - 2.0f*a->x*a->x - 2.0f*a->z*a->z;
-	guMtxRowCol(m,2,1) = 2.0f*a->z*a->y - 2.0f*a->x*a->w;
+	guMtxRowCol(m,1,2) = 2.0f*a->y*a->z - 2.0f*a->w*a->x;
+	guMtxRowCol(m,1,3) = 0.0f;
 
-	guMtxRowCol(m,0,2) = 2.0f*a->x*a->z - 2.0f*a->y*a->w;
-	guMtxRowCol(m,1,2) = 2.0f*a->z*a->y + 2.0f*a->x*a->w;
+	guMtxRowCol(m,2,0) = 2.0f*a->x*a->z - 2.0f*a->w*a->y;
+	guMtxRowCol(m,2,1) = 2.0f*a->y*a->z + 2.0f*a->w*a->x;
 	guMtxRowCol(m,2,2) = 1.0f - 2.0f*a->x*a->x - 2.0f*a->y*a->y;
+	guMtxRowCol(m,2,3) = 0.0f;
 }
 
 void guVecHalfAngle(const guVector *a,const guVector *b,guVector *half)
