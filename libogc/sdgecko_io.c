@@ -690,14 +690,12 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 			return CARDIO_ERROR_IOERROR;
 		}
 	} else {
+		LWP_YieldThread();
 		if(EXI_ImmEx(drv_no,ptr,len,EXI_READ)==0) {
 			EXI_Deselect(drv_no);
 			EXI_Unlock(drv_no);
 			return CARDIO_ERROR_IOERROR;
 		}
-
-		/* sleep 1us*/
-		usleep(1);
 	}
 
 	if(EXI_ImmEx(drv_no,&crc_org,2,EXI_READ)==0) {
