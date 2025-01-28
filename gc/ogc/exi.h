@@ -97,6 +97,9 @@ distribution.
 #define EXI_SPEED32MHZ				5			/*!< EXI device frequency 27MHz */
 #if defined(HW_RVL)
 #define EXI_SPEED64MHZ				6			/*!< EXI device frequency 54MHz */
+#define EXI_SPEEDMAX				7			/*!< _Termination */
+#else
+#define EXI_SPEEDMAX				6			/*!< _Termination */
 #endif
 
 /*!
