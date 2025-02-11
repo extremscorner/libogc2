@@ -217,7 +217,6 @@ extern u8 __isIPL[];
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
 extern u8 __Arena2Lo[], __Arena2Hi[];
-extern u8 __ipcbufferLo[], __ipcbufferHi[];
 #endif
 
 u8 *__argvArena1Lo = (u8*)0xdeadbeef;
@@ -444,59 +443,46 @@ static void __STMEventHandler(u32 event)
 }
 #endif
 
-void * __attribute__ ((weak)) __myArena1Lo = 0;
-void * __attribute__ ((weak)) __myArena1Hi = 0;
-
-static void __lowmem_init(void)
-{
-#if defined(HW_DOL)
-	void *ram_start = (void*)0x80000000;
-	void *ram_end = (void*)(0x80000000|SYSMEM1_SIZE);
-	void *arena_start = (void*)0x80003000;
-#endif
-
-	if ( __argvArena1Lo == (u8*)0xdeadbeef ) __argvArena1Lo = __Arena1Lo;
-	if (__myArena1Lo == 0) __myArena1Lo = __argvArena1Lo;
-	if (__myArena1Hi == 0) __myArena1Hi = __Arena1Hi;
-
-#if defined(HW_DOL)
-	memset(ram_start,0,0x100);
-	memset(arena_start,0,0x100);
-
-	*((u32*)(ram_start+0x20))	= 0x0d15ea5e;   // magic word "disease"
-	*((u32*)(ram_start+0x24))	= 1;            // version
-	*((u32*)(ram_start+0x28))	= SYSMEM1_SIZE;	// physical memory size
-	*((u32*)(ram_start+0x2C))	= 1 + ((*(u32*)0xCC00302c)>>28);
-
-	*((u32*)(ram_start+0x30))	= (u32)__myArena1Lo;
-	*((u32*)(ram_start+0x34))	= (u32)__myArena1Hi;
-
-	*((u32*)(ram_start+0xEC))	= (u32)ram_end;	// ram_end (??)
-	*((u32*)(ram_start+0xF0))	= SYSMEM1_SIZE;	// simulated memory size
-	*((u32*)(ram_start+0xF8))	= TB_BUS_CLOCK;	// bus speed: 162 MHz
-	*((u32*)(ram_start+0xFC))	= TB_CORE_CLOCK;	// cpu speed: 486 Mhz
-
-	*((u16*)(arena_start+0xE0))	= 6; // production pads
-	*((u32*)(arena_start+0xE4))	= 0xC0008000;
-
-	DCFlushRangeNoSync(ram_start, 0x100);
-	DCFlushRangeNoSync(arena_start, 0x100);
-	_sync();
-#endif
-
-	SYS_SetArenaLo((void*)__myArena1Lo);
-	SYS_SetArenaHi((void*)__myArena1Hi);
+void *__attribute__((weak)) __myArena1Lo = NULL;
+void *__attribute__((weak)) __myArena1Hi = NULL;
 #if defined(HW_RVL)
-	SYS_SetArena2Lo((void*)__Arena2Lo);
-	SYS_SetArena2Hi((void*)__Arena2Hi);
+void *__attribute__((weak)) __myArena2Lo = NULL;
+void *__attribute__((weak)) __myArena2Hi = NULL;
+#endif
+
+static void __sysarena_init(void)
+{
+	if (__argvArena1Lo != (u8*)0xdeadbeef) __myArena1Lo = __argvArena1Lo;
+#if defined(HW_DOL)
+	if (__myArena1Lo == NULL) __myArena1Lo = *(void**)0x80000030;
+	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000034;
+#elif defined(HW_RVL)
+	if (__myArena1Lo == NULL) __myArena1Lo = *(void**)0x8000310C;
+	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80003110;
+	if (__myArena2Lo == NULL) __myArena2Lo = *(void**)0x80003124;
+	if (__myArena2Hi == NULL) __myArena2Hi = *(void**)0x80003128;
+#endif
+
+	if (__myArena1Lo == NULL) __myArena1Lo = __Arena1Lo;
+	if (__myArena1Hi == NULL) __myArena1Hi = __Arena1Hi;
+#if defined(HW_RVL)
+	if (__myArena2Lo == NULL) __myArena2Lo = __Arena2Lo;
+	if (__myArena2Hi == NULL) __myArena2Hi = __Arena2Hi;
+#endif
+
+	SYS_SetArena1Lo(__myArena1Lo);
+	SYS_SetArena1Hi(__myArena1Hi);
+#if defined(HW_RVL)
+	SYS_SetArena2Lo(__myArena2Lo);
+	SYS_SetArena2Hi(__myArena2Hi);
 #endif
 }
 
 #if defined(HW_RVL)
 static void __ipcbuffer_init(void)
 {
-	__ipcbufferlo = (void*)__ipcbufferLo;
-	__ipcbufferhi = (void*)__ipcbufferHi;
+	__ipcbufferlo = *(void**)0x80003130;
+	__ipcbufferhi = *(void**)0x80003134;
 }
 #endif
 
@@ -1066,7 +1052,7 @@ void SYS_Init(void)
 
 	_V_EXPORTNAME();
 
-	__lowmem_init();
+	__sysarena_init();
 #if defined(HW_RVL)
 	__ipcbuffer_init();
 #endif
