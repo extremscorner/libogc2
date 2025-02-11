@@ -3594,7 +3594,7 @@ static bool __gcdvd_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 	if(sector & ~0x7fffff) return false;
 	if(numSectors & ~0x1fffff) return false;
 	if(disc->bytesPerSector != 2048) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 32)) return false;
 
 	if(DVD_ReadAbs(&blk, buffer, numSectors << 11, sector << 11) < 0)
 		return false;
@@ -3658,7 +3658,7 @@ static bool __gcode_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 	if((u32)sector != sector) return false;
 	if(numSectors & ~0x7fffff) return false;
 	if(disc->bytesPerSector != 512) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 32)) return false;
 
 	if(DVD_GcodeRead(&blk, buffer, numSectors << 9, sector) < 0)
 		return false;
@@ -3675,7 +3675,7 @@ static bool __gcode_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSect
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 	if(disc->bytesPerSector != 512) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 32)) return false;
 
 	if(DVD_GcodeWrite(&blk, buffer, numSectors, sector) < 0)
 		return false;

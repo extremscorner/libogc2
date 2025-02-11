@@ -1481,15 +1481,16 @@ void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl)
 	}
 }
 
-bool SYS_IsDMAAddress(const void *addr)
+bool SYS_IsDMAAddress(const void *addr,u32 align)
 {
-	if((u32)addr&0x1F) return false;
-	if((u32)addr>=0x80000000 && (u32)addr<0x84000000) return true;
-	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) return true;
+	if((u32)addr&(align-1)) return false;
 #if defined(HW_RVL)
-	if((u32)addr>=0x90000000 && (u32)addr<0xA0000000) return true;
 	if((u32)addr>=0xD0000000 && (u32)addr<0xE0000000) return true;
+	if((u32)addr>=0x90000000 && (u32)addr<0xA0000000) return true;
+	if((u32)addr&0x03) return false;
 #endif
+	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) return true;
+	if((u32)addr>=0x80000000 && (u32)addr<0x84000000) return true;
 	return false;
 }
 

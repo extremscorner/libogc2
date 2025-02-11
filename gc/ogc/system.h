@@ -267,7 +267,7 @@ void SYS_Init(void);
 void* SYS_AllocateFramebuffer(GXRModeObj *rmode);
 
 
-bool SYS_IsDMAAddress(const void *addr);
+bool SYS_IsDMAAddress(const void *addr,u32 align);
 void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl);
 void SYS_StartPMC(u32 mcr0val,u32 mcr1val);
 void SYS_DumpPMC(void);

@@ -625,7 +625,7 @@ static bool sdio_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSector
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(disc->bytesPerSector != PAGE_SIZE512) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 1)) return false;
 	if(!__sdio_initialized) return false;
 
 	ret = __sd0_select();
@@ -662,7 +662,7 @@ static bool sdio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSecto
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(disc->bytesPerSector != PAGE_SIZE512) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 1)) return false;
 	if(!__sdio_initialized) return false;
 
 	ret = __sd0_select();

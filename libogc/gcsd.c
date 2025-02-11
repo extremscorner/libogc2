@@ -124,7 +124,7 @@ static bool __gcsd_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSect
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(disc->bytesPerSector != PAGE_SIZE512) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 1)) return false;
 	if(!sdgecko_isInitialized(chan)) return false;
 
 	if(numSectors == 1)
@@ -148,7 +148,7 @@ static bool __gcsd_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSec
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
 	if(disc->bytesPerSector != PAGE_SIZE512) return false;
-	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!SYS_IsDMAAddress(buffer, 1)) return false;
 	if(!sdgecko_isInitialized(chan)) return false;
 
 	if(numSectors == 1)
