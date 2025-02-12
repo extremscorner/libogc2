@@ -259,7 +259,7 @@ static s32 NetCreateHeap(void)
 		return IPC_OK;
 	}
 
-	net_heap_ptr = SYS_AllocArena2MemHi(NET_HEAP_SIZE, 32);
+	net_heap_ptr = SYS_AllocArenaMem2Hi(NET_HEAP_SIZE, 32);
 	if(!net_heap_ptr)
 	{
 		_CPU_ISR_Restore(level);

@@ -209,7 +209,7 @@ s32 USBStorage_Initialize(void)
 
 	_CPU_ISR_Disable(level);
 	if(!arena_ptr) {
-		arena_ptr = SYS_AllocArena2MemHi(HEAP_SIZE, 32);
+		arena_ptr = SYS_AllocArenaMem2Hi(HEAP_SIZE, 32);
 		if(!arena_ptr) {
 			_CPU_ISR_Restore(level);
 			return IPC_ENOMEM;

@@ -31,10 +31,10 @@ void __lwp_wkspace_init(u32 size)
 {
 	void *heap_addr = NULL;
 
-	heap_addr = SYS_AllocArena1MemLo(size,PPC_CACHE_ALIGNMENT);
+	heap_addr = SYS_AllocArenaMem1Lo(size,PPC_CACHE_ALIGNMENT);
 #if defined(HW_RVL)
 	if(!heap_addr)
-		heap_addr = SYS_AllocArena2MemLo(size,PPC_CACHE_ALIGNMENT);
+		heap_addr = SYS_AllocArenaMem2Lo(size,PPC_CACHE_ALIGNMENT);
 #endif
 	memset(heap_addr,0,size);
 	__wkspace_heap_size = __lwp_heap_init(&__wkspace_heap,heap_addr,size,PPC_ALIGNMENT);
