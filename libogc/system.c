@@ -2036,8 +2036,31 @@ u32 SYS_GetConsoleType(void)
 u32 SYS_GetConsoleType(void)
 {
 	u32 type;
-	type = SYS_CONSOLE_RETAIL_ES1_0;
-	type += *((u32*)0x80003138);
+	u16 dev_code;
+
+	type = 0;
+	dev_code = *((u16*)0x800030e6);
+	if(dev_code&0x8000) {
+		switch(dev_code&~0x8000) {
+			case 0x0002:
+			case 0x0003:
+			case 0x0203:
+				type = SYS_CONSOLE_RETAIL_ES1_0;
+				type += *((u32*)0x80003138);
+				break;
+			case 0x0201:
+			case 0x0202:
+				type = SYS_CONSOLE_NDEV_ES1_0;
+				type += *((u32*)0x80003138);
+				break;
+			case 0x0300:
+				type = SYS_CONSOLE_ARCADE;
+				break;
+		}
+	} else {
+		type = SYS_CONSOLE_RETAIL_ES1_0;
+		type += *((u32*)0x80003138);
+	}
 	return type;
 }
 

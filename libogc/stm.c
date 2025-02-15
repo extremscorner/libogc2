@@ -223,8 +223,10 @@ s32 STM_ShutdownToIdle(void)
 		case 1:
 		case 2:
 			__stm_immbufin[0] = 0xFCA08280;
+			break;
 		default:
 			__stm_immbufin[0] = 0xFCE082C0;
+			break;
 	}
 	res= IOS_Ioctl(__stm_imm_fd,IOCTL_STM_IDLE,__stm_immbufin,0x20,__stm_immbufout,0x20);
 	if(res<0) {
