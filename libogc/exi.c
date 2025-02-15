@@ -34,6 +34,7 @@ distribution.
 #include "asm.h"
 #include "irq.h"
 #include "processor.h"
+#include "system.h"
 #include "cache.h"
 #include "exi.h"
 #include "lwp.h"
@@ -1091,10 +1092,13 @@ void __SYS_EnableBarnacle(s32 chn,u32 dev)
 s32 InitializeUART(void)
 {
 	if(exi_uart_barnacle_enabled==0xa5ff005a) return 0;
+	if((SYS_GetConsoleType()&SYS_CONSOLE_MASK)!=SYS_CONSOLE_DEVELOPMENT) {
+		exi_uart_enabled = 0;
+		return 2;
+	}
 
 	exi_uart_chan = EXI_CHANNEL_0;
 	exi_uart_dev = EXI_DEVICE_1;
-
 	exi_uart_enabled = 0xa5ff005a;
 	return 0;
 }
