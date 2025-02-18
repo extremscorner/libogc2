@@ -183,12 +183,16 @@ const void *__libogc_malloc_unlock = __syscall_malloc_unlock;
 extern void __exception_console(void);
 extern void __exception_printf(const char *str, ...);
 
-extern void __realmode(void*);
-extern void __configMEM1_24Mb(void);
-extern void __configMEM1_48Mb(void);
-extern void __configMEM2_64Mb(void);
-extern void __configMEM2_128Mb(void);
-#if defined(HW_DOL)
+extern void __realmode(void(*)(void));
+extern void __configMEM1_16MB(void);
+extern void __configMEM1_24MB(void);
+extern void __configMEM1_32MB(void);
+extern void __configMEM1_48MB(void);
+extern void __configMEM1_64MB(void);
+#if defined(HW_RVL)
+extern void __configMEM2_64MB(void);
+extern void __configMEM2_128MB(void);
+#elif defined(HW_DOL)
 extern void __reset(u32 reset_code);
 #endif
 
@@ -488,7 +492,7 @@ static void __ipcbuffer_init(void)
 
 static void __memprotect_init(void)
 {
-	u32 level;
+	u32 level,size;
 
 	_CPU_ISR_Disable(level);
 
@@ -504,6 +508,20 @@ static void __memprotect_init(void)
 	IRQ_Request(IRQ_MEMADDRESS,__MEMInterruptHandler);
 
 	SYS_RegisterResetFunc(&mem_resetinfo);
+
+	size = SYS_GetSimulatedMem1Size();
+	if(size<=0x01000000) __realmode(__configMEM1_16MB);
+	else if(size<=0x01800000) __realmode(__configMEM1_24MB);
+	else if(size<=0x02000000) __realmode(__configMEM1_32MB);
+	else if(size<=0x03000000) __realmode(__configMEM1_48MB);
+	else if(size<=0x04000000) __realmode(__configMEM1_64MB);
+
+#if defined(HW_RVL)
+	size = SYS_GetSimulatedMem2Size();
+	if(size<=0x04000000) __realmode(__configMEM2_64MB);
+	else if(size<=0x08000000) __realmode(__configMEM2_128MB);
+#endif
+
 	__UnmaskIrq(IM_MEMADDRESS);		//only enable memaddress irq atm
 
 	_CPU_ISR_Restore(level);
@@ -1349,6 +1367,7 @@ u32 SYS_GetPhysicalMem1Size(void)
 {
 	u32 size;
 	size = *((u32*)0x80000028);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 
@@ -1357,6 +1376,7 @@ u32 SYS_GetSimulatedMem1Size(void)
 	u32 size;
 	size = *((u32*)0x800000f0);
 	if(!size) size = *((u32*)0x80000028);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 #elif defined(HW_RVL)
@@ -1364,6 +1384,7 @@ u32 SYS_GetPhysicalMem1Size(void)
 {
 	u32 size;
 	size = *((u32*)0x80003100);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 
@@ -1371,6 +1392,7 @@ u32 SYS_GetSimulatedMem1Size(void)
 {
 	u32 size;
 	size = *((u32*)0x80003104);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 
@@ -1468,6 +1490,7 @@ u32 SYS_GetPhysicalMem2Size(void)
 {
 	u32 size;
 	size = *((u32*)0x80003118);
+	if(!size) size = SYSMEM2_SIZE;
 	return size;
 }
 
@@ -1475,6 +1498,7 @@ u32 SYS_GetSimulatedMem2Size(void)
 {
 	u32 size;
 	size = *((u32*)0x8000311c);
+	if(!size) size = SYSMEM2_SIZE;
 	return size;
 }
 #endif

@@ -1,5 +1,10 @@
 #include <asm.h>
 
+	.globl __InitBATS
+__InitBATS:
+	lis		r3,__configBATS@ha
+	addi	r3,r3,__configBATS@l
+
 	.globl __realmode
 __realmode:
 	clrlwi	r3,r3,2
@@ -23,7 +28,7 @@ __configBATS:
 	ori		r3,r3,0x0c64
 	mthid0	r3
 	isync
-	
+
 #if defined(HW_RVL)
 	lis		r3,0x8200		//bits set: H4A(HID4 access), SBE(2nd BAT enabled)
 	mthid4	r3
@@ -49,43 +54,44 @@ __configBATS:
 
 	// set [DI]BAT0 for 256MB@80000000,
 	// real 00000000, WIMG=0000, R/W
-	li		r3,2
-	lis		r4,0x8000
-	ori		r4,r4,0x1fff
-	mtibatl	0,r3
-	mtibatu	0,r4
-	mtdbatl	0,r3
-	mtdbatu	0,r4
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x1fff
+	mtibatl	0,r4
+	mtibatu	0,r3
 	isync
-	
+	mtdbatl	0,r4
+	mtdbatu	0,r3
+	isync
+
 #if defined(HW_RVL)
 	// set [DI]BAT4 for 256MB@90000000,
 	// real 10000000, WIMG=0000, R/W
-	addis	r3,r3,0x1000
-	addis	r4,r4,0x1000
-	mtibatl	4,r3
-	mtibatu	4,r4
-	mtdbatl	4,r3
-	mtdbatu	4,r4
+	addis	r6,r4,0x1000
+	addis	r5,r3,0x1000
+	mtibatl	4,r6
+	mtibatu	4,r5
+	isync
+	mtdbatl	4,r6
+	mtdbatu	4,r5
 	isync
 #endif
-	
+
 	// set DBAT1 for 256MB@c0000000,
 	// real 00000000, WIMG=0101, R/W
-	li		r3,0x2a
-	lis		r4,0xc000
-	ori		r4,r4,0x1fff
-	mtdbatl	1,r3
-	mtdbatu	1,r4
+	addis	r3,r3,0x4000
+	addi	r4,r4,0x0028
+	mtdbatl	1,r4
+	mtdbatu	1,r3
 	isync
-	
+
 #if defined(HW_RVL)
 	// set DBAT5 for 256MB@d0000000,
 	// real 10000000, WIMG=0101, R/W
-	addis	r3,r3,0x1000
-	addis	r4,r4,0x1000
-	mtdbatl	5,r3
-	mtdbatu	5,r4
+	addis	r6,r4,0x1000
+	addis	r5,r3,0x1000
+	mtdbatl	5,r6
+	mtdbatu	5,r5
 	isync
 #endif
 
@@ -93,10 +99,235 @@ __configBATS:
 	ori		r3,r3,MSR_DR|MSR_IR
 	mtsrr1	r3
 	mflr	r3
-	oris    r3,r3,0x8000
+	oris	r3,r3,0x8000
 	mtsrr0	r3
 	rfi
-	
+
+	.globl __configMEM1_16MB
+__configMEM1_16MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 16MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x01ff
+	mtibatu	0,r0
+	mtibatl	0,r4
+	mtibatu	0,r3
+	isync
+	mtdbatu	0,r0
+	mtdbatl	0,r4
+	mtdbatu	0,r3
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.globl __configMEM1_24MB
+__configMEM1_24MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 16MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x01ff
+	mtibatu	0,r0
+	mtibatl	0,r4
+	mtibatu	0,r3
+	isync
+	mtdbatu	0,r0
+	mtdbatl	0,r4
+	mtdbatu	0,r3
+	isync
+
+	// set [DI]BAT2 for 8MB@81000000,
+	// real 01000000, WIMG=0000, R/W
+	addis	r6,r4,0x0100
+	addis	r5,r3,0x0100
+	subi	r5,r5,0x0100
+	mtibatu	2,r0
+	mtibatl	2,r6
+	mtibatu	2,r5
+	isync
+	mtdbatu	2,r0
+	mtdbatl	2,r6
+	mtdbatu	2,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.globl __configMEM1_32MB
+__configMEM1_32MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 32MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x03ff
+	mtibatu	0,r0
+	mtibatl	0,r4
+	mtibatu	0,r3
+	isync
+	mtdbatu	0,r0
+	mtdbatl	0,r4
+	mtdbatu	0,r3
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.globl __configMEM1_48MB
+__configMEM1_48MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 32MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x03ff
+	mtibatu	0,r0
+	mtibatl	0,r4
+	mtibatu	0,r3
+	isync
+	mtdbatu	0,r0
+	mtdbatl	0,r4
+	mtdbatu	0,r3
+	isync
+
+	// set [DI]BAT2 for 16MB@82000000,
+	// real 02000000, WIMG=0000, R/W
+	addis	r6,r4,0x0200
+	addis	r5,r3,0x0200
+	subi	r5,r5,0x0200
+	mtibatu	2,r0
+	mtibatl	2,r6
+	mtibatu	2,r5
+	isync
+	mtdbatu	2,r0
+	mtdbatl	2,r6
+	mtdbatu	2,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.globl __configMEM1_64MB
+__configMEM1_64MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 64MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x07ff
+	mtibatu	0,r0
+	mtibatl	0,r4
+	mtibatu	0,r3
+	isync
+	mtdbatu	0,r0
+	mtdbatl	0,r4
+	mtdbatu	0,r3
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+#if defined(HW_RVL)
+	.globl __configMEM2_64MB
+__configMEM2_64MB:
+	li		r0,0
+
+	// set [DI]BAT4 for 64MB@90000000,
+	// real 10000000, WIMG=0000, R/W
+	lis		r4,0x1000
+	lis		r3,0x9000
+	addi	r4,r4,0x0002
+	addi	r3,r3,0x07ff
+	mtibatu	4,r0
+	mtibatl	4,r4
+	mtibatu	4,r3
+	isync
+	mtdbatu	4,r0
+	mtdbatl	4,r4
+	mtdbatu	4,r3
+	isync
+
+	// set DBAT5 for 64MB@d0000000,
+	// real 10000000, WIMG=0101, R/W
+	addis	r3,r3,0x4000
+	addi	r4,r4,0x0028
+	mtdbatu	5,r0
+	mtdbatl	5,r4
+	mtdbatu	5,r3
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.globl __configMEM2_128MB
+__configMEM2_128MB:
+	li		r0,0
+
+	// set [DI]BAT4 for 128MB@90000000,
+	// real 10000000, WIMG=0000, R/W
+	lis		r4,0x1000
+	lis		r3,0x9000
+	addi	r4,r4,0x0002
+	addi	r3,r3,0x0fff
+	mtibatu	4,r0
+	mtibatl	4,r4
+	mtibatu	4,r3
+	isync
+	mtdbatu	4,r0
+	mtdbatl	4,r4
+	mtdbatu	4,r3
+	isync
+
+	// set DBAT5 for 128MB@d0000000,
+	// real 10000000, WIMG=0101, R/W
+	addis	r3,r3,0x4000
+	addi	r4,r4,0x0028
+	mtdbatu	5,r0
+	mtdbatl	5,r4
+	mtdbatu	5,r3
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+#endif
+
 	.globl __InitFPRS
 __InitFPRS:
 	# Enable the Floating Point Registers
@@ -344,16 +575,6 @@ __reset:
 8:	b		9b
 #endif
 
-	.globl __InitBATS
-__InitBATS:
-	mflr	r31
-	oris	r31,r31,0x8000
-	lis		r3,__configBATS@h
-	ori		r3,r3,__configBATS@l
-	bl		__realmode
-	mtlr	r31
-	blr
-	
 	.globl SYS_SwitchFiber
 SYS_SwitchFiber:
 	mflr	r0
