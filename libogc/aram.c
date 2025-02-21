@@ -102,9 +102,16 @@ u32 AR_Init(u32 *stack_idx_array,u32 num_entries)
 	u32 level;
 	u32 aram_base = 0x4000;
 
-	if(__ARInit_Flag) return aram_base;
-
 	_CPU_ISR_Disable(level);
+
+	if(__ARInit_Flag) {
+		if(__ARStackPointer==aram_base) {
+			__ARFreeBlocks = num_entries;
+			__ARBlockLen = stack_idx_array;
+		}
+		_CPU_ISR_Restore(level);
+		return aram_base;
+	}
 
 	__ARDmaCallback = NULL;
 
