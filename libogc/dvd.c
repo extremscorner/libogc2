@@ -526,10 +526,9 @@ static void __dvd_timeouthandler(syswd_t alarm,void *cbarg)
 {
 	dvdcallbacklow cb;
 
-	__MaskIrq(IRQMASK(IRQ_PI_DI));
 	cb = __dvd_callback;
 	__dvd_callback = NULL;
-	if(cb) cb(0x10);
+	if(cb) cb(0x0010);
 }
 
 static void __dvd_storeerror(u32 errorcode)
@@ -3441,18 +3440,25 @@ void DVD_Resume(void)
 
 void DVD_Reset(u32 reset_mode)
 {
+	u32 level;
 #ifdef _DVD_DEBUG
 	printf("DVD_Reset(%d)\n",reset_mode);
 #endif
+	_CPU_ISR_Disable(level);
 	__dvd_drivestate &= ~(DVD_INTEROPER|DVD_CHIPPRESENT|DVD_DRIVERESET);
 
 	DVD_LowReset(reset_mode);
 
-	_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
-	_diReg[1] = _diReg[1];
+	if(reset_mode!=DVD_RESETSOFT) {
+		_diReg[1] = _diReg[1];
+		__UnmaskIrq(IRQMASK(IRQ_PI_DI));
+	} else
+		__MaskIrq(IRQMASK(IRQ_PI_DI));
 
 	__dvd_resetrequired = 0;
 	__dvd_internalretries = 0;
+	__dvd_fatalerror = 0;
+	_CPU_ISR_Restore(level);
 }
 
 u32 DVD_ResetRequired(void)
@@ -3538,6 +3544,9 @@ void DVD_Init(void)
 
 		SYS_CreateAlarm(&__dvd_timeoutalarm);
 		LWP_InitQueue(&__dvd_wait_queue);
+
+		_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
+		_diReg[1] = 0;
 	}
 }
 
