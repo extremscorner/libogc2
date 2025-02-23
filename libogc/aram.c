@@ -220,7 +220,10 @@ void AR_Reset(void)
 
 u32 AR_GetSize(void)
 {
-	return __ARSize;
+	u32 arsize;
+	arsize = *(u32*)0x800000d0;
+	if(!arsize) arsize = __ARSize;
+	return arsize;
 }
 
 u32 AR_GetBaseAddress(void)
