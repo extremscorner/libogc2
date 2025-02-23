@@ -45,6 +45,7 @@ distribution.
 #include "ogcsys.h"
 #include "system.h"
 #include "dvd.h"
+#include "dvdlow.h"
 #include "timesupp.h"
 
 //#define _DVD_DEBUG
@@ -142,7 +143,6 @@ distribution.
 #define _SHIFTR(v, s, w)	\
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
-typedef void (*dvdcallbacklow)(s32);
 typedef void (*dvdstatecb)(dvdcmdblk *);
 
 typedef struct _dvdcmdl {
@@ -378,40 +378,6 @@ static void __dvd_stateerror(s32 result);
 static void __dvd_statecoverclosed_cmd(dvdcmdblk *block);
 static void __dvd_statebusy(dvdcmdblk *block);
 static s32 __issuecommand(s32 prio,dvdcmdblk *block);
-
-void DVD_LowReset(u32 reset_mode);
-dvdcallbacklow DVD_LowSetResetCoverCallback(dvdcallbacklow cb);
-s32 DVD_LowBreak(void);
-dvdcallbacklow DVD_LowClearCallback(void);
-s32 DVD_LowSeek(s64 offset,dvdcallbacklow cb);
-s32 DVD_LowRead(void *buf,u32 len,s64 offset,dvdcallbacklow cb);
-s32 DVD_LowReadDiskID(dvddiskid *diskID,dvdcallbacklow cb);
-s32 DVD_LowRequestError(dvdcallbacklow cb);
-s32 DVD_LowStopMotor(dvdcallbacklow cb);
-s32 DVD_LowInquiry(dvddrvinfo *info,dvdcallbacklow cb);
-s32 DVD_LowWaitCoverClose(dvdcallbacklow cb);
-s32 DVD_LowGetCoverStatus(void);
-s32 DVD_LowAudioStream(u32 subcmd,u32 len,s64 offset,dvdcallbacklow cb);
-s32 DVD_LowAudioBufferConfig(s32 enable,u32 size,dvdcallbacklow cb);
-s32 DVD_LowRequestAudioStatus(u32 subcmd,dvdcallbacklow cb);
-s32 DVD_LowEnableExtensions(u8 enable,dvdcallbacklow cb);
-s32 DVD_LowSpinMotor(u32 mode,dvdcallbacklow cb);
-s32 DVD_LowSetStatus(u32 status,dvdcallbacklow cb);
-s32 DVD_LowUnlockDrive(dvdcallbacklow cb);
-s32 DVD_LowPatchDriveCode(dvdcallbacklow cb);
-s32 DVD_LowSpinUpDrive(dvdcallbacklow cb);
-s32 DVD_LowControlMotor(u32 mode,dvdcallbacklow cb);
-s32 DVD_LowFuncCall(u32 address,dvdcallbacklow cb);
-s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb);
-s32 DVD_LowSetGCMOffset(s64 offset,dvdcallbacklow cb);
-s32 DVD_LowSetOffset(s64 offset,dvdcallbacklow cb);
-s32 DVD_LowReadImm(dvdcmdbuf cmdbuf,dvdcallbacklow cb);
-s32 DVD_LowWriteImm(dvdcmdbuf cmdbuf,u32 immbuf,dvdcallbacklow cb);
-s32 DVD_LowReadDma(dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcallbacklow cb);
-s32 DVD_LowWriteDma(dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcallbacklow cb);
-s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb);
-s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb);
-s32 DVD_GcodeLowWrite(u32 len,u32 offset,dvdcallbacklow cb);
 
 extern syssramex* __SYS_LockSramEx(void);
 extern u32 __SYS_UnlockSramEx(u32 write);
@@ -2386,9 +2352,9 @@ s32 DVD_LowGetCoverStatus(void)
 
 	now = __SYS_GetSystemTime();
 	diff = diff_msec(__dvd_lastresetend,now);
-	if(diff<100) return 0;
-	else if(_diReg[1]&DVD_CVR_STATE) return 1;
-	else return 2;
+	if(diff<100) return DVD_COVER_RESET;
+	else if(_diReg[1]&DVD_CVR_STATE) return DVD_COVER_OPEN;
+	else return DVD_COVER_CLOSED;
 }
 
 void DVD_LowReset(u32 reset_mode)
@@ -3643,7 +3609,7 @@ static bool __gcode_Startup(DISC_INTERFACE *disc)
 
 static bool __gcode_IsInserted(DISC_INTERFACE *disc)
 {
-	if(DVD_LowGetCoverStatus() == 1)
+	if(DVD_LowGetCoverStatus() == DVD_COVER_OPEN)
 		return false;
 
 	return true;
