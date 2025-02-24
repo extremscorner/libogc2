@@ -228,7 +228,7 @@ struct _syssram {
  * \param __padding0 padding
  * \param flashID_chksum[2] 8bit checksum of unlock flash ID
  * \param gbs Game Boy Player Start-Up Disc settings
- * \param __padding1 padding
+ * \param dvddev_code DVD device code
  */
 typedef struct _syssramex syssramex;
 
@@ -240,7 +240,7 @@ struct _syssramex {
 	u8 __padding0;
 	u8 flashID_chksum[2];
 	u16 gbs;
-	u16 __padding1;
+	u16 dvddev_code;
 } ATTRIBUTE_PACKED;
 
 typedef void (*alarmcallback)(syswd_t alarm,void *cb_arg);
