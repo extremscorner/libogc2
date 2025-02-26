@@ -59,7 +59,7 @@ static u32 __pad_xpatchbits = 0xf0000000;
 static u32 __pad_recalibrated$207 = 0;
 
 static u32 __pad_type[PAD_CHANMAX];
-static s8 __pad_origin[PAD_CHANMAX][12];
+static PADStatus __pad_origin[PAD_CHANMAX];
 static u32 __pad_cmdprobedevice[PAD_CHANMAX];
 
 static keyinput __pad_keys[PAD_CHANMAX];
@@ -243,12 +243,12 @@ static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 		status->substickY = 0;
 	} else {
 		__pad_barrelbits &= ~PAD_ENABLEDMASK(chan);
-		status->stickX = __pad_clampS8(status->stickX,__pad_origin[chan][2]);
-		status->stickY = __pad_clampS8(status->stickY,__pad_origin[chan][3]);
-		status->substickX = __pad_clampS8(status->substickX,__pad_origin[chan][4]);
-		status->substickY = __pad_clampS8(status->substickY,__pad_origin[chan][5]);
-		status->triggerL = __pad_clampU8(status->triggerL,__pad_origin[chan][6]);
-		status->triggerR = __pad_clampU8(status->triggerR,__pad_origin[chan][7]);
+		status->stickX = __pad_clampS8(status->stickX,__pad_origin[chan].stickX);
+		status->stickY = __pad_clampS8(status->stickY,__pad_origin[chan].stickY);
+		status->substickX = __pad_clampS8(status->substickX,__pad_origin[chan].substickX);
+		status->substickY = __pad_clampS8(status->substickY,__pad_origin[chan].substickY);
+		status->triggerL = __pad_clampU8(status->triggerL,__pad_origin[chan].triggerL);
+		status->triggerR = __pad_clampU8(status->triggerR,__pad_origin[chan].triggerR);
 	}
 }
 
@@ -312,26 +312,31 @@ static void __pad_updateorigin(s32 chan)
 
 	mask = PAD_ENABLEDMASK(chan);
 	mode = __pad_analogmode&0x0700;
-	if(mode==0x0100) {
-		__pad_origin[chan][4] &= ~0x0f;
-		__pad_origin[chan][5] &= ~0x0f;
-		__pad_origin[chan][8] &= ~0x0f;
-		__pad_origin[chan][9] &= ~0x0f;
+	if(mode==0x100) {
+		__pad_origin[chan].substickX &= ~0x0f;
+		__pad_origin[chan].substickY &= ~0x0f;
+		__pad_origin[chan].analogA &= ~0x0f;
+		__pad_origin[chan].analogB &= ~0x0f;
 	} else if(mode==0x200) {
-		__pad_origin[chan][4] &= ~0x0f;
-		__pad_origin[chan][5] &= ~0x0f;
-		__pad_origin[chan][6] &= ~0x0f;
-		__pad_origin[chan][7] &= ~0x0f;
+		__pad_origin[chan].substickX &= ~0x0f;
+		__pad_origin[chan].substickY &= ~0x0f;
+		__pad_origin[chan].triggerL &= ~0x0f;
+		__pad_origin[chan].triggerR &= ~0x0f;
+	} else if(!mode || mode==0x500 || mode==0x600 || mode==0x700) {
+		__pad_origin[chan].triggerL &= ~0x0f;
+		__pad_origin[chan].triggerR &= ~0x0f;
+		__pad_origin[chan].analogA &= ~0x0f;
+		__pad_origin[chan].analogB &= ~0x0f;
 	}
 
-	__pad_origin[chan][2] -= 128;
-	__pad_origin[chan][3] -= 128;
-	__pad_origin[chan][4] -= 128;
-	__pad_origin[chan][5] -= 128;
+	__pad_origin[chan].stickX -= 128;
+	__pad_origin[chan].stickY -= 128;
+	__pad_origin[chan].substickX -= 128;
+	__pad_origin[chan].substickY -= 128;
 
-	if(__pad_xpatchbits&mask && __pad_origin[chan][2]>64) {
+	if(__pad_xpatchbits&mask && __pad_origin[chan].stickX>64) {
 		type = SI_GetType(chan)&~0xffff;
-		if(type==SI_GC_CONTROLLER) __pad_origin[chan][2] = 0;
+		if(type==SI_GC_CONTROLLER) __pad_origin[chan].stickX = 0;
 	}
 }
 
@@ -395,11 +400,11 @@ static void __pad_typeandstatuscallback(s32 chan,u32 type)
 	}
 
 	if(!(type&SI_GC_WIRELESS) || type&SI_WIRELESS_IR) {
-		if(recal_bits) ret = SI_Transfer(__pad_resettingchan,&__pad_cmdcalibrate,3,__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
-		else ret = SI_Transfer(__pad_resettingchan,&__pad_cmdreadorigin,1,__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
+		if(recal_bits) ret = SI_Transfer(__pad_resettingchan,&__pad_cmdcalibrate,3,&__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
+		else ret = SI_Transfer(__pad_resettingchan,&__pad_cmdreadorigin,1,&__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
 	} else if(type&SI_WIRELESS_FIX_ID && !(type&SI_WIRELESS_CONT_MASK) && !(type&SI_WIRELESS_LITE)) {
-		if(type&SI_WIRELESS_RECEIVED) ret = SI_Transfer(__pad_resettingchan,&__pad_cmdreadorigin,1,__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
-		else ret = SI_Transfer(__pad_resettingchan,&__pad_cmdprobedevice[__pad_resettingchan],3,__pad_origin[__pad_resettingchan],8,__pad_probecallback,0);
+		if(type&SI_WIRELESS_RECEIVED) ret = SI_Transfer(__pad_resettingchan,&__pad_cmdreadorigin,1,&__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
+		else ret = SI_Transfer(__pad_resettingchan,&__pad_cmdprobedevice[__pad_resettingchan],3,&__pad_origin[__pad_resettingchan],8,__pad_probecallback,0);
 	}
 	if(!ret) {
 		__pad_pendingbits |= mask;
@@ -421,7 +426,7 @@ static void __pad_receivecheckcallback(s32 chan,u32 type)
 		__pad_checkingbits &= ~mask;
 		if(!(tmp&0x0f)
 			&& (type&SI_GC_WIRELESS) && (type&SI_WIRELESS_RECEIVED) && (type&SI_WIRELESS_FIX_ID)
-			&& !(type&SI_WIRELESS_IR) && !(type&SI_WIRELESS_CONT_MASK) && !(type&SI_WIRELESS_LITE))  SI_Transfer(chan,&__pad_cmdreadorigin,1,__pad_origin[chan],10,__pad_originupdatecallback,0);
+			&& !(type&SI_WIRELESS_IR) && !(type&SI_WIRELESS_CONT_MASK) && !(type&SI_WIRELESS_LITE))  SI_Transfer(chan,&__pad_cmdreadorigin,1,&__pad_origin[chan],10,__pad_originupdatecallback,0);
 		else __pad_disable(chan);
 	}
 }
@@ -465,7 +470,7 @@ static void __pad_doreset(void)
 #endif
 	__pad_resettingbits &= ~PAD_ENABLEDMASK(__pad_resettingchan);
 
-	memset(__pad_origin[__pad_resettingchan],0,12);
+	memset(&__pad_origin[__pad_resettingchan],0,sizeof(PADStatus));
 	SI_GetTypeAsync(__pad_resettingchan,__pad_typeandstatuscallback);
 }
 
@@ -621,7 +626,7 @@ u32 PAD_Read(PADStatus *status)
 						if(status[chan].button&0x00002000) {
 							memset(&status[chan],0,sizeof(PADStatus));
 							status[chan].err = PAD_ERR_TRANSFER;
-							SI_Transfer(chan,&__pad_cmdreadorigin,1,__pad_origin[chan],10,__pad_originupdatecallback,0);
+							SI_Transfer(chan,&__pad_cmdreadorigin,1,&__pad_origin[chan],10,__pad_originupdatecallback,0);
 						} else {
 							status[chan].err = PAD_ERR_NONE;
 							status[chan].button &= ~0x80;
@@ -636,6 +641,35 @@ u32 PAD_Read(PADStatus *status)
 	_CPU_ISR_Restore(level);
 
 	return ret;
+}
+
+void PAD_GetOrigin(PADStatus *origin)
+{
+	u32 chan,mask;
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	chan = 0;
+	while(chan<4) {
+		mask = PAD_ENABLEDMASK(chan);
+		if(__pad_pendingbits&mask) {
+			PAD_Reset(0);
+			memset(&origin[chan],0,sizeof(PADStatus));
+			origin[chan].err = PAD_ERR_NOT_READY;
+		} else if(__pad_resettingbits&mask || __pad_resettingchan==chan) {
+			memset(&origin[chan],0,sizeof(PADStatus));
+			origin[chan].err = PAD_ERR_NOT_READY;
+		} else if(!(__pad_enabledbits&mask)) {
+			memset(&origin[chan],0,sizeof(PADStatus));
+			origin[chan].err = PAD_ERR_NO_CONTROLLER;
+		} else {
+			memcpy(&origin[chan],&__pad_origin[chan],sizeof(PADStatus));
+			origin[chan].err = PAD_ERR_NONE;
+			origin[chan].button &= ~0x80;
+		}
+		chan++;
+	}
+	_CPU_ISR_Restore(level);
 }
 
 u32 PAD_Reset(u32 mask)
