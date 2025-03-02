@@ -500,11 +500,11 @@ static void __dvd_timeouthandler(syswd_t alarm,void *cbarg)
 static void __dvd_storeerror(u32 errorcode)
 {
 	u8 err;
-	syssramex *ptr;
+	syssramex *sramex;
 
 	err = convert(errorcode);
-	ptr = __SYS_LockSramEx();
-	ptr->dvderr_code = err;
+	sramex = __SYS_LockSramEx();
+	sramex->dvderr_code = err;
 	__SYS_UnlockSramEx(1);
 }
 
@@ -542,6 +542,13 @@ static u32 __dvd_categorizeerror(u32 errorcode)
 
 static void __SetupTimeoutAlarm(const struct timespec *tp)
 {
+	struct timespec tb;
+
+	if(__dvd_resetoccured) {
+		tb.tv_sec = 15;
+		tb.tv_nsec = 0;
+		tp = &tb;
+	}
 	SYS_SetAlarm(__dvd_timeoutalarm,tp,__dvd_timeouthandler,NULL);
 }
 
