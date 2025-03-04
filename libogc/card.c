@@ -1650,7 +1650,7 @@ static s32 __card_read(s32 chn,u32 address,u32 block_len,void *buffer,cardcallba
 	return ret;
 }
 
-static s32 __card_formatregion(s32 chn,u32 encode,cardcallback callback)
+static s32 __card_formatregion(s32 chn,u16 encode,cardcallback callback)
 {
 	s32 ret;
 	u16 tmp;
@@ -2991,7 +2991,7 @@ s32 CARD_DeleteEntry(s32 chn,card_dir *dir_entry)
 
 s32 CARD_FormatAsync(s32 chn,cardcallback callback)
 {
-	u32 enc;
+	u16 enc;
 
 	enc = SYS_GetFontEncoding();
 	return __card_formatregion(chn,enc,callback);
@@ -3000,7 +3000,7 @@ s32 CARD_FormatAsync(s32 chn,cardcallback callback)
 s32 CARD_Format(s32 chn)
 {
 	s32 ret;
-	u32 enc;
+	u16 enc;
 
 	enc = SYS_GetFontEncoding();
 	if((ret=__card_formatregion(chn,enc,__card_synccallback))>=0) {

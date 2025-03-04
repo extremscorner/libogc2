@@ -147,6 +147,9 @@ distribution.
 #define SYS_VIDEO_PAL					1
 #define SYS_VIDEO_MPAL					2
 
+#define SYS_FONTENC_ANSI				0
+#define SYS_FONTENC_SJIS				1
+
 #define SYS_FONTSIZE_ANSI				(288 + 131072)
 #define SYS_FONTSIZE_SJIS				(3840 + 1179648)
 
@@ -384,7 +387,8 @@ u16 SYS_GetGBSMode(void);
 void SYS_SetGBSMode(u16 mode);
 
 u32 SYS_GetConsoleType(void);
-u32 SYS_GetFontEncoding(void);
+u16 SYS_GetFontEncoding(void);
+u16 SYS_SetFontEncoding(u16 enc);
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);
 void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width);

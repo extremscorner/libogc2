@@ -711,7 +711,7 @@ static u32 __unlocksram(u32 write,u32 loc)
 //returns the size of font
 static u32 __read_font(void *buffer)
 {
-	if(SYS_GetFontEncoding()==1) __SYS_ReadROM(buffer,315392,1769216);
+	if(SYS_GetFontEncoding()==SYS_FONTENC_SJIS) __SYS_ReadROM(buffer,315392,1769216);
 	else __SYS_ReadROM(buffer,12288,2084608);
 	return __get_fontsize(buffer);
 }
@@ -1556,16 +1556,26 @@ void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 	return memalign(32, VIDEO_GetFrameBufferSize(rmode));
 }
 
-u32 SYS_GetFontEncoding(void)
+u16 SYS_GetFontEncoding(void)
 {
-	u32 ret,tv_mode;
+	u16 ret;
+	u32 tv;
 
-	if(sys_fontenc<=0x0001) return sys_fontenc;
+	if(sys_fontenc!=0xffff) return sys_fontenc;
 
-	ret = 0;
-	tv_mode = VIDEO_GetCurrentTvMode();
-	if(tv_mode==VI_NTSC && _viReg[55]&0x0002) ret = 1;
+	ret = SYS_FONTENC_ANSI;
+	tv = *((u32*)0x800000cc);
+	if(tv==VI_NTSC && _viReg[55]&0x0002) ret = SYS_FONTENC_SJIS;
 	sys_fontenc = ret;
+	return ret;
+}
+
+u16 SYS_SetFontEncoding(u16 enc)
+{
+	u16 ret;
+
+	ret = SYS_GetFontEncoding();
+	if(enc<=SYS_FONTENC_SJIS) sys_fontenc = enc;
 	return ret;
 }
 
@@ -1575,7 +1585,7 @@ u32 SYS_InitFont(sys_fontheader *font_data)
 
 	if(!font_data) return 0;
 
-	if(SYS_GetFontEncoding()==1) {
+	if(SYS_GetFontEncoding()==SYS_FONTENC_SJIS) {
 		memset(font_data,0,SYS_FONTSIZE_SJIS);
 		packed_data = (void*)((u32)font_data+868096);
 	} else {
