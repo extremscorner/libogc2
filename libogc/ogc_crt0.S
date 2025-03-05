@@ -43,11 +43,6 @@ startup:
 
 	bl		__CheckARGV		# check for argv & initialise struct
 
-	lis		r3,__isIPL@h
-	ori		r3,r3,__isIPL@l
-	cmplwi	r3,0
-	bne		1f
-
 	# Clear the SBSS section!
 	lis		r3,__sbss_start@h
 	ori		r3,r3,__sbss_start@l
@@ -55,7 +50,7 @@ startup:
 	lis		r5,__sbss_end@h
 	ori		r5,r5,__sbss_end@l
 	sub		r5,r5,r3
-	bl		_memset
+	bl		memset
 
 	# Clear the BSS section!
 	lis		r3,__bss_start@h
@@ -64,9 +59,8 @@ startup:
 	lis		r5,__bss_end@h
 	ori		r5,r5,__bss_end@l
 	sub		r5,r5,r3
-	bl		_memset
+	bl		memset
 
-1:
 	b      SYS_Init # Branch to the user code!
 
 __InitGPRS:
@@ -125,22 +119,6 @@ __InitHardware:
 	bl		__InitCache 		# Initialize the system caches
 	mtlr	r31
 	blr
-	
-	//r3 = ptr, r4 = fill, r5 = size
-	.globl _memset
-_memset:
-	clrlwi.	r6,r5,29
-	srwi	r5,r5,2
-	subi	r3,r3,4
-	mtctr	r5
-1:	stwu	r4,4(r3)
-	bdnz	1b
-	cmplwi	r6,0
-	beq		3f
-2:	stbu	r4,1(r3)
-	addic.	r6,r6,-1
-	bne+	2b
-3:	blr
 
 	.section .bss
 	.balign 8
