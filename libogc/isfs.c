@@ -189,7 +189,7 @@ s32 ISFS_Deinitialize(void)
 	IOS_Close(_fs_fd);
 	_fs_fd = -1;
 
-	return 0;
+	return ISFS_OK;
 }
 
 s32 ISFS_ReadDir(const char *filepath,char *name_list,u32 *num)
