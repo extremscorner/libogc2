@@ -82,23 +82,25 @@ typedef unsigned int BOOL;
 //!	argv structure
 /*!	\struct __argv
 
-	structure used to set up argc/argv
+	structure used to set up argc/argv/envp
 
 */
 struct __argv {
-	int argvMagic;		//!< argv magic number, set to 0x5f617267 ('_arg') if valid 
+	int argvMagic;		//!< argv magic number, set to 0x5f617267 ('_arg') if valid
 	char *commandLine;	//!< base address of command line, set of null terminated strings
-	int length;//!< total length of command line
+	int length;			//!< total length of command line
 	int argc;
 	char **argv;
 	char **endARGV;
 };
 
-//!	Default location for the system argv structure.
+//!	Default location for the system argv/envp structures.
 extern struct __argv *__system_argv;
+extern struct __argv *__system_envp;
 
-// argv struct magic number
+// argv/envp struct magic numbers
 #define ARGV_MAGIC 0x5f617267
+#define ENVP_MAGIC 0x5f656e76
 
 #ifdef __cplusplus
    }

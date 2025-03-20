@@ -26,25 +26,33 @@ distribution.
 -------------------------------------------------------------*/
 #include "gctypes.h"
 #include <string.h>
+#include <unistd.h>
 
 extern u8 __Arena1Lo[];
 extern char *__argvArena1Lo;
-void build_argv (struct __argv* argstruct );
+void build_argv(struct __argv *argstruct);
 
-void __CheckARGV() {
+void __CheckARGV(void)
+{
+	char *dest = (char *)(((int)__Arena1Lo + 3) & ~3);
 
-	if ( __system_argv->argvMagic != ARGV_MAGIC ) {
+	if (__system_argv->argvMagic == ARGV_MAGIC) {
+		memmove(dest, __system_argv->commandLine, __system_argv->length);
+		__system_argv->commandLine = dest;
+		build_argv(__system_argv);
+
+		__argvArena1Lo = dest = (char *)__system_argv->endARGV;
+	} else {
 		__system_argv->argc = 0;
 		__system_argv->argv = NULL;
-		return;
 	}
 
-	u8 *dest = (u8 *)( ((int)__Arena1Lo + 3) & ~3);
-	
-	memmove(dest, __system_argv->commandLine, __system_argv->length);
-	__system_argv->commandLine = (char *)dest;
-	build_argv(__system_argv);
-	
-	__argvArena1Lo = (char *)__system_argv->endARGV;	
+	if (__system_envp->argvMagic == ENVP_MAGIC) {
+		memmove(dest, __system_envp->commandLine, __system_envp->length);
+		__system_envp->commandLine = dest;
+		build_argv(__system_envp);
+		environ = __system_envp->argv;
 
+		__argvArena1Lo = dest = (char *)__system_envp->endARGV;
+	}
 }
