@@ -261,6 +261,8 @@ static __inline__ void __lwp_syswd_free(alarm_st *alarm)
 	__lwp_objmgr_free(&sys_alarm_objects,&alarm->object);
 }
 
+static bool isBeepingEnabled = false;
+
 static void (*reload)(void) = (void(*)(void))0x80001800;
 
 static bool __stub_found(void)
@@ -2175,4 +2177,16 @@ s8 SYS_GetCoreTemperature(void)
 	}
 	mtthrm2(0);
 	return ret;
+}
+
+void SYS_EnableBeeping(void){
+	isBeepingEnabled = true;
+}
+
+void SYS_DisableBeeping(void){
+	isBeepingEnabled = false;
+}
+
+bool SYS_IsBeepingEnabled(void){
+	return isBeepingEnabled;
 }

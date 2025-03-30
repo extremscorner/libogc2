@@ -243,8 +243,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 {
 	u16 xstart,ystart;
 	u16 xres,yres,stride;
-
-	__dsp_shutdown();
+	if(!SYS_IsBeepingEnabled()) __dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
 	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);

@@ -411,6 +411,23 @@ resetcallback SYS_SetResetCallback(resetcallback cb);
 
 u32 SYS_ResetButtonDown(void);
 
+/*! \fn s32 SYS_EnableBeeping(void)
+\brief Enable the beeping when the WII crashes
+*/
+void SYS_EnableBeeping(void);
+
+/*! \fn s32 SYS_DisableBeeping(void)
+\brief Disable the beeping when the WII crashes
+*/
+void SYS_DisableBeeping(void);
+
+/*! \fn bool SYS_IsBeepingEnabled(void)
+\brief Check if the beeping is enabled
+
+\return true if beeping is enabled, false otherwise
+*/
+bool SYS_IsBeepingEnabled(void);
+
 #if defined(HW_RVL)
 u32 SYS_GetHollywoodRevision(void);
 
