@@ -69,6 +69,7 @@ extern void irq_exceptionhandler(frame_context*);
 extern void dec_exceptionhandler(frame_context*);
 extern void default_exceptionhandler(frame_context*);
 extern void VIDEO_SetFramebuffer(void *);
+extern void __dsp_shutdown(void);
 extern void __reload(void);
 #if defined(HW_DOL)
 extern void __SYS_DoHotReset(u32 reset_code);
@@ -243,6 +244,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	u16 xstart,ystart;
 	u16 xres,yres,stride;
 
+	__dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
 	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
