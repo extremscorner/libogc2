@@ -146,10 +146,12 @@ void VIDEO_Configure(const GXRModeObj *rmode);
 
 void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height);
 
-u32 VIDEO_GetFrameBufferSize(GXRModeObj *rmode);
+void VIDEO_GetFrameBufferPan(u16 *xOrg,u16 *yOrg,u16 *width,u16 *height,u16 *stride);
+
+u32 VIDEO_GetFrameBufferSize(const GXRModeObj *rmode);
 
 /*! 
- * \fn void VIDEO_ClearFrameBuffer(GXRModeObj *rmode,void *fb,u32 color)
+ * \fn void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)
  * \brief Clear the given framebuffer.
  *
  * \param[in] rmode pointer to a GXRModeObj, specifying the mode.
@@ -158,7 +160,7 @@ u32 VIDEO_GetFrameBufferSize(GXRModeObj *rmode);
  *
  * \return none
  */
-void VIDEO_ClearFrameBuffer(GXRModeObj *rmode,void *fb,u32 color);
+void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color);
 
 
 /*! 

@@ -47,7 +47,8 @@ distribution.
 #include "lwp_threads.h"
 #include "ios.h"
 
-#include "ogc/video_types.h"
+#include "video.h"
+#include "video_types.h"
 
 //#define _EXC_DEBUG
 
@@ -239,9 +240,13 @@ static void waitForReload(void)
 //just implement core for unrecoverable exceptions.
 void c_default_exceptionhandler(frame_context *pCtx)
 {
+	u16 xstart,ystart;
+	u16 xres,yres,stride;
+
 	GX_AbortFrame();
+	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
+	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	VIDEO_SetFramebuffer(exception_xfb);
-	__console_init(exception_xfb,0,0,640,576,1280);
 
 	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
 
