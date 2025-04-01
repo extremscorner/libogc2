@@ -61,6 +61,9 @@ typedef struct _framerec {
 
 static void *exception_xfb = (void*)0xC1700000;			//we use a static address above ArenaHi.
 static int reload_timer = -1;
+static u32 rumble_cmds[PAD_CHANMAX] = {
+	PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP
+};
 
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
@@ -69,6 +72,7 @@ extern void irq_exceptionhandler(frame_context*);
 extern void dec_exceptionhandler(frame_context*);
 extern void default_exceptionhandler(frame_context*);
 extern void VIDEO_SetFramebuffer(void *);
+extern void __dsp_shutdown(void);
 extern void __reload(void);
 #if defined(HW_DOL)
 extern void __SYS_DoHotReset(u32 reset_code);
@@ -193,6 +197,11 @@ static void _cpu_print_stack(void *pc,void *lr,void *r1)
 	}
 }
 
+void __exception_setrumble(s32 chan,u32 cmd)
+{
+	rumble_cmds[chan] = cmd;
+}
+
 void __exception_setreload(int t)
 {
 	reload_timer = t*50;
@@ -203,7 +212,9 @@ static void waitForReload(void)
 	u32 level;
 
 	PAD_Init();
-	
+
+	PAD_ControlAllMotors(rumble_cmds);
+
 	if(reload_timer > 0)
 		kprintf("\n\tReloading in %d seconds\n", reload_timer/50);
 
@@ -211,7 +222,7 @@ static void waitForReload(void)
 	{
 		PAD_ScanPads();
 
-		int buttonsDown = PAD_ButtonsDown(0);
+		u16 buttonsDown = PAD_ButtonsDown(0) | PAD_ButtonsDown(1) | PAD_ButtonsDown(2) | PAD_ButtonsDown(3);
 
 		if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() || 
 			reload_timer == 0 )
@@ -243,6 +254,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	u16 xstart,ystart;
 	u16 xres,yres,stride;
 
+	__dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
 	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
@@ -274,4 +286,3 @@ void c_default_exceptionhandler(frame_context *pCtx)
 
 	waitForReload();
 }
-

@@ -803,7 +803,7 @@ static void __dsp_bootstrap(void)
 #endif
 }
 
-static void __dsp_shutdown(void)
+void __dsp_shutdown(void)
 {
 	u32 tick;
 
