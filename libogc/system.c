@@ -1542,12 +1542,15 @@ bool SYS_IsDMAAddress(const void *addr,u32 align)
 {
 	if((u32)addr&(align-1)) return false;
 #if defined(HW_RVL)
-	if((u32)addr>=0xD0000000 && (u32)addr<0xE0000000) return true;
-	if((u32)addr>=0x90000000 && (u32)addr<0xA0000000) return true;
+	if((u32)addr>=0xD0000000 && (u32)addr<0xE0000000) addr = MEM_K1_TO_K0(addr);
+	if((u32)addr>=0x90000000 && (u32)addr<*(u32*)0x80003120) return true;
 	if((u32)addr&0x03) return false;
-#endif
+	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) addr = MEM_K1_TO_K0(addr);
+	if((u32)addr>=0x80000000 && (u32)addr<*(u32*)0x80003108) return true;
+#elif defined(HW_DOL)
 	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) return true;
 	if((u32)addr>=0x80000000 && (u32)addr<0x84000000) return true;
+#endif
 	return false;
 }
 
