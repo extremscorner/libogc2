@@ -7,10 +7,12 @@
 - [240p Test Suite](https://github.com/ArtemioUrbina/240pTestSuite) - Video suite for game consoles
 - [CleanRip](https://github.com/emukidid/cleanrip) - GameCube/Wii disc image creation tool
 - [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - GameCube optical drive emulator
+- [FossScope](https://github.com/greenwave-1/fossscope) - GameCube controller tester
 - [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - GameCube bootloader
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
+- [WakeMii](https://github.com/emukidid/wakemii) - Alarm clock music player
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
 - [Xeno Crisis](https://shop.bitmapbureau.com/collections/gamecube/products/xeno-crisis-gamecube) - Retro-style arena shooter
