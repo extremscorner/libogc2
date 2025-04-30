@@ -6,7 +6,7 @@
 //#define _LWPQ_DEBUG
 
 #ifdef _LWPQ_DEBUG
-extern int printk(const char *fmt,...);
+extern void kprintf(const char *fmt,...);
 #endif
 
 #ifdef __cplusplus

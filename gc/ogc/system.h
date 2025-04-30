@@ -427,7 +427,7 @@ u32 SYS_GetSimulatedMem2Size(void);
 powercallback SYS_SetPowerCallback(powercallback cb);
 #endif
 
-void kprintf(const char *str, ...);
+void kprintf(const char *fmt,...);
 
 #ifdef __cplusplus
    }

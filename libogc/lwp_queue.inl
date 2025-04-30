@@ -26,7 +26,7 @@ static __inline__ lwp_node* __lwp_queue_firstnodeI(lwp_queue *queue)
 	lwp_node *ret;
 	lwp_node *new_first;
 #ifdef _LWPQ_DEBUG
-	printk("__lwp_queue_firstnodeI(%p)\n",queue);
+	kprintf("__lwp_queue_firstnodeI(%p)\n",queue);
 #endif
 
 	ret = queue->first;
@@ -57,7 +57,7 @@ static __inline__ void __lwp_queue_appendI(lwp_queue *queue,lwp_node *node)
 {
 	lwp_node *old;
 #ifdef _LWPQ_DEBUG
-	printk("__lwp_queue_appendI(%p,%p)\n",queue,node);
+	kprintf("__lwp_queue_appendI(%p,%p)\n",queue,node);
 #endif
 	node->next = __lwp_queue_tail(queue);
 	old = queue->last;
@@ -69,7 +69,7 @@ static __inline__ void __lwp_queue_appendI(lwp_queue *queue,lwp_node *node)
 static __inline__ void __lwp_queue_extractI(lwp_node *node)
 {
 #ifdef _LWPQ_DEBUG
-	printk("__lwp_queue_extractI(%p)\n",node);
+	kprintf("__lwp_queue_extractI(%p)\n",node);
 #endif
 	lwp_node *prev,*next;
 	next = node->next;
@@ -83,7 +83,7 @@ static __inline__ void __lwp_queue_insertI(lwp_node *after,lwp_node *node)
 	lwp_node *before;
 	
 #ifdef _LWPQ_DEBUG
-	printk("__lwp_queue_insertI(%p,%p)\n",after,node);
+	kprintf("__lwp_queue_insertI(%p,%p)\n",after,node);
 #endif
 	node->prev = after;
 	before = after->next;

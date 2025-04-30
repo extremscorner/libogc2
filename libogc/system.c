@@ -180,9 +180,6 @@ extern void __libc_init(int);
 const void *__libogc_malloc_lock = __syscall_malloc_lock;
 const void *__libogc_malloc_unlock = __syscall_malloc_unlock;
 
-extern void __exception_console(void);
-extern void __exception_printf(const char *str, ...);
-
 extern void __realmode(void(*)(void));
 extern void __configMEM1_16MB(void);
 extern void __configMEM1_24MB(void);

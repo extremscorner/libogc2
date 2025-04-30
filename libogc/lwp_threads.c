@@ -42,7 +42,7 @@ extern int __libc_create_hook(lwp_cntrl *,lwp_cntrl *);
 extern int __libc_start_hook(lwp_cntrl *,lwp_cntrl *);
 extern int __libc_delete_hook(lwp_cntrl *, lwp_cntrl *);
 
-extern void kprintf(const char *str, ...);
+extern void kprintf(const char *fmt,...);
 
 #ifdef _LWPTHREADS_DEBUG
 static void __lwp_dumpcontext(frame_context *ctx)
