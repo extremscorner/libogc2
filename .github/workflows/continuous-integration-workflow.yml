@@ -39,7 +39,9 @@ jobs:
         path: libntfs
 
     - name: Build libogc2
-      run: make install
+      run: |
+        mkdir -p build
+        make -C build -f ../Makefile install
       working-directory: libogc2
 
     - name: Build libdvm
