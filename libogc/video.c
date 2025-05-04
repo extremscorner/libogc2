@@ -239,7 +239,7 @@ GXRModeObj TVNtsc480Int =
     (VI_MAX_HEIGHT_NTSC - 480)/2,       // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xfbMode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -580,7 +580,7 @@ GXRModeObj TVMpal480Int =
     (VI_MAX_HEIGHT_MPAL - 480)/2,       // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xfbMode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -920,7 +920,7 @@ GXRModeObj TVPal528Int =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_DF,   // xfbMode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1320,7 +1320,7 @@ GXRModeObj TVEurgb60Hz480Int =
     (VI_MAX_HEIGHT_EURGB60 - 480)/2,        // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xfbMode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1853,11 +1853,16 @@ static u32 __sendSlaveAddress(u8 addr)
 
 static inline void __setInterruptRegs(const struct _timing *tm)
 {
-	u16 hlw;
+	u16 hl,hlw;
 
+	hl = 0;
 	hlw = 0;
-	if(tm->nhlines%2) hlw = tm->hlw;
-	regs[24] = 0x1000|((tm->nhlines/2)+1);
+	if(HorVer.fbMode<VI_XFBMODE_PSF) {
+		hl = tm->nhlines/2;
+		if(tm->nhlines%2) hlw = tm->hlw;
+	}
+
+	regs[24] = 0x1000|(hl+1);
 	regs[25] = hlw+1;
 	changed |= VI_REGCHANGE(24);
 	changed |= VI_REGCHANGE(25);
@@ -1867,7 +1872,7 @@ static inline void __setPicConfig(u16 fbSizeX,u32 xfbMode,u16 panPosX,u16 panSiz
 {
 	*wordPerLine = (fbSizeX+15)/16;
 	*std = *wordPerLine;
-	if(xfbMode==VI_XFBMODE_DF) *std <<= 1;
+	if(xfbMode!=VI_XFBMODE_SF) *std <<= 1;
 
 	*xof = panPosX%16;
 	*wpl = (*xof+(panSizeX+15))/16;
@@ -1910,7 +1915,7 @@ static inline void __calcFbbs(u32 bufAddr,u16 panPosX,u16 panPosY,u8 wordperline
 	bytesPerLine = (wordperline<<5)&0x1fe0;
 	*tfbb = bufAddr+((panPosX*VI_DISPLAY_PIX_SZ)+(panPosY*bytesPerLine));
 	*bfbb = *tfbb;
-	if(xfbMode==VI_XFBMODE_DF) *bfbb = *tfbb+bytesPerLine;
+	if(xfbMode!=VI_XFBMODE_SF) *bfbb = *tfbb+bytesPerLine;
 
 	if(dispPosY%2) {
 		tmp = *tfbb;
@@ -2643,7 +2648,7 @@ void VIDEO_Configure(const GXRModeObj *rmode)
 	const struct _timing *curtiming;
 #ifdef _VIDEO_DEBUG
 	if(rmode->viHeight&0x0001) printf("VIDEO_Configure(): Odd number(%d) is specified to viHeight\n",rmode->viHeight);
-	if((rmode->xfbMode==VI_XFBMODE_DF || rmode->viTVMode==VI_TVMODE_NTSC_PROG || rmode->viTVMode==VI_TVMODE_NTSC_3D)
+	if((rmode->xfbMode!=VI_XFBMODE_SF || rmode->viTVMode==VI_TVMODE_NTSC_PROG || rmode->viTVMode==VI_TVMODE_NTSC_3D)
 		&& rmode->xfbHeight!=rmode->viHeight) printf("VIDEO_Configure(): xfbHeight(%d) is not equal to viHeight(%d) when DF XFB mode or progressive mode is specified\n",rmode->xfbHeight,rmode->viHeight);
 	if(rmode->xfbMode==VI_XFBMODE_SF && !(rmode->viTVMode==VI_TVMODE_NTSC_PROG || rmode->viTVMode==VI_TVMODE_NTSC_3D)
 		&& (rmode->xfbHeight<<1)!=rmode->viHeight) printf("VIDEO_Configure(): xfbHeight(%d) is not as twice as viHeight(%d) when SF XFB mode is specified\n",rmode->xfbHeight,rmode->viHeight);

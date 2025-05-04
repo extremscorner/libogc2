@@ -80,6 +80,7 @@ distribution.
 
 #define VI_XFBMODE_SF				0
 #define VI_XFBMODE_DF				1
+#define VI_XFBMODE_PSF				2
 
 
 /*!
