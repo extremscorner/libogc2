@@ -33,74 +33,17 @@ distribution.
 	.globl __VIClearFramebuffer
 	//r3 = dst, r4 = length(bytes),r5 = color
 __VIClearFramebuffer:
-	srwi.	r0,r4,8
-	beq		2f
-	mtctr	r0
-	subi	r3,r3,4
-1:	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
-	stwu	r5,4(r3)
+	srwi.	r4,r4,5
+	mtctr	r4
+	beqlr
+	mr		r6,r5
+	mr		r7,r5
+	mr		r8,r5
+	mr		r9,r5
+	mr		r10,r5
+	mr		r11,r5
+	mr		r12,r5
+1:	stswi	r5,r3,32
+	addi	r3,r3,32
 	bdnz	1b
-2:	blr
+	blr
