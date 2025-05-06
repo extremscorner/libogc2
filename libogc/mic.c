@@ -35,9 +35,8 @@ distribution.
 #include "processor.h"
 #include "exi.h"
 #include "lwp.h"
-#include "lwp_watchdog.h"
 #include "system.h"
-#include "semaphore.h"
+#include "timesupp.h"
 
 #include "mic.h"
 

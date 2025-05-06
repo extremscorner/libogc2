@@ -137,7 +137,7 @@ OGCOBJ		:=	\
 			lwp_watchdog.o lwp_wkspace.o lwp_objmgr.o lwp_heap.o sys_state.o \
 			exception_handler.o exception.o irq.o irq_handler.o semaphore.o \
 			video_asm.o video.o pad.o dvd.o exi.o mutex.o arqueue.o	arqmgr.o	\
-			cache_asm.o system.o system_asm.o cond.o			\
+			cache_asm.o system.o system_alarm.o system_asm.o cond.o \
 			gx.o gu.o gu_psasm.o audio.o cache.o decrementer.o			\
 			message.o card.o aram.o depackrnc.o decrementer_handler.o	\
 			depackrnc1.o dsp.o si.o tpl.o ipc.o ogc_crt0.o \

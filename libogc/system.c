@@ -55,8 +55,6 @@ distribution.
 #include "lwp_priority.h"
 #include "lwp_watchdog.h"
 #include "lwp_wkspace.h"
-#include "lwp_objmgr.h"
-#include "lwp_config.h"
 #include "libversion.h"
 
 #define SYSMEM1_SIZE				0x01800000
@@ -78,14 +76,6 @@ distribution.
 #define DSPCR_PIINT				    0x0002        // assert DSP PI interrupt
 #define DSPCR_RES				    0x0001        // reset DSP
 
-#define LWP_OBJTYPE_SYSWD			7
-
-#define LWP_CHECK_SYSWD(hndl)		\
-{									\
-	if(((hndl)==SYS_WD_NULL) || (LWP_OBJTYPE(hndl)!=LWP_OBJTYPE_SYSWD))	\
-		return NULL;				\
-}
-
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
 #define _SHIFTR(v, s, w)	\
@@ -98,17 +88,6 @@ struct _sramcntrl {
 	s32 locked;
 	s32 sync;
 } sramcntrl ATTRIBUTE_ALIGN(32);
-
-typedef struct _alarm_st
-{
-	lwp_obj object;
-	wd_cntrl alarm;
-	u64 ticks;
-	u64 periodic;
-	u64 start_per;
-	alarmcallback alarmhandler;
-	void *cb_arg;
-} alarm_st;
 
 typedef struct _yay0header {
 	unsigned int id ATTRIBUTE_PACKED;
@@ -125,7 +104,6 @@ static sys_fontheader *sys_fontdata = NULL;
 
 static lwp_queue sys_reset_func_queue;
 static u32 system_initialized = 0;
-static lwp_objinfo sys_alarm_objects;
 
 static void *__sysarena1lo = NULL;
 static void *__sysarena1hi = NULL;
@@ -160,9 +138,9 @@ static s32 __sram_sync(void);
 static s32 __sram_writecallback(s32 chn,s32 dev);
 static s32 __mem_onreset(s32 final);
 
-extern void	__lwp_thread_coreinit(void);
-extern void	__lwp_sysinit(void);
-extern void __heap_init(void);
+extern void __lwp_thread_coreinit(void);
+extern void __lwp_sysinit(void);
+extern void __lwp_syswd_init(void);
 extern void __exception_init(void);
 extern void __exception_closeall(void);
 extern void __systemcall_init(void);
@@ -174,7 +152,6 @@ extern void __lwp_sema_init(void);
 extern void __exi_init(void);
 extern void __si_init(void);
 extern void __irq_init(void);
-extern void __lwp_start_multitasking(void);
 extern void __memlock_init(void);
 extern void __libc_init(int);
 
@@ -247,18 +224,6 @@ static sys_resetinfo mem_resetinfo = {
 static const char *__sys_versiondate;
 static const char *__sys_versionbuild;
 
-static __inline__ alarm_st* __lwp_syswd_open(syswd_t wd)
-{
-	LWP_CHECK_SYSWD(wd);
-	return (alarm_st*)__lwp_objmgr_get(&sys_alarm_objects,LWP_OBJMASKID(wd));
-}
-
-static __inline__ void __lwp_syswd_free(alarm_st *alarm)
-{
-	__lwp_objmgr_close(&sys_alarm_objects,&alarm->object);
-	__lwp_objmgr_free(&sys_alarm_objects,&alarm->object);
-}
-
 static void (*reload)(void) = (void(*)(void))0x80001800;
 
 static bool __stub_found(void)
@@ -301,20 +266,6 @@ void __syscall_exit(int rc)
 #endif
 }
 
-static alarm_st* __lwp_syswd_allocate(void)
-{
-	alarm_st *alarm;
-
-	__lwp_thread_dispatchdisable();
-	alarm = (alarm_st*)__lwp_objmgr_allocate(&sys_alarm_objects);
-	if(alarm) {
-		__lwp_objmgr_open(&sys_alarm_objects,&alarm->object);
-		return alarm;
-	}
-	__lwp_thread_dispatchenable();
-	return NULL;
-}
-
 static s32 __mem_onreset(s32 final)
 {
 	if(final==TRUE) {
@@ -322,22 +273,6 @@ static s32 __mem_onreset(s32 final)
 		__UnmaskIrq(IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3);
 	}
 	return 1;
-}
-
-static void __sys_alarmhandler(void *arg)
-{
-	alarm_st *alarm;
-	syswd_t thealarm = (syswd_t)arg;
-
-	if(thealarm==SYS_WD_NULL || LWP_OBJTYPE(thealarm)!=LWP_OBJTYPE_SYSWD) return;
-
-	__lwp_thread_dispatchdisable();
-	alarm = (alarm_st*)__lwp_objmgr_getnoprotection(&sys_alarm_objects,LWP_OBJMASKID(thealarm));
-	if(alarm) {
-		if(alarm->periodic) __lwp_wd_insert_ticks(&alarm->alarm,alarm->periodic);
-		if(alarm->alarmhandler) alarm->alarmhandler(thealarm,alarm->cb_arg);
-	}
-	__lwp_thread_dispatchunnest();
 }
 
 #if defined(HW_DOL)
@@ -1082,7 +1017,7 @@ void SYS_Init(void)
 #endif
 	__lwp_wkspace_init(KERNEL_HEAP);
 	__lwp_queue_init_empty(&sys_reset_func_queue);
-	__lwp_objmgr_initinfo(&sys_alarm_objects,LWP_MAX_WATCHDOGS,sizeof(alarm_st));
+	__lwp_syswd_init();
 	__sys_state_init();
 	__lwp_priority_init();
 	__lwp_watchdog_init();
@@ -1663,98 +1598,6 @@ void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width)
 		ypos++;
 	}
 	*width = sys_fontwidthtab[c];
-}
-
-s32 SYS_CreateAlarm(syswd_t *thealarm)
-{
-	alarm_st *alarm;
-
-	alarm = __lwp_syswd_allocate();
-	if(!alarm) return -1;
-
-	alarm->alarmhandler = NULL;
-	alarm->ticks = 0;
-	alarm->start_per = 0;
-	alarm->periodic = 0;
-
-	*thealarm = (LWP_OBJMASKTYPE(LWP_OBJTYPE_SYSWD)|LWP_OBJMASKID(alarm->object.id));
-	__lwp_thread_dispatchenable();
-	return 0;
-}
-
-s32 SYS_SetAlarm(syswd_t thealarm,const struct timespec *tp,alarmcallback cb,void *cbarg)
-{
-	alarm_st *alarm;
-
-	alarm = __lwp_syswd_open(thealarm);
-	if(!alarm) return -1;
-
-	alarm->cb_arg = cbarg;
-	alarm->alarmhandler = cb;
-	alarm->ticks = __lwp_wd_calc_ticks(tp);
-
-	alarm->periodic = 0;
-	alarm->start_per = 0;
-
-	__lwp_wd_initialize(&alarm->alarm,__sys_alarmhandler,alarm->object.id,(void*)thealarm);
-	__lwp_wd_insert_ticks(&alarm->alarm,alarm->ticks);
-	__lwp_thread_dispatchenable();
-	return 0;
-}
-
-s32 SYS_SetPeriodicAlarm(syswd_t thealarm,const struct timespec *tp_start,const struct timespec *tp_period,alarmcallback cb,void *cbarg)
-{
-	alarm_st *alarm;
-
-	alarm = __lwp_syswd_open(thealarm);
-	if(!alarm) return -1;
-
-	alarm->start_per = __lwp_wd_calc_ticks(tp_start);
-	alarm->periodic = __lwp_wd_calc_ticks(tp_period);
-	alarm->alarmhandler = cb;
-	alarm->cb_arg = cbarg;
-
-	alarm->ticks = 0;
-
-	__lwp_wd_initialize(&alarm->alarm,__sys_alarmhandler,alarm->object.id,(void*)thealarm);
-	__lwp_wd_insert_ticks(&alarm->alarm,alarm->start_per);
-	__lwp_thread_dispatchenable();
-	return 0;
-}
-
-s32 SYS_RemoveAlarm(syswd_t thealarm)
-{
-	alarm_st *alarm;
-
-	alarm = __lwp_syswd_open(thealarm);
-	if(!alarm) return -1;
-
-	alarm->alarmhandler = NULL;
-	alarm->ticks = 0;
-	alarm->periodic = 0;
-	alarm->start_per = 0;
-
-	__lwp_wd_remove_ticks(&alarm->alarm);
-	__lwp_syswd_free(alarm);
-	__lwp_thread_dispatchenable();
-	return 0;
-}
-
-s32 SYS_CancelAlarm(syswd_t thealarm)
-{
-	alarm_st *alarm;
-
-	alarm = __lwp_syswd_open(thealarm);
-	if(!alarm) return -1;
-
-	alarm->alarmhandler = NULL;
-	alarm->ticks = 0;
-	alarm->periodic = 0;
-	alarm->start_per = 0;
-
-	__lwp_wd_remove_ticks(&alarm->alarm);
-	__lwp_thread_dispatchenable();
-	return 0;
 }
 
 resetcallback SYS_SetResetCallback(resetcallback cb)
