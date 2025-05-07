@@ -1489,7 +1489,13 @@ bool SYS_IsDMAAddress(const void *addr,u32 align)
 
 void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 {
-	return memalign(32, VIDEO_GetFrameBufferSize(rmode));
+	void *fb;
+	u32 size;
+
+	size = VIDEO_GetFrameBufferSize(rmode);
+	fb = memalign(PPC_CACHE_ALIGNMENT,size);
+	if(fb) DCInvalidateRange(fb,size);
+	return fb;
 }
 
 u16 SYS_GetFontEncoding(void)
