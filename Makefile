@@ -295,8 +295,8 @@ install: wii cube install-headers
 	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv libogc2_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv gamecube_rules wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
+	@cp -frv {libogc2,rtems}_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
+	@cp -frv {gamecube,wii}_rules $(DESTDIR)$(DEVKITPRO)/libogc2
 
 #---------------------------------------------------------------------------------
 uninstall:
@@ -309,7 +309,7 @@ dist: wii cube install-headers
 	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
 		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
 		-cvjf libogc2-src-$(VERSTRING).tar.bz2 *
-	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc2_license.txt gamecube_rules wii_rules
+	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib {libogc2,rtems}_license.txt {gamecube,wii}_rules
 
 
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a $(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
