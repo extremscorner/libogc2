@@ -7,7 +7,7 @@
 - [240p Test Suite](https://github.com/ArtemioUrbina/240pTestSuite) - Video suite for game consoles
 - [CleanRip](https://github.com/emukidid/cleanrip) - GameCube/Wii disc image creation tool
 - [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - GameCube optical drive emulator
-- [FossScope](https://github.com/greenwave-1/fossscope) - GameCube controller tester
+- [GCC Test Suite](https://github.com/greenwave-1/GTS) - GameCube controller tester
 - [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - GameCube bootloader
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
