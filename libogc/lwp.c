@@ -421,6 +421,11 @@ static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,u64 timeout)
 	tq = __lwp_tqueue_open(thequeue);
 	if(!tq) return -1;
 
+	if(__lwp_isr_in_progress()) {
+		__lwp_thread_dispatchenable();
+		return EDEADLK;
+	}
+
 	exec = _thr_executing;
 	_CPU_ISR_Disable(level);
 	__lwp_threadqueue_csenter(&tq->tqueue);

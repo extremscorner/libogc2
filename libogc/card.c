@@ -343,7 +343,7 @@ static s32 __card_sync(s32 chn)
 
 	_CPU_ISR_Disable(level);
 	while((ret=CARD_GetErrorCode(chn))==CARD_ERROR_BUSY) {
-		LWP_ThreadSleep(card->wait_sync_queue);
+		if(LWP_ThreadSleep(card->wait_sync_queue)) break;
 	}
 	_CPU_ISR_Restore(level);
 	return ret;

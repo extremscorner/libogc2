@@ -303,7 +303,8 @@ static s32 __MICSync(s32 chan)
 	
 	while (cb->result_code == MIC_RESULT_BUSY)
 	{
-		LWP_ThreadSleep(cb->thread_queue);
+		if (LWP_ThreadSleep(cb->thread_queue))
+			break;
 	}
 	
 	IRQ_Restore(level);
