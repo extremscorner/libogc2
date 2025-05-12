@@ -77,3 +77,18 @@ void __syscall_lock_release(_LOCK_T *lock)
 	plock = (mutex_t)*lock;
 	LWP_MutexUnlock(plock);
 }
+
+void flockfile(FILE *fp)
+{
+	__lock_acquire_recursive(fp->_lock);
+}
+
+int ftrylockfile(FILE *fp)
+{
+	return ({ __lock_try_acquire_recursive(fp->_lock); });
+}
+
+void funlockfile(FILE *fp)
+{
+	__lock_release_recursive(fp->_lock);
+}

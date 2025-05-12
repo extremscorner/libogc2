@@ -597,9 +597,10 @@ static ssize_t __console_write_r(struct _reent *r,void *fd,const char *ptr,size_
 {
 	ssize_t ret = __console_write(r,fd,ptr,len);
 
-	if(stdcon) {
-		if(ret!=-1) _fwrite_r(r,ptr,1,len,stdcon);
-		else ret = _fwrite_r(r,ptr,1,len,stdcon);
+	if(stdcon && !ftrylockfile(stdcon)) {
+		if(ret!=-1) _fwrite_unlocked_r(r,ptr,1,len,stdcon);
+		else ret = _fwrite_unlocked_r(r,ptr,1,len,stdcon);
+		funlockfile(stdcon);
 	}
 	return ret;
 }
