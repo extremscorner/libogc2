@@ -127,7 +127,8 @@ static s32 __lwp_sema_waitsupp(sem_t sem,u8 block,u64 timeout)
 			return EAGAIN;
 		case LWP_SEMA_TIMEOUT:
 			return ETIMEDOUT;
-			
+		case LWP_SEMA_MAXCNT_EXCEEDED:
+			break;
 	}
 	return 0;
 }

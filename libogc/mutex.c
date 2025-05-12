@@ -88,14 +88,30 @@ static s32 __lwp_mutex_locksupp(mutex_t lock,u64 timeout,u8 block)
 	if(!p) return -1;
 
 	__lwp_mutex_seize(&p->mutex,p->object.id,block,timeout,level);
-	return _thr_executing->wait.ret_code;
+
+	switch(_thr_executing->wait.ret_code) {
+		case LWP_MUTEX_SUCCESSFUL:
+			break;
+		case LWP_MUTEX_UNSATISFIED_NOWAIT:
+			return EBUSY;
+		case LWP_MUTEX_NEST_NOTALLOWED:
+			return EDEADLK;
+		case LWP_MUTEX_NOTOWNER:
+			return EPERM;
+		case LWP_MUTEX_DELETED:
+			return EINVAL;
+		case LWP_MUTEX_TIMEOUT:
+			return EAGAIN;
+		case LWP_MUTEX_CEILINGVIOL:
+			return EINVAL;
+	}
+	return 0;
 }
 
 void __lwp_mutex_init(void)
 {
 	__lwp_objmgr_initinfo(&_lwp_mutex_objects,LWP_MAX_MUTEXES,sizeof(mutex_st));
 }
-
 
 static __inline__ mutex_st* __lwp_mutex_open(mutex_t lock)
 {
@@ -182,14 +198,30 @@ s32 LWP_MutexTryLock(mutex_t mutex)
 
 s32 LWP_MutexUnlock(mutex_t mutex)
 {
-	u32 ret;
+	u32 status;
 	mutex_st *lock;
 
 	lock = __lwp_mutex_open(mutex);
 	if(!lock) return -1;
 
-	ret = __lwp_mutex_surrender(&lock->mutex);
+	status = __lwp_mutex_surrender(&lock->mutex);
 	__lwp_thread_dispatchenable();
 
-	return ret;
+	switch(status) {
+		case LWP_MUTEX_SUCCESSFUL:
+			break;
+		case LWP_MUTEX_UNSATISFIED_NOWAIT:
+			return EBUSY;
+		case LWP_MUTEX_NEST_NOTALLOWED:
+			return EDEADLK;
+		case LWP_MUTEX_NOTOWNER:
+			return EPERM;
+		case LWP_MUTEX_DELETED:
+			return EINVAL;
+		case LWP_MUTEX_TIMEOUT:
+			return EAGAIN;
+		case LWP_MUTEX_CEILINGVIOL:
+			return EINVAL;
+	}
+	return 0;
 }
