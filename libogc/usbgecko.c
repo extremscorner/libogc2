@@ -16,7 +16,7 @@
 
 
 static u32 usbgecko_inited = 0;
-static lwpq_t wait_exi_queue[3];
+static lwpq_t wait_exi_queue[EXI_CHANNEL_MAX];
 
 static s32 __usbgecko_exi_unlock(s32 chan,s32 dev)
 {
@@ -160,6 +160,9 @@ int usb_isgeckoalive(s32 chn)
 	u32 id = 0;
 	s32 ret;
 	u16 val;
+
+	if (chn < EXI_CHANNEL_0 || chn >= EXI_CHANNEL_MAX)
+		return 0;
 
 	while (EXI_ProbeEx(chn) == 0);
 

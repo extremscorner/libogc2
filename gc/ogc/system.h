@@ -38,6 +38,7 @@ distribution.
 
 #include <gctypes.h>
 #include <gcutil.h>
+#include <stdarg.h>
 #include <time.h>
 #include <ogc/lwp_queue.h>
 #include "gx_struct.h"
@@ -424,6 +425,10 @@ u32 SYS_GetSimulatedMem2Size(void);
 
 powercallback SYS_SetPowerCallback(powercallback cb);
 #endif
+
+void SYS_Report(const char *msg,...);
+void SYS_Reportv(const char *msg,va_list list);
+void SYS_EnableGecko(s32 chan,bool safe);
 
 void kprintf(const char *fmt,...);
 
