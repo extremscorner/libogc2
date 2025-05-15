@@ -1,7 +1,7 @@
 #include <gu.h>
 #include <math.h>
 
-extern void __ps_guMtxRotAxisRadInternal(register Mtx mt,register const guVector *axis,register f32 sT,register f32 cT);
+extern void __ps_guMtxRotAxisRadInternal(Mtx mt,const guVector *axis,f32 sT,f32 cT);
 
 void guFrustum(Mtx44 mt,f32 t,f32 b,f32 l,f32 r,f32 n,f32 f)
 {
@@ -562,9 +562,9 @@ void c_guMtxRotRad(Mtx mt,char axis,f32 rad)
 }
 
 #ifdef GEKKO
-void ps_guMtxRotRad(register Mtx mt,register char axis,register f32 rad)
+void ps_guMtxRotRad(Mtx mt,char axis,f32 rad)
 {
-	register f32 sinA,cosA;
+	f32 sinA,cosA;
 
 	sinA = sinf(rad);
 	cosA = cosf(rad);
@@ -572,13 +572,13 @@ void ps_guMtxRotRad(register Mtx mt,register char axis,register f32 rad)
 	ps_guMtxRotTrig(mt,axis,sinA,cosA);
 }
 
-void ps_guMtxRotAxisRad(register Mtx mt,register const guVector *axis,register f32 rad)
+void ps_guMtxRotAxisRad(Mtx mt,const guVector *axis,f32 rad)
 {
 	f32 sinT,cosT;
- 
+
 	sinT = sinf(rad);
 	cosT = cosf(rad);
- 
+
 	__ps_guMtxRotAxisRadInternal(mt,axis,sinT,cosT);
 }
 
@@ -995,7 +995,7 @@ void c_guQuatAdd(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab)
 }
 
 #ifdef GEKKO
-void ps_guQuatAdd(register const guQuaternion *a,register const guQuaternion *b,register guQuaternion *ab)
+void ps_guQuatAdd(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab)
 {
 	register f32 tmp0,tmp1;
 
@@ -1024,7 +1024,7 @@ void c_guQuatSub(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab)
 }
 
 #ifdef GEKKO
-void ps_guQuatSub(register const guQuaternion *a,register const guQuaternion *b,register guQuaternion *ab)
+void ps_guQuatSub(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab)
 {
 	register f32 tmp0,tmp1;
 
@@ -1061,7 +1061,7 @@ void c_guQuatMultiply(const guQuaternion *a,const guQuaternion *b,guQuaternion *
 }
 
 #ifdef GEKKO
-void ps_guQuatMultiply(register const guQuaternion *a,register const guQuaternion *b,register guQuaternion *ab)
+void ps_guQuatMultiply(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab)
 {
 	register f32 aXY,aZW,bXY,bZW;
 	register f32 tmp0,tmp1,tmp2,tmp3,tmp4,tmp5,tmp6,tmp7;
@@ -1112,7 +1112,7 @@ void c_guQuatNormalize(const guQuaternion *a,guQuaternion *d)
 }
 
 #ifdef GEKKO
-void ps_guQuatNormalize(register const guQuaternion *a,register guQuaternion *d)
+void ps_guQuatNormalize(const guQuaternion *a,guQuaternion *d)
 {
 	register f32 c_zero = 0.0f;
 	register f32 c_half = 0.5f;
@@ -1158,7 +1158,7 @@ void c_guQuatInverse(const guQuaternion *a,guQuaternion *d)
 }
 
 #ifdef GEKKO
-void ps_guQuatInverse(register const guQuaternion *a,register guQuaternion *d)
+void ps_guQuatInverse(const guQuaternion *a,guQuaternion *d)
 {
 	register f32 c_one = 1.0f;
 	register f32 axy,azw,tmp0,tmp1,tmp2,tmp3,tmp4,tmp5;

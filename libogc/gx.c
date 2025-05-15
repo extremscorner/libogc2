@@ -2811,7 +2811,7 @@ void GX_SetZTexture(u8 op,u8 fmt,u32 bias)
 	GX_LOAD_BP_REG(0xF5000000|(val&0x00FFFFFF));
 }
 
-static inline void WriteMtxPS4x3(register const Mtx mt,register void *wgpipe)
+static inline void WriteMtxPS4x3(const Mtx mt,void *wgpipe)
 {
 	register f32 tmp0,tmp1,tmp2,tmp3,tmp4,tmp5;
 	__asm__ __volatile__ (
@@ -2833,7 +2833,7 @@ static inline void WriteMtxPS4x3(register const Mtx mt,register void *wgpipe)
 	);
 }
 
-static inline void WriteMtxPS3x3from4x3(register const Mtx mt,register void *wgpipe)
+static inline void WriteMtxPS3x3from4x3(const Mtx mt,void *wgpipe)
 {
 	register f32 tmp0,tmp1,tmp2,tmp3,tmp4,tmp5;
 	__asm__ __volatile__
@@ -2855,7 +2855,7 @@ static inline void WriteMtxPS3x3from4x3(register const Mtx mt,register void *wgp
 	);
 }
 
-static inline void WriteMtxPS3x3(register const Mtx33 mt,register void *wgpipe)
+static inline void WriteMtxPS3x3(const Mtx33 mt,void *wgpipe)
 {
 	register f32 tmp0,tmp1,tmp2,tmp3,tmp4;
 	__asm__ __volatile__
@@ -2875,7 +2875,7 @@ static inline void WriteMtxPS3x3(register const Mtx33 mt,register void *wgpipe)
 	);
 }
 
-static inline void WriteMtxPS4x2(register const Mtx mt,register void *wgpipe)
+static inline void WriteMtxPS4x2(const Mtx mt,void *wgpipe)
 {
 	register f32 tmp0,tmp1,tmp2,tmp3;
 	__asm__ __volatile__
