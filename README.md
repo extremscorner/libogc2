@@ -5,13 +5,16 @@
 ## Projects using libogc2
 
 - [240p Test Suite](https://github.com/ArtemioUrbina/240pTestSuite) - Video suite for game consoles
-- [CleanRip](https://github.com/emukidid/cleanrip) - GameCube/Wii disc image creation tool
-- [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - GameCube optical drive emulator
-- [GCC Test Suite](https://github.com/greenwave-1/GTS) - GameCube controller tester
-- [GCMM](https://github.com/suloku/gcmm) - GameCube memory card manager
-- [gekkoboot](https://github.com/redolution/gekkoboot) - GameCube bootloader
+- [CleanRip](https://github.com/emukidid/cleanrip) - Nintendo GameCube/Wii disc image creation tool
+- [FCE Ultra GX](https://github.com/dborth/fceugx) - Nintendo Entertainment System emulator
+- [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - Nintendo GameCube optical drive emulator
+- [GCC Test Suite](https://github.com/greenwave-1/GTS) - Nintendo GameCube controller tester
+- [GCMM](https://github.com/suloku/gcmm) - Nintendo GameCube memory card manager
+- [gekkoboot](https://github.com/redolution/gekkoboot) - Nintendo GameCube bootloader
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
+- [Snes9x GX](https://github.com/dborth/snes9xgx) - Super Nintendo Entertainment System emulator
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
+- [Visual Boy Advance GX](https://github.com/dborth/vbagx) - Game Boy Advance emulator
 - [WakeMii](https://github.com/emukidid/wakemii) - Alarm clock music player
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
