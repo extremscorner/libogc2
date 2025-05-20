@@ -295,13 +295,13 @@ void SYS_Init(void);
 
 
 /*!
- * \fn void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
+ * \fn void* SYS_AllocateFramebuffer(const GXRModeObj *rmode)
  * \brief Allocate cacheline aligned memory for the external framebuffer based on the rendermode object.
  * \param[in] rmode pointer to the video/render mode configuration
  *
  * \return pointer to the framebuffer's startaddress. <b><i>NOTE:</i></b> Address returned is aligned to a 32byte boundery!
  */
-void* SYS_AllocateFramebuffer(GXRModeObj *rmode);
+void* SYS_AllocateFramebuffer(const GXRModeObj *rmode) __attribute__((assume_aligned(32)));
 
 
 bool SYS_IsDMAAddress(const void *addr,u32 align);
@@ -401,8 +401,8 @@ void SYS_SetArena1Lo(void *newLo);
 void* SYS_GetArena1Hi(void);
 void SYS_SetArena1Hi(void *newHi);
 u32 SYS_GetArena1Size(void);
-void* SYS_AllocArenaMem1Lo(u32 size,u32 align);
-void* SYS_AllocArenaMem1Hi(u32 size,u32 align);
+void* SYS_AllocArenaMem1Lo(u32 size,u32 align) __attribute__((alloc_size(1),alloc_align(2)));
+void* SYS_AllocArenaMem1Hi(u32 size,u32 align) __attribute__((alloc_size(1),alloc_align(2)));
 u32 SYS_GetPhysicalMem1Size(void);
 u32 SYS_GetSimulatedMem1Size(void);
 
@@ -418,19 +418,19 @@ void SYS_SetArena2Lo(void *newLo);
 void* SYS_GetArena2Hi(void);
 void SYS_SetArena2Hi(void *newHi);
 u32 SYS_GetArena2Size(void);
-void* SYS_AllocArenaMem2Lo(u32 size,u32 align);
-void* SYS_AllocArenaMem2Hi(u32 size,u32 align);
+void* SYS_AllocArenaMem2Lo(u32 size,u32 align) __attribute__((alloc_size(1),alloc_align(2)));
+void* SYS_AllocArenaMem2Hi(u32 size,u32 align) __attribute__((alloc_size(1),alloc_align(2)));
 u32 SYS_GetPhysicalMem2Size(void);
 u32 SYS_GetSimulatedMem2Size(void);
 
 powercallback SYS_SetPowerCallback(powercallback cb);
 #endif
 
-void SYS_Report(const char *msg,...);
-void SYS_Reportv(const char *msg,va_list list);
+void SYS_Report(const char *msg,...) __attribute__((format(printf,1,2)));
+void SYS_Reportv(const char *msg,va_list list) __attribute__((format(printf,1,0)));
 void SYS_EnableGecko(s32 chan,bool safe);
 
-void kprintf(const char *fmt,...);
+void kprintf(const char *fmt,...) __attribute__((format(printf,1,2)));
 
 #ifdef __cplusplus
    }

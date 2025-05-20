@@ -75,7 +75,7 @@ extern void VIDEO_SetFramebuffer(void *);
 extern void __dsp_shutdown(void);
 extern void __reload(void);
 #if defined(HW_DOL)
-extern void __SYS_DoHotReset(u32 reset_code);
+extern void __SYS_DoHotReset(u32 reset_code) __attribute__((noreturn));
 #endif
 
 extern s8 exceptionhandler_start[],exceptionhandler_end[],exceptionhandler_patch[];

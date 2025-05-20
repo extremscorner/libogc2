@@ -130,7 +130,7 @@ static vu16* const _memReg = (u16*)0xCC004000;
 static vu16* const _dspReg = (u16*)0xCC005000;
 
 #if defined(HW_DOL)
-void __SYS_DoHotReset(u32 reset_code);
+void __SYS_DoHotReset(u32 reset_code) __attribute__((noreturn));
 #endif
 void __SYS_ReadROM(void *buf,u32 len,u32 offset);
 
@@ -168,7 +168,7 @@ extern void __configMEM1_64MB(void);
 extern void __configMEM2_64MB(void);
 extern void __configMEM2_128MB(void);
 #elif defined(HW_DOL)
-extern void __reset(u32 reset_code);
+extern void __reset(u32 reset_code) __attribute__((noreturn));
 #endif
 
 extern u32 __IPC_ClntInit(void);
@@ -1487,7 +1487,7 @@ bool SYS_IsDMAAddress(const void *addr,u32 align)
 	return false;
 }
 
-void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
+void* SYS_AllocateFramebuffer(const GXRModeObj *rmode)
 {
 	void *fb;
 	u32 size;
