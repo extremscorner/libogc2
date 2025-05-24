@@ -28,7 +28,7 @@
 #define TB_NSPERUS					1000
 #define TB_USPERTICK				10000
 
-#define ticks_to_cycles(ticks)		(((u64)(ticks)*(u64)((TB_CORE_CLOCK*2)/TB_TIMER_CLOCK))/2)
+#define ticks_to_cycles(ticks)		(((u64)(ticks)*(u64)((TB_CORE_CLOCK*2)/(TB_TIMER_CLOCK*1000)))/2)
 #define ticks_to_secs(ticks)		((u64)(ticks)/(u64)(TB_TIMER_CLOCK*1000))
 #define ticks_to_millisecs(ticks)	((u64)(ticks)/(u64)(TB_TIMER_CLOCK))
 #define ticks_to_microsecs(ticks)	(((u64)(ticks)*8)/(u64)(TB_TIMER_CLOCK/125))

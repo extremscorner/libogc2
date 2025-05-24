@@ -311,6 +311,7 @@ void SYS_DumpPMC(void);
 void SYS_StopPMC(void);
 void SYS_ResetPMC(void);
 f32 SYS_GetCoreMultiplier(void);
+u32 SYS_GetCoreFrequency(void);
 s8 SYS_GetCoreTemperature(void);
 
 

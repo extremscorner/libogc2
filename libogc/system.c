@@ -1969,13 +1969,13 @@ f32 SYS_GetCoreMultiplier(void)
 {
 	u32 pvr,hid1;
 
-	const f32 pll_cfg_table4[] = {
+	static const f32 pll_cfg_table4[] = {
 		 2.5,  7.5,  7.0,  1.0,
 		 2.0,  6.5, 10.0,  4.5,
 		 3.0,  5.5,  4.0,  5.0,
 		 8.0,  6.0,  3.5,  0.0
 	};
-	const f32 pll_cfg_table5[] = {
+	static const f32 pll_cfg_table5[] = {
 		 0.0,  0.0,  5.0,  1.0,  2.0,  2.5,  3.0,  3.5,  4.0,  4.5,
 		 5.0,  5.5,  6.0,  6.5,  7.0,  7.5,  8.0,  8.5,  9.0,  9.5,
 		10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0,
@@ -1998,9 +1998,24 @@ f32 SYS_GetCoreMultiplier(void)
 			}
 			break;
 		case 0x700:
-			return pll_cfg_table5[_SHIFTR(hid1,27,5)];
+			switch(_SHIFTR(pvr,16,4)) {
+				case 0x1:
+					return pll_cfg_table5[_SHIFTR(hid1,27,5)];
+				default:
+					return pll_cfg_table4[_SHIFTR(hid1,28,4)];
+			}
+			break;
 	}
 	return 0.0;
+}
+
+u32 SYS_GetCoreFrequency(void)
+{
+	u32 clock;
+	clock = *((u32*)0x800000fc);
+	if(!clock) clock = TB_BUS_CLOCK * SYS_GetCoreMultiplier();
+	if(!clock) clock = TB_CORE_CLOCK;
+	return clock;
 }
 
 s8 SYS_GetCoreTemperature(void)
