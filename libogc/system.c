@@ -1075,7 +1075,7 @@ void SYS_PreMain(void)
 
 u32 SYS_ResetButtonDown(void)
 {
-	return (!(_piReg[0]&0x00010000));
+	return _SHIFTR(_piReg[0],16,1)^1;
 }
 
 #if defined(HW_DOL)
@@ -1922,7 +1922,16 @@ u32 SYS_GetConsoleType(void)
 {
 	u32 type;
 	type = *((u32*)0x8000002c);
+	if(!type) {
+		type = SYS_CONSOLE_RETAIL_HW1;
+		type += SYS_GetFlipperRevision();
+	}
 	return type;
+}
+
+u32 SYS_GetFlipperRevision(void)
+{
+	return _SHIFTR(_piReg[11],28,4);
 }
 #elif defined(HW_RVL)
 u32 SYS_GetConsoleType(void)
@@ -1964,6 +1973,14 @@ u32 SYS_GetHollywoodRevision(void)
 	return rev;
 }
 #endif
+
+u32 SYS_GetBusFrequency(void)
+{
+	u32 clock;
+	clock = *((u32*)0x800000f8);
+	if(!clock) clock = TB_BUS_CLOCK;
+	return clock;
+}
 
 f32 SYS_GetCoreMultiplier(void)
 {
@@ -2013,7 +2030,10 @@ u32 SYS_GetCoreFrequency(void)
 {
 	u32 clock;
 	clock = *((u32*)0x800000fc);
-	if(!clock) clock = TB_BUS_CLOCK * SYS_GetCoreMultiplier();
+	if(!clock) {
+		clock = SYS_GetBusFrequency();
+		clock *= SYS_GetCoreMultiplier();
+	}
 	if(!clock) clock = TB_CORE_CLOCK;
 	return clock;
 }
