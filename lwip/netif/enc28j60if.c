@@ -2,7 +2,7 @@
 
 enc28j60if.c -- ENC28J60 device driver
 
-Copyright (C) 2023 Extrems' Corner.org
+Copyright (C) 2023 - 2025 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -459,18 +459,18 @@ static void ENC28J60_GetMACAddr(s32 chan, u8 macaddr[6])
 	union {
 		u32 cid[4];
 		u8 data[18 + 1];
-	} ecid = {{
-		mfspr(ECID0),
-		mfspr(ECID1),
-		mfspr(ECID2),
-		mfspr(ECID3)
-	}};
+	} ecid = {};
 
-	u32 sum = chan;
+	ecid.cid[0] = mfspr(ECID0);
+	ecid.cid[1] = mfspr(ECID1);
+	ecid.cid[2] = mfspr(ECID2);
+	ecid.cid[3] = mfspr(ECID3);
 
 	ecid.data[15] ^= 0x00;
 	ecid.data[16] ^= 0x04;
 	ecid.data[17] ^= 0xA3;
+
+	u32 sum = chan;
 
 	for (int i = 0; i < 18; i += 3) {
 		sum += *(u32 *)&ecid.data[i] >> 8;
