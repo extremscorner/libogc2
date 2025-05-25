@@ -263,7 +263,7 @@ $(BTELIB).a: $(BTEOBJ)
 $(WIIUSELIB).a: $(WIIUSEOBJ)
 #---------------------------------------------------------------------------------
 
-.PHONY: libs wii cube install-headers install uninstall dist docs docker
+.PHONY: libs wii cube install-headers install uninstall docs docker
 
 #---------------------------------------------------------------------------------
 install-headers:
@@ -304,14 +304,6 @@ install: wii cube install-headers
 uninstall:
 #---------------------------------------------------------------------------------
 	@rm -frv $(DESTDIR)$(DEVKITPRO)/libogc2
-
-#---------------------------------------------------------------------------------
-dist: wii cube install-headers
-#---------------------------------------------------------------------------------
-	@tar    --exclude=*CVS* --exclude=.svn --exclude=*build* --exclude=*deps* \
-		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
-		-cvjf libogc2-src-$(VERSTRING).tar.bz2 *
-	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt *_rules
 
 
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a $(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
