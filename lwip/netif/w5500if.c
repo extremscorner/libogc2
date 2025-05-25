@@ -39,6 +39,8 @@ distribution.
 
 static vu32 *const _piReg = (u32 *)0xCC003000;
 
+#define W5500_CID (0x03000000)
+
 #define W5500_BSB(x)         (((x) & 0x1F) << 27) // Block Select Bits
 #define W5500_RWB                       (1 << 26) // Read/Write Access Mode Bit
 #define W5500_OM(x)           (((x) & 0x3) << 24) // SPI Operation Mode Bits
@@ -351,7 +353,7 @@ static bool W5500_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 {
 	bool err = false;
 
-	cmd |= W5500_RWB;
+	cmd |=  W5500_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
 	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
@@ -564,7 +566,7 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 		LWP_ThreadSleep(w5500if->unlockQueue);
 	IRQ_Restore(level);
 
-	if (!EXI_GetID(chan, dev, &id) || id != 0x03000000) {
+	if (!EXI_GetID(chan, dev, &id) || id != W5500_CID) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
 		EXI_Unlock(chan);
@@ -572,6 +574,7 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 	}
 
 	Dev[chan] = dev;
+
 	if (!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);

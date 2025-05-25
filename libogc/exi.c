@@ -784,8 +784,6 @@ char *EXI_GetTypeString(u32 nType)
 			return "GDEV";
 		case 0x02020000:
 			return "Modem";
-		case 0x03000000:
-			return "WIZnet";
 		case 0x03010000:
 			return "Marlin";
 		case 0x04120000:
@@ -817,6 +815,9 @@ char *EXI_GetTypeString(u32 nType)
 			return "IDE-EXI";
 		case 0xfa050000:
 			return "ENC28J60";
+		case 0x03000000:
+		case 0xff800000:
+			return "WIZnet";
 		default:
 			return "Unknown";
 	}

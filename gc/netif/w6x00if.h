@@ -1,8 +1,8 @@
 /*-------------------------------------------------------------
 
-w6100if.h -- W6100 device driver
+w6x00if.h -- W6X00 device driver
 
-Copyright (C) 2024 Extrems' Corner.org
+Copyright (C) 2024 - 2025 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -25,11 +25,11 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __NETIF_W6100IF_H__
-#define __NETIF_W6100IF_H__
+#ifndef __NETIF_W6X00IF_H__
+#define __NETIF_W6X00IF_H__
 
 #include "lwip/netif.h"
 
-err_t w6100if_init(struct netif *netif);
+err_t w6x00if_init(struct netif *netif);
 
-#endif /* __NETIF_W6100IF_H__ */
+#endif /* __NETIF_W6X00IF_H__ */

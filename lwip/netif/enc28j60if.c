@@ -43,6 +43,8 @@ distribution.
 
 static vu32 *const _piReg = (u32 *)0xCC003000;
 
+#define ENC28J60_CID (0xFA050000)
+
 #define ENC28J60_CMD_RCR(x) ((0x00 | ((x) & 0x1F)) << 24) // Read Control Register
 #define ENC28J60_CMD_RBM    ((0x3A) << 24)                // Read Buffer Memory
 #define ENC28J60_CMD_WCR(x) ((0x40 | ((x) & 0x1F)) << 24) // Write Control Register
@@ -601,7 +603,7 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	CurrBank[chan] = 0;
 	usleep(1000);
 
-	if (!EXI_GetIDEx(chan, dev, &id) || id != 0xFA050000 ||
+	if (!EXI_GetIDEx(chan, dev, &id) || id != ENC28J60_CID ||
 		!ENC28J60_ReadPHYReg(chan, ENC28J60_PHID1, &phid1) || phid1 != 0x0083 ||
 		!ENC28J60_ReadPHYReg(chan, ENC28J60_PHID2, &phid2) || phid2 != 0x1400) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
