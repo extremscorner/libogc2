@@ -199,7 +199,7 @@ extern u8 __Arena2Lo[], __Arena2Hi[];
 extern u8 __ipcbufferLo[], __ipcbufferHi[];
 #endif
 
-u8 *__argvArena1Lo = (u8*)0xdeadbeef;
+void *__argvArena1Lo = (void*)0xdeadbeef;
 
 static u32 __sys_inIPL = (u32)__isIPL;
 
@@ -390,9 +390,14 @@ void *__attribute__((weak)) __myArena2Hi = NULL;
 
 static void __sysarena_init(void)
 {
-	if (__argvArena1Lo != (u8*)0xdeadbeef) __myArena1Lo = __argvArena1Lo;
+	if (__myArena1Lo == NULL && __argvArena1Lo != (void*)0xdeadbeef)
+		__myArena1Lo = __argvArena1Lo;
 #if defined(HW_DOL)
-	if (__myArena1Lo == NULL) __myArena1Lo = *(void**)0x80000030;
+	if (__myArena1Lo == NULL) {
+		__myArena1Lo = *(void**)0x80000030;
+		if (__myArena1Lo < (void*)__Arena1Lo)
+			__myArena1Lo = __Arena1Lo;
+	}
 	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000038;
 	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x800000EC;
 	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000034;

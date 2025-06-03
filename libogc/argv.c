@@ -31,7 +31,7 @@ distribution.
 #include <unistd.h>
 
 extern u8 __Arena1Lo[];
-extern char *__argvArena1Lo;
+extern void *__argvArena1Lo;
 void build_argv(struct __argv *argstruct);
 
 void __CheckARGV(void)
