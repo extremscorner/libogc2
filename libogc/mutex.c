@@ -101,7 +101,7 @@ static s32 __lwp_mutex_locksupp(mutex_t lock,u64 timeout,u8 block)
 		case LWP_MUTEX_DELETED:
 			return EINVAL;
 		case LWP_MUTEX_TIMEOUT:
-			return EAGAIN;
+			return ETIMEDOUT;
 		case LWP_MUTEX_CEILINGVIOL:
 			return EINVAL;
 	}
@@ -183,11 +183,14 @@ s32 LWP_MutexLock(mutex_t mutex)
 	return __lwp_mutex_locksupp(mutex,LWP_THREADQ_NOTIMEOUT,TRUE);
 }
 
-s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *abstime)
+s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *reltime)
 {
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
-	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	if(reltime) {
+		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
+		timeout = __lwp_wd_calc_ticks(reltime);
+	}
 	return __lwp_mutex_locksupp(mutex,timeout,TRUE);
 }
 
@@ -219,7 +222,7 @@ s32 LWP_MutexUnlock(mutex_t mutex)
 		case LWP_MUTEX_DELETED:
 			return EINVAL;
 		case LWP_MUTEX_TIMEOUT:
-			return EAGAIN;
+			return ETIMEDOUT;
 		case LWP_MUTEX_CEILINGVIOL:
 			return EINVAL;
 	}

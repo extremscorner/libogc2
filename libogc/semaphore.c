@@ -157,11 +157,14 @@ s32 LWP_SemWait(sem_t sem)
 	return __lwp_sema_waitsupp(sem,TRUE,LWP_THREADQ_NOTIMEOUT);
 }
 
-s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime)
+s32 LWP_SemTimedWait(sem_t sem,const struct timespec *reltime)
 {
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
-	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	if(reltime) {
+		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
+		timeout = __lwp_wd_calc_ticks(reltime);
+	}
 	return __lwp_sema_waitsupp(sem,TRUE,timeout);
 }
 

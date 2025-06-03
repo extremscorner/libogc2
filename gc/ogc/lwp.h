@@ -214,14 +214,14 @@ void LWP_CloseQueue(lwpq_t thequeue);
 s32 LWP_ThreadSleep(lwpq_t thequeue);
 
 
-/*! \fn s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *abstime)
+/*! \fn s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *reltime)
 \brief Pushes the current thread onto the given thread synchronization queue and sets the thread state to blocked until timeout.
 \param[in] thequeue handle to the thread's synchronization queue to push the thread on
-\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+\param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
 \return 0 on success, <0 on error
 */
-s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *abstime);
+s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *reltime);
 
 
 /*! \fn void LWP_ThreadSignal(lwpq_t thequeue)

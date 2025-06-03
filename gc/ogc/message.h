@@ -120,15 +120,15 @@ void MQ_Close(mqbox_t mqbox);
 BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags);
 
 
-/*! \fn BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime)
+/*! \fn BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 \brief Sends a message to the given message queue, blocking until timeout.
 \param[in] mqbox mqbox_t handle to the message queue
 \param[in] msg message to send
-\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+\param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
 \return bool result
 */
-BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime);
+BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime);
 
 
 /*! \fn BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
@@ -142,15 +142,15 @@ BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime);
 BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags);
 
 
-/*! \fn BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime)
+/*! \fn BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 \brief Sends a message to the given message queue and jams it in front of the queue, blocking until timeout.
 \param[in] mqbox mqbox_t handle to the message queue
 \param[in] msg message to send
-\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+\param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
 \return bool result
 */
-BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime);
+BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime);
 
 
 /*! \fn BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
@@ -164,15 +164,15 @@ BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime);
 BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags);
 
 
-/*! \fn BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *abstime)
+/*! \fn BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *reltime)
 \brief Receives a message from the given message queue, blocking until timeout.
 \param[in] mqbox mqbox_t handle to the message queue
 \param[in] msg pointer to a mqmsg_t_t-type message to receive.
-\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+\param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
 \return bool result
 */
-BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *abstime);
+BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *reltime);
 
 #ifdef __cplusplus
 	}

@@ -180,11 +180,14 @@ BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,wait,LWP_THREADQ_NOTIMEOUT);
 }
 
-BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime)
+BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 {
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
-	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	if(reltime) {
+		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
+		timeout = __lwp_wd_calc_ticks(reltime);
+	}
 	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,TRUE,timeout);
 }
 
@@ -195,11 +198,14 @@ BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,wait,LWP_THREADQ_NOTIMEOUT);
 }
 
-BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *abstime)
+BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 {
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
-	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	if(reltime) {
+		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
+		timeout = __lwp_wd_calc_ticks(reltime);
+	}
 	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,TRUE,timeout);
 }
 
@@ -210,10 +216,13 @@ BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
 	return __lwp_mqbox_recvsupp(mqbox,msg,wait,LWP_THREADQ_NOTIMEOUT);
 }
 
-BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *abstime)
+BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *reltime)
 {
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
 
-	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
+	if(reltime) {
+		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
+		timeout = __lwp_wd_calc_ticks(reltime);
+	}
 	return __lwp_mqbox_recvsupp(mqbox,msg,TRUE,timeout);
 }

@@ -106,14 +106,14 @@ s32 LWP_SemDestroy(sem_t sem);
 s32 LWP_SemWait(sem_t sem);
 
 
-/*! \fn s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime)
+/*! \fn s32 LWP_SemTimedWait(sem_t sem,const struct timespec *reltime)
 \brief Count down semaphore counter and try to enter lock if counter <=0 until timeout.
 \param[in] sem handle to the sem_t structure.
-\param[in] abstime pointer to a timespec structure holding the abs time for the timeout.
+\param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
 \return 0 on success, <0 on error
 */
-s32 LWP_SemTimedWait(sem_t sem,const struct timespec *abstime);
+s32 LWP_SemTimedWait(sem_t sem,const struct timespec *reltime);
 
 
 /*! \fn s32 LWP_SemTryWait(sem_t sem)

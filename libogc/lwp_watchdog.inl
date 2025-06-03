@@ -97,6 +97,13 @@ static __inline__ u32 __lwp_wd_isactive(wd_cntrl *wd)
 	return (wd->state==LWP_WD_ACTIVE);
 }
 
+static __inline__ bool __lwp_wd_timespec_valid(const struct timespec *time)
+{
+	if(!time) return false;
+	if(time->tv_nsec<0 || time->tv_nsec>=TB_NSPERSEC) return false;
+	return true;
+}
+
 static __inline__ u64 __lwp_wd_calc_ticks(const struct timespec *time)
 {
 	u64 ticks;

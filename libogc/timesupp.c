@@ -145,6 +145,11 @@ int __syscall_nanosleep(const struct timespec *tb, struct timespec *rem)
 {
 	u64 timeout;
 
+	if (!__lwp_wd_timespec_valid(tb)) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	__lwp_thread_dispatchdisable();
 
 	timeout = __lwp_wd_calc_ticks(tb);
