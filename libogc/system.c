@@ -393,11 +393,8 @@ static void __sysarena_init(void)
 	if (__myArena1Lo == NULL && __argvArena1Lo != (void*)0xdeadbeef)
 		__myArena1Lo = __argvArena1Lo;
 #if defined(HW_DOL)
-	if (__myArena1Lo == NULL) {
+	if (__myArena1Lo == NULL && *(void**)0x800000F4 != NULL)
 		__myArena1Lo = *(void**)0x80000030;
-		if (__myArena1Lo < (void*)__Arena1Lo)
-			__myArena1Lo = __Arena1Lo;
-	}
 	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000038;
 	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x800000EC;
 	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000034;
