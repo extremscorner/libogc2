@@ -109,19 +109,18 @@ static cond_st* __lwp_cond_allocate(void)
 	return NULL;
 }
 
-static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,u64 timeout,u8 timedout)
+static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,s64 timeout,u8 timedout)
 {
 	u32 status,mstatus,level;
 	cond_st *thecond;
 
 	thecond = __lwp_cond_open(cond);
 	if(!thecond) return -1;
-		
+
 	if(thecond->lock!=LWP_MUTEX_NULL && thecond->lock!=mutex) {
 		__lwp_thread_dispatchenable();
 		return EINVAL;
 	}
-
 
 	LWP_MutexUnlock(mutex);
 	if(!timedout) {
@@ -201,13 +200,13 @@ s32 LWP_CondBroadcast(cond_t cond)
 
 s32 LWP_CondTimedWait(cond_t cond,mutex_t mutex,const struct timespec *reltime)
 {
-	u64 timeout = LWP_THREADQ_NOTIMEOUT;
-	bool timedout = FALSE;
+	s64 timeout = LWP_THREADQ_NOTIMEOUT;
+	u8 timedout = FALSE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
-		if(reltime->tv_sec<0) timedout = TRUE;
 		timeout = __lwp_wd_calc_ticks(reltime);
+		if(timeout<=0) timedout = TRUE;
 	}
 	return __lwp_cond_waitsupp(cond,mutex,timeout,timedout);
 }

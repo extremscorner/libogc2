@@ -412,7 +412,7 @@ void LWP_CloseQueue(lwpq_t thequeue)
 	return;
 }
 
-static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,u64 timeout)
+static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,s64 timeout,u8 timedout)
 {
 	u32 level;
 	tqueue_st *tq;
@@ -424,6 +424,12 @@ static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,u64 timeout)
 	if(__lwp_isr_in_progress()) {
 		__lwp_thread_dispatchenable();
 		return EDEADLK;
+	}
+
+	if(timedout) {
+		__lwp_thread_yield();
+		__lwp_thread_dispatchenable();
+		return ETIMEDOUT;
 	}
 
 	exec = _thr_executing;
@@ -442,18 +448,20 @@ static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,u64 timeout)
 
 s32 LWP_ThreadSleep(lwpq_t thequeue)
 {
-	return __lwp_tqueue_sleepsupp(thequeue,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_tqueue_sleepsupp(thequeue,LWP_THREADQ_NOTIMEOUT,FALSE);
 }
 
 s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *reltime)
 {
-	u64 timeout = LWP_THREADQ_NOTIMEOUT;
+	s64 timeout = LWP_THREADQ_NOTIMEOUT;
+	u8 timedout = FALSE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
 		timeout = __lwp_wd_calc_ticks(reltime);
+		if(timeout<=0) timedout = TRUE;
 	}
-	return __lwp_tqueue_sleepsupp(thequeue,timeout);
+	return __lwp_tqueue_sleepsupp(thequeue,timeout,timedout);
 }
 
 void LWP_ThreadBroadcast(lwpq_t thequeue)

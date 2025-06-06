@@ -104,9 +104,9 @@ static __inline__ bool __lwp_wd_timespec_valid(const struct timespec *time)
 	return true;
 }
 
-static __inline__ u64 __lwp_wd_calc_ticks(const struct timespec *time)
+static __inline__ s64 __lwp_wd_calc_ticks(const struct timespec *time)
 {
-	u64 ticks;
+	s64 ticks;
 
 	ticks = secs_to_ticks(time->tv_sec);
 	ticks += nanosecs_to_ticks(time->tv_nsec);

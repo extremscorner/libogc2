@@ -126,7 +126,7 @@ u32 __lwpmq_initialize(mq_cntrl *mqueue,mq_attr *attrs,u32 max_pendingmsgs,u32 m
 	return 1;
 }
 
-u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,u64 timeout)
+u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,s64 timeout)
 {
 	u32 level;
 	mq_buffercntrl *msg;
@@ -179,7 +179,7 @@ u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,u64 ti
 	return LWP_MQ_STATUS_SUCCESSFUL;
 }
 
-u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wait,u64 timeout)
+u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wait,s64 timeout)
 {
 	u32 level;
 	lwp_cntrl *thread;

@@ -120,7 +120,7 @@ u32 __lwp_mutex_surrender(lwp_mutex *mutex)
 	return LWP_MUTEX_SUCCESSFUL;
 }
 
-void __lwp_mutex_seize_irq_blocking(lwp_mutex *mutex,u64 timeout)
+void __lwp_mutex_seize_irq_blocking(lwp_mutex *mutex,s64 timeout)
 {
 	lwp_cntrl *exec;
 

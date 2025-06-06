@@ -143,20 +143,25 @@ void udelay(u32 usec)
 
 int __syscall_nanosleep(const struct timespec *tb, struct timespec *rem)
 {
-	u64 timeout;
+	s64 timeout;
 
 	if (!__lwp_wd_timespec_valid(tb)) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	__lwp_thread_dispatchdisable();
-
 	timeout = __lwp_wd_calc_ticks(tb);
+	if (timeout <= 0) {
+		__lwp_thread_dispatchdisable();
+		__lwp_thread_yield();
+		__lwp_thread_dispatchenable();
+		return 0;
+	}
+
+	__lwp_thread_dispatchdisable();
 	__lwp_thread_setstate(_thr_executing,LWP_STATES_DELAYING|LWP_STATES_INTERRUPTIBLE_BY_SIGNAL);
 	__lwp_wd_initialize(&_thr_executing->timer,__lwp_thread_delayended,_thr_executing->object.id,_thr_executing);
 	__lwp_wd_insert_ticks(&_thr_executing->timer,timeout);
-
 	__lwp_thread_dispatchenable();
 	return 0;
 }

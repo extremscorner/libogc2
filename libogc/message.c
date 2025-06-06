@@ -107,7 +107,7 @@ static mqbox_st* __lwp_mqbox_allocate(void)
 	return NULL;
 }
 
-static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,u64 timeout)
+static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,s64 timeout)
 {
 	u32 status,size = sizeof(mqmsg_t);
 	mqbox_st *mbox;
@@ -123,7 +123,7 @@ static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,u64
 	return (status==LWP_MQ_STATUS_SUCCESSFUL);
 }
 
-static BOOL __lwp_mqbox_recvsupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait,u64 timeout)
+static BOOL __lwp_mqbox_recvsupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait,s64 timeout)
 {
 	u32 status,size;
 	mqbox_st *mbox;
@@ -182,13 +182,15 @@ BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 
 BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 {
-	u64 timeout = LWP_THREADQ_NOTIMEOUT;
+	s64 timeout = LWP_THREADQ_NOTIMEOUT;
+	u32 wait = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
 		timeout = __lwp_wd_calc_ticks(reltime);
+		if(timeout<=0) wait = FALSE;
 	}
-	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,TRUE,timeout);
+	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,wait,timeout);
 }
 
 BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
@@ -200,13 +202,15 @@ BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 
 BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 {
-	u64 timeout = LWP_THREADQ_NOTIMEOUT;
+	s64 timeout = LWP_THREADQ_NOTIMEOUT;
+	u32 wait = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
 		timeout = __lwp_wd_calc_ticks(reltime);
+		if(timeout<=0) wait = FALSE;
 	}
-	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,TRUE,timeout);
+	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,wait,timeout);
 }
 
 BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
@@ -218,11 +222,13 @@ BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
 
 BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *reltime)
 {
-	u64 timeout = LWP_THREADQ_NOTIMEOUT;
+	s64 timeout = LWP_THREADQ_NOTIMEOUT;
+	u32 wait = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
 		timeout = __lwp_wd_calc_ticks(reltime);
+		if(timeout<=0) wait = FALSE;
 	}
-	return __lwp_mqbox_recvsupp(mqbox,msg,TRUE,timeout);
+	return __lwp_mqbox_recvsupp(mqbox,msg,wait,timeout);
 }

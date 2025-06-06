@@ -94,7 +94,7 @@ lwp_cntrl* __lwp_threadqueue_firstpriority(lwp_thrqueue *queue)
 	return NULL;
 }
 
-void __lwp_threadqueue_enqueuefifo(lwp_thrqueue *queue,lwp_cntrl *thethread,u64 timeout)
+void __lwp_threadqueue_enqueuefifo(lwp_thrqueue *queue,lwp_cntrl *thethread,s64 timeout)
 {
 	u32 level,sync_state;
 
@@ -163,7 +163,7 @@ lwp_cntrl* __lwp_threadqueue_dequeuefifo(lwp_thrqueue *queue)
 	return NULL;
 }
 
-void __lwp_threadqueue_enqueuepriority(lwp_thrqueue *queue,lwp_cntrl *thethread,u64 timeout)
+void __lwp_threadqueue_enqueuepriority(lwp_thrqueue *queue,lwp_cntrl *thethread,s64 timeout)
 {
 	u32 level,search_prio,header_idx,prio,block_state,sync_state;
 	lwp_cntrl *search_thread;
@@ -399,7 +399,7 @@ lwp_cntrl* __lwp_threadqueue_first(lwp_thrqueue *queue)
 	return ret;
 }
 
-void __lwp_threadqueue_enqueue(lwp_thrqueue *queue,u64 timeout)
+void __lwp_threadqueue_enqueue(lwp_thrqueue *queue,s64 timeout)
 {
 	lwp_cntrl *thethread;
 
