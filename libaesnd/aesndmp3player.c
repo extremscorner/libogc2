@@ -86,7 +86,7 @@ s32 MP3Player_PlayBuffer(const void *buffer,s32 len,void (*filterfunc)(struct ma
 	mp3cb_data = &rambuffer;
 	mp3read = _mp3ramcopy;
 	mp3filterfunc = filterfunc;
-	if(LWP_CreateThread(&hStreamPlay,StreamPlay,NULL,StreamPlay_Stack,STACKSIZE,80)<0) {
+	if(LWP_CreateThread(&hStreamPlay,StreamPlay,NULL,StreamPlay_Stack,STACKSIZE,80)!=0) {
 		return -1;
 	}
 	return 0;
@@ -99,7 +99,7 @@ s32 MP3Player_PlayFile(void *cb_data,s32 (*reader)(void *,void *,s32),void (*fil
 	mp3cb_data = cb_data;
 	mp3read = reader;
 	mp3filterfunc = filterfunc;
-	if(LWP_CreateThread(&hStreamPlay,StreamPlay,NULL,StreamPlay_Stack,STACKSIZE,80)<0) {
+	if(LWP_CreateThread(&hStreamPlay,StreamPlay,NULL,StreamPlay_Stack,STACKSIZE,80)!=0) {
 		return -1;
 	}
 	return 0;

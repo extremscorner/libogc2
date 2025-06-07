@@ -479,7 +479,7 @@ static s32 __exi_syncex(s32 nChn)
 
 	_CPU_ISR_Disable(level);
 	if(exi->syncqueue==LWP_TQUEUE_NULL) {
-		if(LWP_InitQueue(&exi->syncqueue)==-1) {
+		if(LWP_InitQueue(&exi->syncqueue)!=0) {
 			_CPU_ISR_Restore(level);
 			return 0;
 		}

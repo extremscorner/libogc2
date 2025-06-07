@@ -320,7 +320,7 @@ s8 SYS_GetCoreTemperature(void);
 \brief Create/initialize sysalarm structure
 \param[in] thealarm pointer to the handle to store the created alarm context identifier
 
-\return 0 on succuess, non-zero on error
+\return 0 on success, non-zero on error
 */
 s32 SYS_CreateAlarm(syswd_t *thealarm);
 
@@ -331,7 +331,7 @@ s32 SYS_CreateAlarm(syswd_t *thealarm);
 \param[in] tp pointer to timespec structure holding the time to fire the alarm
 \param[in] cb pointer to callback which is called when the alarm fires.
 
-\return 0 on succuess, non-zero on error
+\return 0 on success, non-zero on error
 */
 s32 SYS_SetAlarm(syswd_t thealarm,const struct timespec *tp,alarmcallback cb,void *cbarg);
 
@@ -343,7 +343,7 @@ s32 SYS_SetAlarm(syswd_t thealarm,const struct timespec *tp,alarmcallback cb,voi
 \param[in] tp_period pointer to timespec structure holding the interval for all following alarm triggers.
 \param[in] cb pointer to callback which is called when the alarm fires.
 
-\return 0 on succuess, non-zero on error
+\return 0 on success, non-zero on error
 */
 s32 SYS_SetPeriodicAlarm(syswd_t thealarm,const struct timespec *tp_start,const struct timespec *tp_period,alarmcallback cb,void *cbarg);
 
@@ -352,7 +352,7 @@ s32 SYS_SetPeriodicAlarm(syswd_t thealarm,const struct timespec *tp_start,const 
 \brief Remove the given alarm context from the list of contexts and destroy it
 \param[in] thealarm identifier to the alarm context to be removed and destroyed
 
-\return 0 on succuess, non-zero on error
+\return 0 on success, non-zero on error
 */
 s32 SYS_RemoveAlarm(syswd_t thealarm);
 
@@ -361,7 +361,7 @@ s32 SYS_RemoveAlarm(syswd_t thealarm);
 \brief Cancel the alarm, but do not remove from the list of contexts.
 \param[in] thealarm identifier to the alram context to be canceled
 
-\return 0 on succuess, non-zero on error
+\return 0 on success, non-zero on error
 */
 s32 SYS_CancelAlarm(syswd_t thealarm);
 

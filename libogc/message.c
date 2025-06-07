@@ -53,8 +53,9 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#include <asm.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <asm.h>
 #include <lwp_messages.h>
 #include <lwp_objmgr.h>
 #include <lwp_config.h>
@@ -143,34 +144,35 @@ s32 MQ_Init(mqbox_t *mqbox,u32 count)
 	mq_attr attr;
 	mqbox_st *ret = NULL;
 
-	if(!mqbox) return -1;
+	if(!mqbox) return EINVAL;
 
 	ret = __lwp_mqbox_allocate();
-	if(!ret) return MQ_ERROR_TOOMANY;
+	if(!ret) return ENOSPC;
 
 	attr.mode = LWP_MQ_FIFO;
 	if(!__lwpmq_initialize(&ret->mqueue,&attr,count,sizeof(mqmsg_t))) {
 		__lwp_mqbox_free(ret);
 		__lwp_thread_dispatchenable();
-		return MQ_ERROR_TOOMANY;
+		return ENOSPC;
 	}
 
 	*mqbox = (mqbox_t)(LWP_OBJMASKTYPE(LWP_OBJTYPE_MBOX)|LWP_OBJMASKID(ret->object.id));
 	__lwp_thread_dispatchenable();
-	return MQ_ERROR_SUCCESSFUL;
+	return 0;
 }
 
-void MQ_Close(mqbox_t mqbox)
+s32 MQ_Close(mqbox_t mqbox)
 {
 	mqbox_st *mbox;
 
 	mbox = __lwp_mqbox_open(mqbox);
-	if(!mbox) return;
+	if(!mbox) return EINVAL;
 
-	__lwpmq_close(&mbox->mqueue,0);
+	__lwpmq_close(&mbox->mqueue,LWP_MQ_STATUS_DELETED);
 	__lwp_thread_dispatchenable();
 
 	__lwp_mqbox_free(mbox);
+	return 0;
 }
 
 BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)

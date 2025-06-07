@@ -115,7 +115,7 @@ static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,s64 timeout,u8 timedout
 	cond_st *thecond;
 
 	thecond = __lwp_cond_open(cond);
-	if(!thecond) return -1;
+	if(!thecond) return EINVAL;
 
 	if(thecond->lock!=LWP_MUTEX_NULL && thecond->lock!=mutex) {
 		__lwp_thread_dispatchenable();
@@ -155,7 +155,7 @@ static s32 __lwp_cond_signalsupp(cond_t cond,u8 isbroadcast)
 	cond_st *thecond;
 	
 	thecond = __lwp_cond_open(cond);
-	if(!thecond) return -1;
+	if(!thecond) return EINVAL;
 
 	do {
 		thethread = __lwp_threadqueue_dequeue(&thecond->wait_queue);
@@ -169,10 +169,10 @@ s32 LWP_CondInit(cond_t *cond)
 {
 	cond_st *ret;
 	
-	if(!cond) return -1;
+	if(!cond) return EINVAL;
 	
 	ret = __lwp_cond_allocate();
-	if(!ret) return ENOMEM;
+	if(!ret) return EAGAIN;
 
 	ret->lock = LWP_MUTEX_NULL;
 	__lwp_threadqueue_init(&ret->wait_queue,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_FOR_CONDVAR,ETIMEDOUT);
@@ -216,7 +216,7 @@ s32 LWP_CondDestroy(cond_t cond)
 	cond_st *ptr;
 
 	ptr = __lwp_cond_open(cond);
-	if(!ptr) return -1;
+	if(!ptr) return EINVAL;
 
 	if(__lwp_threadqueue_first(&ptr->wait_queue)) {
 		__lwp_thread_dispatchenable();

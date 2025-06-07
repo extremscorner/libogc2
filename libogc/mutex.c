@@ -82,10 +82,10 @@ static s32 __lwp_mutex_locksupp(mutex_t lock,s64 timeout,u8 block)
 	u32 level;
 	mutex_st *p;
 
-	if(lock==LWP_MUTEX_NULL || LWP_OBJTYPE(lock)!=LWP_OBJTYPE_MUTEX) return -1;
+	if(lock==LWP_MUTEX_NULL || LWP_OBJTYPE(lock)!=LWP_OBJTYPE_MUTEX) return EINVAL;
 	
 	p = (mutex_st*)__lwp_objmgr_getisrdisable(&_lwp_mutex_objects,LWP_OBJMASKID(lock),&level);
-	if(!p) return -1;
+	if(!p) return EINVAL;
 
 	__lwp_mutex_seize(&p->mutex,p->object.id,block,timeout,level);
 
@@ -144,10 +144,10 @@ s32 LWP_MutexInit(mutex_t *mutex,bool use_recursive)
 	lwp_mutex_attr attr;
 	mutex_st *ret;
 	
-	if(!mutex) return -1;
+	if(!mutex) return EINVAL;
 
 	ret = __lwp_mutex_allocate();
-	if(!ret) return -1;
+	if(!ret) return EAGAIN;
 
 	attr.mode = LWP_MUTEX_FIFO;
 	attr.nest_behavior = use_recursive?LWP_MUTEX_NEST_ACQUIRE:LWP_MUTEX_NEST_ERROR;
@@ -165,13 +165,13 @@ s32 LWP_MutexDestroy(mutex_t mutex)
 	mutex_st *p;
 
 	p = __lwp_mutex_open(mutex);
-	if(!p) return 0;
+	if(!p) return EINVAL;
 
 	if(__lwp_mutex_locked(&p->mutex)) {
 		__lwp_thread_dispatchenable();
 		return EBUSY;
 	}
-	__lwp_mutex_flush(&p->mutex,EINVAL);
+	__lwp_mutex_flush(&p->mutex,LWP_MUTEX_DELETED);
 	__lwp_thread_dispatchenable();
 
 	__lwp_mutex_free(p);
@@ -207,7 +207,7 @@ s32 LWP_MutexUnlock(mutex_t mutex)
 	mutex_st *lock;
 
 	lock = __lwp_mutex_open(mutex);
-	if(!lock) return -1;
+	if(!lock) return EINVAL;
 
 	status = __lwp_mutex_surrender(&lock->mutex);
 	__lwp_thread_dispatchenable();

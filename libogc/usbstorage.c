@@ -417,10 +417,10 @@ s32 USBStorage_Open(usbstorage_handle *dev, s32 device_id, u16 vid, u16 pid)
 
 	dev->tag = TAG_START;
 
-	if (LWP_MutexInit(&dev->lock, false) < 0)
+	if (LWP_MutexInit(&dev->lock, false) != 0)
 		goto free_and_return;
 
-	if (SYS_CreateAlarm(&dev->alarm) < 0)
+	if (SYS_CreateAlarm(&dev->alarm) != 0)
 		goto free_and_return;
 
 	retval = USB_OpenDevice(device_id, vid, pid, &dev->usb_fd);

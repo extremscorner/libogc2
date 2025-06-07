@@ -101,7 +101,7 @@ typedef u32 lwpq_t;
 \param[in] stack_size size of the provided stack. If 0, the default STACKSIZE of 8Kb is taken.
 \param[in] prio priority on which the newly created thread runs.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_CreateThread(lwp_t *thethread,void* (*entry)(void *),void *arg,void *stackbase,u32 stack_size,u8 prio);
 
@@ -110,7 +110,7 @@ s32 LWP_CreateThread(lwp_t *thethread,void* (*entry)(void *),void *arg,void *sta
 \brief Suspend the given thread.
 \param[in] thethread handle to the thread context which should be suspended.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SuspendThread(lwp_t thethread);
 
@@ -119,7 +119,7 @@ s32 LWP_SuspendThread(lwp_t thethread);
 \brief Resume the given thread.
 \param[in] thethread handle to the thread context which should be resumed.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_ResumeThread(lwp_t thethread);
 
@@ -145,19 +145,19 @@ lwp_t LWP_GetSelf(void);
 \brief Get the priority of the given thread.
 \param[in] thethread handle to the thread context whos priority should be returned. If NULL, the current thread will be taken.
 
-\return 0 on success, <0 on error
+\return current thread priority
 */
 s32 LWP_GetThreadPriority(lwp_t thethread);
 
 
-/*! \fn void LWP_SetThreadPriority(lwp_t thethread,u32 prio)
+/*! \fn s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio)
 \brief Set the priority of the given thread.
 \param[in] thethread handle to the thread context whos priority should be changed. If NULL, the current thread will be taken.
 \param[in] prio new priority to set
 
-\return none
+\return old thread priority
 */
-void LWP_SetThreadPriority(lwp_t thethread,u32 prio);
+s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio);
 
 
 /*! \fn void LWP_YieldThread(void)
@@ -182,34 +182,34 @@ void LWP_Reschedule(u32 prio);
 \param[in] thethread handle to the thread's context which should be joined to wait on termination.
 \param[in] value_ptr pointer-pointer to a variable to receive the return code of the terminated thread.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_JoinThread(lwp_t thethread,void **value_ptr);
 
 
-/*! \fn void LWP_InitQueue(lwpq_t *thequeue)
+/*! \fn s32 LWP_InitQueue(lwpq_t *thequeue)
 \brief Initialize the thread synchronization queue
 \param[in] thequeue pointer to a lwpq_t handle.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_InitQueue(lwpq_t *thequeue);
 
 
-/*! \fn void LWP_CloseQueue(lwpq_t thequeue)
+/*! \fn s32 LWP_CloseQueue(lwpq_t thequeue)
 \brief Close the thread synchronization queue and releas the handle
 \param[in] thequeue handle to the thread's synchronization queue
 
-\return none
+\return 0 on success, non-zero on error
 */
-void LWP_CloseQueue(lwpq_t thequeue);
+s32 LWP_CloseQueue(lwpq_t thequeue);
 
 
 /*! \fn s32 LWP_ThreadSleep(lwpq_t thequeue)
 \brief Pushes the current thread onto the given thread synchronization queue and sets the thread state to blocked.
 \param[in] thequeue handle to the thread's synchronization queue to push the thread on
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_ThreadSleep(lwpq_t thequeue);
 
@@ -219,27 +219,27 @@ s32 LWP_ThreadSleep(lwpq_t thequeue);
 \param[in] thequeue handle to the thread's synchronization queue to push the thread on
 \param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *reltime);
 
 
-/*! \fn void LWP_ThreadSignal(lwpq_t thequeue)
+/*! \fn s32 LWP_ThreadSignal(lwpq_t thequeue)
 \brief Signals one thread to be revmoved from the thread synchronization queue and sets it back to running state.
 \param[in] thequeue handle to the thread's synchronization queue to pop the blocked thread off
 
-\return none
+\return 0 on success, non-zero on error
 */
-void LWP_ThreadSignal(lwpq_t thequeue);
+s32 LWP_ThreadSignal(lwpq_t thequeue);
 
 
-/*! \fn void LWP_ThreadBroadcast(lwpq_t thequeue)
+/*! \fn s32 LWP_ThreadBroadcast(lwpq_t thequeue)
 \brief Removes all blocked threads from the thread synchronization queue and sets them back to running state.
 \param[in] thequeue handle to the thread's synchronization queue to pop the blocked threads off
 
-\return none
+\return 0 on success, non-zero on error
 */
-void LWP_ThreadBroadcast(lwpq_t thequeue);
+s32 LWP_ThreadBroadcast(lwpq_t thequeue);
 
 #ifdef __cplusplus
 	}

@@ -83,7 +83,7 @@ typedef u32 sem_t;
 \param[in] start start count of the semaphore
 \param[in] max maximum count of the semaphore
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemInit(sem_t *sem,u32 start,u32 max);
 
@@ -92,7 +92,7 @@ s32 LWP_SemInit(sem_t *sem,u32 start,u32 max);
 \brief Close and destroy a semaphore, release all threads and handles locked on this semaphore.
 \param[in] sem handle to the sem_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemDestroy(sem_t sem);
 
@@ -101,7 +101,7 @@ s32 LWP_SemDestroy(sem_t sem);
 \brief Count down semaphore counter and enter lock if counter <=0
 \param[in] sem handle to the sem_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemWait(sem_t sem);
 
@@ -111,7 +111,7 @@ s32 LWP_SemWait(sem_t sem);
 \param[in] sem handle to the sem_t structure.
 \param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemTimedWait(sem_t sem,const struct timespec *reltime);
 
@@ -120,7 +120,7 @@ s32 LWP_SemTimedWait(sem_t sem,const struct timespec *reltime);
 \brief Count down semaphore counter and try to enter lock if counter <=0
 \param[in] sem handle to the sem_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemTryWait(sem_t sem);
 
@@ -129,7 +129,7 @@ s32 LWP_SemTryWait(sem_t sem);
 \brief Count up semaphore counter and release lock if counter >0
 \param[in] sem handle to the sem_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemPost(sem_t sem);
 
@@ -139,7 +139,7 @@ s32 LWP_SemPost(sem_t sem);
 \param[in] sem handle to the sem_t structure.
 \param[out] value pointer to receive the current count of the semaphore
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_SemGetValue(sem_t sem,u32 *value);
 

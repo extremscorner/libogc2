@@ -113,7 +113,7 @@ static s32 __lwp_sema_waitsupp(sem_t sem,u8 block,s64 timeout)
 	sema_st *lwp_sem;
 
 	lwp_sem = __lwp_sema_open(sem);
-	if(!lwp_sem) return -1;
+	if(!lwp_sem) return EINVAL;
 
 	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,block,timeout);
 	__lwp_thread_dispatchenable();
@@ -138,10 +138,10 @@ s32 LWP_SemInit(sem_t *sem,u32 start,u32 max)
 	lwp_semattr attr;
 	sema_st *ret;
 
-	if(!sem) return -1;
+	if(!sem) return EINVAL;
 	
 	ret = __lwp_sema_allocate();
-	if(!ret) return -1;
+	if(!ret) return ENOSPC;
 
 	attr.max_cnt = max;
 	attr.mode = LWP_SEMA_MODEFIFO;
@@ -180,7 +180,7 @@ s32 LWP_SemPost(sem_t sem)
 	sema_st *lwp_sem;
 
 	lwp_sem = __lwp_sema_open(sem);
-	if(!lwp_sem) return -1;
+	if(!lwp_sem) return EINVAL;
 
 	__lwp_sema_surrender(&lwp_sem->sema,lwp_sem->object.id);
 	__lwp_thread_dispatchenable();
@@ -192,10 +192,10 @@ s32 LWP_SemGetValue(sem_t sem,u32 *value)
 {
 	sema_st *lwp_sem;
 
-	if(!value) return -1;
+	if(!value) return EINVAL;
 
 	lwp_sem = __lwp_sema_open(sem);
-	if(!lwp_sem) return -1;
+	if(!lwp_sem) return EINVAL;
 
 	*value = __lwp_sema_getcount(&lwp_sem->sema);
 	__lwp_thread_dispatchenable();
@@ -208,9 +208,9 @@ s32 LWP_SemDestroy(sem_t sem)
 	sema_st *lwp_sem;
 
 	lwp_sem = __lwp_sema_open(sem);
-	if(!lwp_sem) return -1;
+	if(!lwp_sem) return EINVAL;
 
-	__lwp_sema_flush(&lwp_sem->sema,-1);
+	__lwp_sema_flush(&lwp_sem->sema,LWP_SEMA_DELETED);
 	__lwp_thread_dispatchenable();
 
 	__lwp_sema_free(lwp_sem);

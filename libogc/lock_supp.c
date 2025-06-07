@@ -62,7 +62,7 @@ int __syscall_lock_try_acquire(_LOCK_T *lock)
 {
 	mutex_t plock;
 
-	if(!lock || *lock==0) return -1;
+	if(!lock || *lock==0) return EINVAL;
 
 	plock = (mutex_t)*lock;
 	return LWP_MutexTryLock(plock);

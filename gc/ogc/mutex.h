@@ -82,7 +82,7 @@ typedef u32 mutex_t;
 \param[out] mutex pointer to a mutex_t handle.
 \param[in] use_recursive whether to allow the thread, whithin the same context, to enter multiple times the lock or not.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_MutexInit(mutex_t *mutex,bool use_recursive);
 
@@ -91,7 +91,7 @@ s32 LWP_MutexInit(mutex_t *mutex,bool use_recursive);
 \brief Close mutex lock, release all threads and handles locked on this mutex.
 \param[in] mutex handle to the mutex_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_MutexDestroy(mutex_t mutex);
 
@@ -100,7 +100,7 @@ s32 LWP_MutexDestroy(mutex_t mutex);
 \brief Enter the mutex lock.
 \param[in] mutex handle to the mutex_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_MutexLock(mutex_t mutex);
 
@@ -110,7 +110,7 @@ s32 LWP_MutexLock(mutex_t mutex);
 \param[in] mutex handle to the mutex_t structure.
 \param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *reltime);
 
@@ -119,7 +119,7 @@ s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *reltime);
 \brief Try to enter the mutex lock.
 \param[in] mutex handle to the mutex_t structure.
 
-\return 0: on first aquire, 1: would lock
+\return 0 on success, non-zero on error
 */
 s32 LWP_MutexTryLock(mutex_t mutex);
 
@@ -128,7 +128,7 @@ s32 LWP_MutexTryLock(mutex_t mutex);
 \brief Release the mutex lock and let other threads process further on this mutex.
 \param[in] mutex handle to the mutex_t structure.
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 LWP_MutexUnlock(mutex_t mutex);
 

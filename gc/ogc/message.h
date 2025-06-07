@@ -65,9 +65,6 @@ distribution.
 
 #define MQ_BOX_NULL				0xffffffff
 
-#define MQ_ERROR_SUCCESSFUL		0
-#define MQ_ERROR_TOOMANY		-5
-
 #define MQ_MSG_BLOCK			0
 #define MQ_MSG_NOBLOCK			1
 
@@ -95,18 +92,18 @@ typedef void* mqmsg_t;
 \param[out] mqbox pointer to the mqbox_t handle.
 \param[in] count maximum number of messages the queue can hold
 
-\return 0 on success, <0 on error
+\return 0 on success, non-zero on error
 */
 s32 MQ_Init(mqbox_t *mqbox,u32 count);
 
 
-/*! \fn void MQ_Close(mqbox_t mqbox)
+/*! \fn s32 MQ_Close(mqbox_t mqbox)
 \brief Closes the message queue and releases all memory.
 \param[in] mqbox handle to the mqbox_t structure.
 
-\return none
+\return 0 on success, non-zero on error
 */
-void MQ_Close(mqbox_t mqbox);
+s32 MQ_Close(mqbox_t mqbox);
 
 
 /*! \fn BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)

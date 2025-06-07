@@ -309,11 +309,11 @@ static struct netconn* netconn_new_with_proto_and_callback(enum netconn_type t,u
 	conn->type = t;
 	conn->pcb.tcp = NULL;
 
-	if(MQ_Init(&conn->mbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) {
+	if(MQ_Init(&conn->mbox,MQBOX_SIZE)!=0) {
 		memp_free(MEMP_NETCONN,conn);
 		return NULL;
 	}
-	if(LWP_SemInit(&conn->sem,0,1)==-1) {
+	if(LWP_SemInit(&conn->sem,0,1)!=0) {
 		MQ_Close(conn->mbox);
 		memp_free(MEMP_NETCONN,conn);
 		return NULL;
@@ -468,7 +468,7 @@ static err_t netconn_bind(struct netconn *conn,struct ip_addr *addr,u16 port)
 
 	if(conn==NULL) return ERR_VAL;
 	if(conn->type!=NETCONN_TCP && conn->recvmbox==SYS_MBOX_NULL) {
-		if(MQ_Init(&conn->recvmbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) return ERR_MEM;
+		if(MQ_Init(&conn->recvmbox,MQBOX_SIZE)!=0) return ERR_MEM;
 	}
 	
 	if((msg=memp_malloc(MEMP_API_MSG))==NULL)
@@ -493,7 +493,7 @@ static err_t netconn_listen(struct netconn *conn)
 
 	if(conn==NULL) return -1;
 	if(conn->acceptmbox==SYS_MBOX_NULL) {
-		if(MQ_Init(&conn->acceptmbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) return ERR_MEM;
+		if(MQ_Init(&conn->acceptmbox,MQBOX_SIZE)!=0) return ERR_MEM;
 	}
 
 	if((msg=memp_malloc(MEMP_API_MSG))==NULL) return (conn->err = ERR_MEM);
@@ -663,7 +663,7 @@ static err_t netconn_connect(struct netconn *conn,struct ip_addr *addr,u16 port)
 
 	if(conn==NULL) return -1;
 	if(conn->recvmbox==SYS_MBOX_NULL) {
-		if(MQ_Init(&conn->recvmbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) return ERR_MEM;
+		if(MQ_Init(&conn->recvmbox,MQBOX_SIZE)!=0) return ERR_MEM;
 	}
 
 	if((msg=memp_malloc(MEMP_API_MSG))==NULL) return ERR_MEM;
@@ -848,18 +848,18 @@ static err_t accept_func(void *arg,struct tcp_pcb *newpcb,err_t err)
 	newconn = memp_malloc(MEMP_NETCONN);
 	if(newconn==NULL) return ERR_MEM;
 
-	if(MQ_Init(&newconn->recvmbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) {
+	if(MQ_Init(&newconn->recvmbox,MQBOX_SIZE)!=0) {
 		memp_free(MEMP_NETCONN,newconn);
 		return ERR_MEM;
 	}
 
-	if(MQ_Init(&newconn->mbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) {
+	if(MQ_Init(&newconn->mbox,MQBOX_SIZE)!=0) {
 		MQ_Close(newconn->recvmbox);
 		memp_free(MEMP_NETCONN,newconn);
 		return ERR_MEM;
 	}
 	
-	if(LWP_SemInit(&newconn->sem,0,1)==-1) {
+	if(LWP_SemInit(&newconn->sem,0,1)!=0) {
 		MQ_Close(newconn->recvmbox);
 		MQ_Close(newconn->mbox);
 		memp_free(MEMP_NETCONN,newconn);
@@ -1141,7 +1141,7 @@ static void do_listen(struct apimsg_msg *msg)
 					msg->conn->err = ERR_MEM;
 				else {
 					if(msg->conn->acceptmbox==SYS_MBOX_NULL) {
-						if(MQ_Init(&msg->conn->acceptmbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) {
+						if(MQ_Init(&msg->conn->acceptmbox,MQBOX_SIZE)!=0) {
 							msg->conn->err = ERR_MEM;
 							break;
 						}
@@ -1498,7 +1498,7 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 	netif_init();
 
 	// init tcpip thread message box
-	if(MQ_Init(&netthread_mbox,MQBOX_SIZE)!=MQ_ERROR_SUCCESSFUL) return -1;
+	if(MQ_Init(&netthread_mbox,MQBOX_SIZE)!=0) return -1;
 
 	// create & setup interface 
 	loc_ip.addr = 0;
@@ -1632,18 +1632,18 @@ s32 net_init()
 
 	if(tcpiplayer_inited) return 1;
 
-	if(LWP_SemInit(&netsocket_sem,1,1)==-1) return -1;
-	if(LWP_SemInit(&sockselect_sem,1,1)==-1) {
+	if(LWP_SemInit(&netsocket_sem,1,1)!=0) return -1;
+	if(LWP_SemInit(&sockselect_sem,1,1)!=0) {
 		LWP_SemDestroy(netsocket_sem);
 		return -1;
 	}
-	if(LWP_SemInit(&sem,0,1)==-1) {
+	if(LWP_SemInit(&sem,0,1)!=0) {
 		LWP_SemDestroy(netsocket_sem);
 		LWP_SemDestroy(sockselect_sem);
 		return -1;
 	}
 
-	if(LWP_CreateThread(&hnet_thread,net_thread,(void*)sem,netthread_stack,STACKSIZE,220)==-1) {
+	if(LWP_CreateThread(&hnet_thread,net_thread,(void*)sem,netthread_stack,STACKSIZE,220)!=0) {
 		LWP_SemDestroy(netsocket_sem);
 		LWP_SemDestroy(sockselect_sem);
 		LWP_SemDestroy(sem);
