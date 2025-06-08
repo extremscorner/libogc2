@@ -87,7 +87,7 @@ typedef void* mqmsg_t;
 
 
 
-/*! \fn u32 MQ_Init(mqbox_t *mqbox,u32 count)
+/*! \fn s32 MQ_Init(mqbox_t *mqbox,u32 count)
 \brief Initializes a message queue
 \param[out] mqbox pointer to the mqbox_t handle.
 \param[in] count maximum number of messages the queue can hold

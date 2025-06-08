@@ -153,7 +153,7 @@ s32 LWP_GetThreadPriority(lwp_t thethread);
 /*! \fn s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio)
 \brief Set the priority of the given thread.
 \param[in] thethread handle to the thread context whos priority should be changed. If NULL, the current thread will be taken.
-\param[in] prio new priority to set
+\param[in] prio new thread priority to set
 
 \return old thread priority
 */

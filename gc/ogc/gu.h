@@ -304,7 +304,7 @@ void guLightFrustum(Mtx mt,f32 t,f32 b,f32 l,f32 r,f32 n,f32 scaleS,f32 scaleT,f
 
 
 /*!
- * \fn void guLookAt(Mtx mt,guVector *camPos,guVector *camUp,guVector *target)
+ * \fn void guLookAt(Mtx mt,const guVector *camPos,const guVector *camUp,const guVector *target)
  * \brief Sets a world-space to camera-space transformation matrix.
  *
  * \details Create the matrix \a m by specifying a camera position (\a camPos), a camera "up" direction (\a camUp), and a target
@@ -326,7 +326,7 @@ void guLookAt(Mtx mt,const guVector *camPos,const guVector *camUp,const guVector
 
 
 /*!
- * \fn void guVecHalfAngle(guVector *a,guVector *b,guVector *half)
+ * \fn void guVecHalfAngle(const guVector *a,const guVector *b,guVector *half)
  * \brief Computes a vector that lies halfway between \a a and \a b.
  *
  * \details The halfway vector is useful in specular reflection calculations. It is interpreted as pointing from the reflecting

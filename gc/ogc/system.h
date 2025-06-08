@@ -325,23 +325,25 @@ s8 SYS_GetCoreTemperature(void);
 s32 SYS_CreateAlarm(syswd_t *thealarm);
 
 
-/*! \fn s32 SYS_SetAlarm(syswd_t thealarm,const struct timespec *tp,alarmcallback cb)
+/*! \fn s32 SYS_SetAlarm(syswd_t thealarm,const struct timespec *tp,alarmcallback cb,void *cbarg)
 \brief Set the alarm parameters for a one-shot alarm, add to the list of alarms and start.
 \param[in] thealarm identifier to the alarm context to be initialize for a one-shot alarm
 \param[in] tp pointer to timespec structure holding the time to fire the alarm
 \param[in] cb pointer to callback which is called when the alarm fires.
+\param[in] cbarg pointer to an argument for the callback function.
 
 \return 0 on success, non-zero on error
 */
 s32 SYS_SetAlarm(syswd_t thealarm,const struct timespec *tp,alarmcallback cb,void *cbarg);
 
 
-/*! \fn s32 SYS_SetPeriodicAlarm(syswd_t thealarm,const struct timespec *tp_start,const struct timespec *tp_period,alarmcallback cb)
+/*! \fn s32 SYS_SetPeriodicAlarm(syswd_t thealarm,const struct timespec *tp_start,const struct timespec *tp_period,alarmcallback cb,void *cbarg)
 \brief Set the alarm parameters for a periodioc alarm, add to the list of alarms and start. The alarm and interval persists as long as SYS_CancelAlarm() isn't called.
 \param[in] thealarm identifier to the alarm context to be initialized for a periodic alarm
 \param[in] tp_start pointer to timespec structure holding the time to fire first time the alarm
 \param[in] tp_period pointer to timespec structure holding the interval for all following alarm triggers.
 \param[in] cb pointer to callback which is called when the alarm fires.
+\param[in] cbarg pointer to an argument for the callback function.
 
 \return 0 on success, non-zero on error
 */
@@ -359,7 +361,7 @@ s32 SYS_RemoveAlarm(syswd_t thealarm);
 
 /*! \fn s32 SYS_CancelAlarm(syswd_t thealarm)
 \brief Cancel the alarm, but do not remove from the list of contexts.
-\param[in] thealarm identifier to the alram context to be canceled
+\param[in] thealarm identifier to the alarm context to be canceled
 
 \return 0 on success, non-zero on error
 */

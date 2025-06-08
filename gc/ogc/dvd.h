@@ -331,7 +331,7 @@ s32 DVD_ControlDriveAsync(dvdcmdblk *block,u32 cmd,dvdcbcallback cb);
 
 
 /*! 
- * \fn s32 DVD_SetGCMOffset(dvdcmdblk *block,u32 offset)
+ * \fn s32 DVD_SetGCMOffset(dvdcmdblk *block,s64 offset)
  * \brief Sets the offset to the GCM. Used for multigame discs.
  *
  *        This is a synchronous version of DVD_SetGCMOffsetAsync().
@@ -345,7 +345,7 @@ s32 DVD_SetGCMOffset(dvdcmdblk *block,s64 offset);
 
 
 /*! 
- * \fn s32 DVD_SetGCMOffsetAsync(dvdcmdblk *block,u32 offset,dvdcbcallback cb)
+ * \fn s32 DVD_SetGCMOffsetAsync(dvdcmdblk *block,s64 offset,dvdcbcallback cb)
  * \brief Sets the offset to the GCM. Used for multigame discs.
  *
  *        This is a synchronous version of DVD_SetGCMOffsetAsync().

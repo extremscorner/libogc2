@@ -1131,7 +1131,7 @@ s32 net_fcntl(s32 s, u32 cmd, u32 flags)
 
 
 /*!
- * \fn s32 net_poll(struct pollsd *sds, u32 nsds, s64 timeout)
+ * \fn s32 net_poll(struct pollsd *sds, s32 nsds, s32 timeout)
  * \brief Poll a set of sockets for a set of events.
  *
  * \param[in] sds a pointer to an array of pollsd structures
