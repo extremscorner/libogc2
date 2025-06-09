@@ -177,6 +177,15 @@ void LWP_YieldThread(void);
 void LWP_Reschedule(u32 prio);
 
 
+/*! \fn void LWP_ExitThread(void *value_ptr)
+\brief Exit the current thread.
+\param[in] value_ptr pointer to the return code of the terminating thread.
+
+\return none
+*/
+void LWP_ExitThread(void *value_ptr) __attribute__((noreturn));
+
+
 /*! \fn s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 \brief Join the given thread.
 \param[in] thethread handle to the thread's context which should be joined to wait on termination.

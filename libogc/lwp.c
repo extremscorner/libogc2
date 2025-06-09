@@ -351,6 +351,12 @@ BOOL LWP_ThreadIsSuspended(lwp_t thethread)
 	return state;
 }
 
+void LWP_ExitThread(void *value_ptr)
+{
+	__lwp_thread_exit(value_ptr);
+	__builtin_unreachable();
+}
+
 s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 {
 	u32 level;
