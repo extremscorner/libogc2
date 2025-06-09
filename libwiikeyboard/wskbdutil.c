@@ -1,3 +1,6 @@
+/*	$OpenBSD: wskbdutil.c,v 1.19 2021/12/30 06:55:11 anton Exp $	*/
+/*	$NetBSD: wskbdutil.c,v 1.7 1999/12/21 11:59:13 drochner Exp $	*/
+
 /*-
  * Copyright (c) 1997 The NetBSD Foundation, Inc.
  * All rights reserved.
@@ -28,14 +31,10 @@
  */
 
 #include <sys/param.h>
-#include <sys/types.h>
-#include <sys/cdefs.h>
 #include <sys/errno.h>
-#include <malloc.h>
 #include <stdio.h>
-
+#include <malloc.h>
 #include <wiikeyboard/wsksymdef.h>
-
 #include "wsksymvar.h"
 
 static struct compose_tab_s {
@@ -170,7 +169,12 @@ static struct compose_tab_s {
 	{ { KS_acute,			KS_u },			KS_uacute },
 	{ { KS_asciicircum,		KS_u },			KS_ucircumflex },
 	{ { KS_grave,			KS_u },			KS_ugrave },
-	{ { KS_acute,			KS_y },			KS_yacute }
+	{ { KS_acute,			KS_y },			KS_yacute },
+	{ { KS_dead_caron,		KS_space },		KS_L2_caron },
+	{ { KS_dead_caron,		KS_S },			KS_L2_Scaron },
+	{ { KS_dead_caron,		KS_Z },			KS_L2_Zcaron },
+	{ { KS_dead_caron,		KS_s },			KS_L2_scaron },
+	{ { KS_dead_caron,		KS_z },			KS_L2_zcaron }
 };
 
 #define COMPOSE_SIZE	sizeof(compose_tab)/sizeof(compose_tab[0])
@@ -181,8 +185,7 @@ keysym_t ksym_upcase(keysym_t);
 void fillmapentry(const keysym_t *, int, struct wscons_keymap *);
 
 static inline int
-compose_tab_cmp(i, j)
-	struct compose_tab_s *i, *j;
+compose_tab_cmp(struct compose_tab_s *i, struct compose_tab_s *j)
 {
 	if (i->elem[0] == j->elem[0])
 		return(i->elem[1] - j->elem[1]);
@@ -191,18 +194,18 @@ compose_tab_cmp(i, j)
 }
 
 keysym_t
-wskbd_compose_value(compose_buf)
-	keysym_t *compose_buf;
+wskbd_compose_value(keysym_t *compose_buf)
 {
 	int i, j, r;
 	struct compose_tab_s v;
 
-	if (! compose_tab_inorder) {
+	if (!compose_tab_inorder) {
 		/* Insertion sort. */
 		for (i = 1; i < COMPOSE_SIZE; i++) {
 			v = compose_tab[i];
 			/* find correct slot, moving others up */
-			for (j = i; --j >= 0 && compose_tab_cmp(& v, & compose_tab[j]) < 0; )
+			for (j = i; --j >= 0 &&
+			    compose_tab_cmp(&v, &compose_tab[j]) < 0;)
 				compose_tab[j + 1] = compose_tab[j];
 			compose_tab[j + 1] = v;
 		}
@@ -262,8 +265,7 @@ static const u_char latin1_to_upper[256] = {
 };
 
 keysym_t
-ksym_upcase(ksym)
-	keysym_t ksym;
+ksym_upcase(keysym_t ksym)
 {
 	if (ksym >= KS_f1 && ksym <= KS_f20)
 		return(KS_F1 - KS_f1 + ksym);
@@ -276,10 +278,7 @@ ksym_upcase(ksym)
 }
 
 void
-fillmapentry(kp, len, mapentry)
-	const keysym_t *kp;
-	int len;
-	struct wscons_keymap *mapentry;
+fillmapentry(const keysym_t *kp, int len, struct wscons_keymap *mapentry)
 {
 	switch (len) {
 	case 0:
@@ -321,10 +320,8 @@ fillmapentry(kp, len, mapentry)
 }
 
 void
-wskbd_get_mapentry(mapdata, kc, mapentry)
-	const struct wskbd_mapdata *mapdata;
-	int kc;
-	struct wscons_keymap *mapentry;
+wskbd_get_mapentry(const struct wskbd_mapdata *mapdata, int kc,
+    struct wscons_keymap *mapentry)
 {
 	kbd_t cur;
 	const keysym_t *kp;
@@ -367,8 +364,8 @@ wskbd_get_mapentry(mapdata, kc, mapentry)
 						break;
 				}
 				if (l > 4) {
-					fprintf(stderr, "wskbd_get_mapentry: %u(%d): bad entry",
-					      mp->name, *kp);
+					fprintf(stderr, "wskbd_get_mapentry: %d(%d): bad entry",
+					        mp->name, *kp);
 					return;
 				}
 				fillmapentry(kp, l, mapentry);
@@ -380,35 +377,26 @@ wskbd_get_mapentry(mapdata, kc, mapentry)
 	}
 }
 
-void
-wskbd_init_keymap(newlen, map, maplen)
-	int newlen;
-	struct wscons_keymap **map;
-	int *maplen;
+struct wscons_keymap *
+wskbd_init_keymap(int maplen)
 {
+	struct wscons_keymap *map;
 	int i;
 
-	if (newlen != *maplen) {
-		if (*maplen > 0)
-			free(*map);
-		*maplen = newlen;
-		*map = malloc(newlen*sizeof(struct wscons_keymap));
+	map = malloc(maplen * sizeof(struct wscons_keymap));
+	for (i = 0; i < maplen; i++) {
+		map[i].command = KS_voidSymbol;
+		map[i].group1[0] = KS_voidSymbol;
+		map[i].group1[1] = KS_voidSymbol;
+		map[i].group2[0] = KS_voidSymbol;
+		map[i].group2[1] = KS_voidSymbol;
 	}
-
-	for (i = 0; i < *maplen; i++) {
-		(*map)[i].command = KS_voidSymbol;
-		(*map)[i].group1[0] = KS_voidSymbol;
-		(*map)[i].group1[1] = KS_voidSymbol;
-		(*map)[i].group2[0] = KS_voidSymbol;
-		(*map)[i].group2[1] = KS_voidSymbol;
-	}
+	return map;
 }
 
 int
-wskbd_load_keymap(mapdata, map, maplen)
-	const struct wskbd_mapdata *mapdata;
-	struct wscons_keymap **map;
-	int *maplen;
+wskbd_load_keymap(const struct wskbd_mapdata *mapdata,
+    struct wscons_keymap **map, int *maplen)
 {
 	int i, s, kc, stack_ptr;
 	const keysym_t *kp;
@@ -427,8 +415,8 @@ wskbd_load_keymap(mapdata, map, maplen)
 		}
 
 		if (stack_ptr == sizeof(stack)/sizeof(stack[0])) {
-			fprintf(stderr, "wskbd_load_keymap: %u: recursion too deep",
-			      mapdata->layout);
+			fprintf(stderr, "wskbd_load_keymap: %d: recursion too deep",
+			        mapdata->layout);
 			return(EINVAL);
 		}
 
@@ -448,15 +436,16 @@ wskbd_load_keymap(mapdata, map, maplen)
 		}
 	}
 
-	wskbd_init_keymap(i + 1, map, maplen);
+	*map = wskbd_init_keymap(i + 1);
+	*maplen = i + 1;
 
 	for (s = stack_ptr - 1; s >= 0; s--) {
 		mp = stack[s];
 		for (kp = mp->map; kp < mp->map + mp->map_size; ) {
 			ksg = KS_GROUP(*kp);
 			if (ksg != KS_GROUP_Keycode) {
-				fprintf(stderr, "wskbd_load_keymap: %u(%d): bad entry",
-				      mp->name, *kp);
+				fprintf(stderr, "wskbd_load_keymap: %d(%d): bad entry",
+				        mp->name, *kp);
 				return(EINVAL);
 			}
 
@@ -476,8 +465,8 @@ wskbd_load_keymap(mapdata, map, maplen)
 			}
 
 			if (i > 4) {
-				fprintf(stderr, "wskbd_load_keymap: %u(%d): bad entry",
-				      mp->name, *kp);
+				fprintf(stderr, "wskbd_load_keymap: %d(%d): bad entry",
+				        mp->name, *kp);
 				return(EINVAL);
 			}
 

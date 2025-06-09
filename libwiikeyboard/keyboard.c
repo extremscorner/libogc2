@@ -573,7 +573,7 @@ s32 KEYBOARD_Init(keyPressCallback keypress_cb)
 		}
 	}
 
-	if (wskbd_load_keymap(&_ukbd_keymapdata, &_sc_map, &_sc_maplen) < 0) {
+	if (wskbd_load_keymap(&_ukbd_keymapdata, &_sc_map, &_sc_maplen)) {
 		_ukbd_keymapdata.layout = KB_NONE;
 
 		return -4;
