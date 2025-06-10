@@ -267,7 +267,7 @@ static void __lwp_thread_handler(void)
 	__lwp_thread_dispatchenable();
 	exec->wait.ret_arg = exec->entry(exec->arg);
 
-	__lwp_thread_exit(exec->wait.ret_arg);
+	__lwp_thread_exit(exec,exec->wait.ret_arg);
 #ifdef _LWPTHREADS_DEBUG
 	kprintf("__lwp_thread_handler(%p): thread returned(%p)\n",exec,exec->wait.ret_arg);
 #endif
@@ -397,7 +397,7 @@ void __lwp_thread_clearstate(lwp_cntrl *thethread,u32 state)
 	_CPU_ISR_Disable(level);
 
 	cur_state = thethread->cur_state;
-	if(cur_state&state) {
+	if(__lwp_statesset(cur_state,state)) {
 		cur_state = thethread->cur_state = __lwp_clearstate(cur_state,state);
 		if(__lwp_stateready(cur_state)) {
 			__lwp_priomap_addto(&thethread->priomap);
@@ -547,7 +547,7 @@ void __lwp_thread_resume(lwp_cntrl *thethread,u32 force)
 	}
 
 	state = thethread->cur_state;
-	if(state&LWP_STATES_SUSPENDED) {
+	if(__lwp_statesuspended(state)) {
 		state = thethread->cur_state = __lwp_clearstate(thethread->cur_state,LWP_STATES_SUSPENDED);
 		if(__lwp_stateready(state)) {
 			__lwp_priomap_addto(&thethread->priomap);
@@ -621,7 +621,7 @@ void __lwp_thread_ready(lwp_cntrl *thethread)
 	_CPU_ISR_Restore(level);
 }
 
-u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 prio,u32 isr_level,bool is_preemtible)
+u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 prio,u32 isr_level,bool is_preemptible)
 {
 	u32 act_stack_size = 0;
 
@@ -646,13 +646,13 @@ u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 p
 	}
 	thethread->stack_size = act_stack_size;
 
-	__lwp_threadqueue_init(&thethread->join_list,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_FOR_JOINATEXIT,0);
+	__lwp_threadqueue_init(&thethread->join_list,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_FOR_JOIN,0);
 
 	memset(&thethread->context,0,sizeof(thethread->context));
 	memset(&thethread->wait,0,sizeof(thethread->wait));
 
 	thethread->budget_algo = (prio<128 ? LWP_CPU_BUDGET_ALGO_NONE : LWP_CPU_BUDGET_ALGO_TIMESLICE);
-	thethread->is_preemptible = is_preemtible;
+	thethread->is_preemptible = is_preemptible;
 	thethread->isr_level = isr_level;
 	thethread->real_prio = prio;
 	thethread->cur_state = LWP_STATES_DORMANT;
@@ -668,10 +668,6 @@ u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 p
 
 void __lwp_thread_close(lwp_cntrl *thethread)
 {
-	u32 level;
-	void **value_ptr;
-	lwp_cntrl *p;
-
 	__lwp_thread_setstate(thethread,LWP_STATES_TRANSIENT);
 	
 	if(!__lwp_threadqueue_extractproxy(thethread)) {
@@ -680,15 +676,6 @@ void __lwp_thread_close(lwp_cntrl *thethread)
 			__lwp_wd_remove_ticks(&thethread->timer);
 		}
 	}
-	
-	_CPU_ISR_Disable(level);
-	value_ptr = (void**)thethread->wait.ret_arg;
-	while((p=__lwp_threadqueue_dequeue(&thethread->join_list))!=NULL) {
-		*(void**)p->wait.ret_arg = value_ptr;
-	}
-	thethread->cpu_time_budget = 0;
-	thethread->budget_algo = LWP_CPU_BUDGET_ALGO_NONE;
-	_CPU_ISR_Restore(level);
 
 	__libc_delete_hook(_thr_executing,thethread);
 
@@ -727,11 +714,22 @@ void __lwp_thread_closeall(void)
 #endif
 }
 
-void __lwp_thread_exit(void *value_ptr)
+void __lwp_thread_exit(lwp_cntrl *thethread,void *value_ptr)
 {
+	lwp_cntrl *p;
+
 	__lwp_thread_dispatchdisable();
-	_thr_executing->wait.ret_arg = (u32*)value_ptr;
-	__lwp_thread_close(_thr_executing);
+	thethread->wait.ret_arg = value_ptr;
+	if((p=__lwp_threadqueue_dequeue(&thethread->join_list))) {
+		do {
+			*(void**)p->wait.ret_arg = value_ptr;
+		} while((p=__lwp_threadqueue_dequeue(&thethread->join_list)));
+	} else {
+		__lwp_thread_setstate(thethread,LWP_STATES_WAITING_FOR_JOINATEXIT);
+		__lwp_thread_dispatchenable();
+		__lwp_thread_dispatchdisable();
+	}
+	__lwp_thread_close(thethread);
 	__lwp_thread_dispatchenable();
 }
 

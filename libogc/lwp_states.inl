@@ -94,6 +94,11 @@ static __inline__ u32 __lwp_statedelaying(u32 curr_state)
 	return (curr_state&LWP_STATES_DELAYING);
 }
 
+static __inline__ u32 __lwp_statewaittime(u32 curr_state)
+{
+	return (curr_state&LWP_STATES_WAITING_FOR_TIME);
+}
+
 static __inline__ u32 __lwp_statewaitbuffer(u32 curr_state)
 {
 	return (curr_state&LWP_STATES_WAITING_FOR_BUFFER);
@@ -124,19 +129,19 @@ static __inline__ u32 __lwp_statewaitsemaphore(u32 curr_state)
 	return (curr_state&LWP_STATES_WAITING_FOR_SEMAPHORE);
 }
 
-static __inline__ u32 __lwp_statewaittime(u32 curr_state)
-{
-	return (curr_state&LWP_STATES_WAITING_FOR_TIME);
-}
-
 static __inline__ u32 __lwp_statewaitrpcreply(u32 curr_state)
 {
-	return (curr_state&LWP_STATES_WAITING_FOR_RPCREPLAY);
+	return (curr_state&LWP_STATES_WAITING_FOR_RPCREPLY);
 }
 
 static __inline__ u32 __lwp_statewaitperiod(u32 curr_state)
 {
 	return (curr_state&LWP_STATES_WAITING_FOR_PERIOD);
+}
+
+static __inline__ u32 __lwp_statewaitjoinatexit(u32 curr_state)
+{
+	return (curr_state&LWP_STATES_WAITING_FOR_JOINATEXIT);
 }
 
 static __inline__ u32 __lwp_statewaitlocallyblocked(u32 curr_state)

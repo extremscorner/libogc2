@@ -353,7 +353,7 @@ BOOL LWP_ThreadIsSuspended(lwp_t thethread)
 
 void LWP_ExitThread(void *value_ptr)
 {
-	__lwp_thread_exit(value_ptr);
+	__lwp_thread_exit(_thr_executing,value_ptr);
 	__builtin_unreachable();
 }
 
@@ -371,16 +371,21 @@ s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 		return EDEADLK;			//EDEADLK
 	}
 
-	exec = _thr_executing;
-	_CPU_ISR_Disable(level);
-	__lwp_threadqueue_csenter(&lwp_thread->join_list);
-	exec->wait.ret_code = 0;
-	exec->wait.ret_arg_1 = NULL;
-	exec->wait.ret_arg = (void*)&return_ptr;
-	exec->wait.queue = &lwp_thread->join_list;
-	exec->wait.id = thethread;
-	_CPU_ISR_Restore(level);
-	__lwp_threadqueue_enqueue(&lwp_thread->join_list,LWP_WD_NOTIMEOUT);
+	if(__lwp_statewaitjoinatexit(lwp_thread->cur_state)) {
+		return_ptr = lwp_thread->wait.ret_arg;
+		__lwp_thread_clearstate(lwp_thread,LWP_STATES_WAITING_FOR_JOINATEXIT);
+	} else {
+		exec = _thr_executing;
+		_CPU_ISR_Disable(level);
+		__lwp_threadqueue_csenter(&lwp_thread->join_list);
+		exec->wait.ret_code = 0;
+		exec->wait.ret_arg_1 = NULL;
+		exec->wait.ret_arg = (void*)&return_ptr;
+		exec->wait.queue = &lwp_thread->join_list;
+		exec->wait.id = thethread;
+		_CPU_ISR_Restore(level);
+		__lwp_threadqueue_enqueue(&lwp_thread->join_list,LWP_WD_NOTIMEOUT);
+	}
 	__lwp_thread_dispatchenable();
 
 	if(value_ptr) *value_ptr = return_ptr;
