@@ -72,8 +72,14 @@ extern "C" {
 typedef enum
 {
 	LWP_CPU_BUDGET_ALGO_NONE = 0,
-	LWP_CPU_BUDGET_ALGO_TIMESLICE	
+	LWP_CPU_BUDGET_ALGO_TIMESLICE
 } lwp_cpu_budget_algorithms;
+
+typedef enum
+{
+	LWP_DETACH_STATE_DETACHED = 0,
+	LWP_DETACH_STATE_JOINABLE
+} lwp_detach_state;
 
 typedef struct _lwpwaitinfo {
 	u32 id;
@@ -105,6 +111,7 @@ typedef struct _lwpcntrl {
 	u32 stack_size;
 	u8 stack_allocated;
 	lwp_queue *ready;
+	lwp_detach_state detach_state;
 	lwp_thrqueue join_list;
 	frame_context context;		//16
 	void *libc_reent;

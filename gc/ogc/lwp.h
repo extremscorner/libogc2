@@ -196,6 +196,15 @@ void LWP_ExitThread(void *value_ptr) __attribute__((noreturn));
 s32 LWP_JoinThread(lwp_t thethread,void **value_ptr);
 
 
+/*! \fn s32 LWP_DetachThread(lwp_t thethread)
+\brief Detach the given thread.
+\param[in] thethread handle to the thread's context which should be detached. If NULL, the current thread will be taken.
+
+\return 0 on success, non-zero on error
+*/
+s32 LWP_DetachThread(lwp_t thethread);
+
+
 /*! \fn s32 LWP_InitQueue(lwpq_t *thequeue)
 \brief Initialize the thread synchronization queue
 \param[in] thequeue pointer to a lwpq_t handle.

@@ -646,6 +646,7 @@ u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 p
 	}
 	thethread->stack_size = act_stack_size;
 
+	thethread->detach_state = LWP_DETACH_STATE_JOINABLE;
 	__lwp_threadqueue_init(&thethread->join_list,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_FOR_JOIN,0);
 
 	memset(&thethread->context,0,sizeof(thethread->context));
@@ -720,14 +721,16 @@ void __lwp_thread_exit(lwp_cntrl *thethread,void *value_ptr)
 
 	__lwp_thread_dispatchdisable();
 	thethread->wait.ret_arg = value_ptr;
-	if((p=__lwp_threadqueue_dequeue(&thethread->join_list))) {
-		do {
-			*(void**)p->wait.ret_arg = value_ptr;
-		} while((p=__lwp_threadqueue_dequeue(&thethread->join_list)));
-	} else {
-		__lwp_thread_setstate(thethread,LWP_STATES_WAITING_FOR_JOINATEXIT);
-		__lwp_thread_dispatchenable();
-		__lwp_thread_dispatchdisable();
+	if(thethread->detach_state==LWP_DETACH_STATE_JOINABLE) {
+		if((p=__lwp_threadqueue_dequeue(&thethread->join_list))) {
+			do {
+				*(void**)p->wait.ret_arg = value_ptr;
+			} while((p=__lwp_threadqueue_dequeue(&thethread->join_list)));
+		} else {
+			__lwp_thread_setstate(thethread,LWP_STATES_WAITING_FOR_JOINATEXIT);
+			__lwp_thread_dispatchenable();
+			__lwp_thread_dispatchdisable();
+		}
 	}
 	__lwp_thread_close(thethread);
 	__lwp_thread_dispatchenable();

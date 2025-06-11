@@ -364,11 +364,16 @@ s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 	lwp_cntrl *exec,*lwp_thread;
 	
 	lwp_thread = __lwp_cntrl_open(thethread);
-	if(!lwp_thread) return EINVAL;
+	if(!lwp_thread) return ESRCH;
+
+	if(lwp_thread->detach_state==LWP_DETACH_STATE_DETACHED) {
+		__lwp_thread_dispatchenable();
+		return EINVAL;
+	}
 
 	if(__lwp_thread_isexec(lwp_thread)) {
 		__lwp_thread_dispatchenable();
-		return EDEADLK;			//EDEADLK
+		return EDEADLK;
 	}
 
 	if(__lwp_statewaitjoinatexit(lwp_thread->cur_state)) {
@@ -389,6 +394,27 @@ s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 	__lwp_thread_dispatchenable();
 
 	if(value_ptr) *value_ptr = return_ptr;
+	return 0;
+}
+
+s32 LWP_DetachThread(lwp_t thethread)
+{
+	lwp_cntrl *lwp_thread;
+
+	if(thethread==LWP_THREAD_NULL) thethread = LWP_GetSelf();
+
+	lwp_thread = __lwp_cntrl_open(thethread);
+	if(!lwp_thread) return ESRCH;
+
+	if(lwp_thread->detach_state==LWP_DETACH_STATE_DETACHED) {
+		__lwp_thread_dispatchenable();
+		return EINVAL;
+	}
+
+	lwp_thread->detach_state = LWP_DETACH_STATE_DETACHED;
+	__lwp_thread_clearstate(lwp_thread,LWP_STATES_WAITING_FOR_JOINATEXIT);
+	__lwp_thread_dispatchenable();
+
 	return 0;
 }
 
