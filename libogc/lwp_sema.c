@@ -71,7 +71,7 @@ u32 __lwp_sema_surrender(lwp_sema *sema,u32 id)
 	if((thethread=__lwp_threadqueue_dequeue(&sema->wait_queue))) return ret;
 	else {
 		_CPU_ISR_Disable(level);
-		if(sema->count<=sema->attrs.max_cnt)
+		if(sema->count<sema->attrs.max_cnt)
 			++sema->count;
 		else
 			ret = LWP_SEMA_MAXCNT_EXCEEDED;

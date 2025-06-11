@@ -124,11 +124,11 @@ static s32 __lwp_sema_waitsupp(sem_t sem,u8 block,s64 timeout)
 		case LWP_SEMA_UNSATISFIED_NOWAIT:
 			return EAGAIN;
 		case LWP_SEMA_DELETED:
-			return EAGAIN;
+			return EINVAL;
 		case LWP_SEMA_TIMEOUT:
 			return ETIMEDOUT;
 		case LWP_SEMA_MAXCNT_EXCEEDED:
-			break;
+			return EOVERFLOW;
 	}
 	return 0;
 }
@@ -177,14 +177,27 @@ s32 LWP_SemTryWait(sem_t sem)
 
 s32 LWP_SemPost(sem_t sem)
 {
+	u32 status;
 	sema_st *lwp_sem;
 
 	lwp_sem = __lwp_sema_open(sem);
 	if(!lwp_sem) return EINVAL;
 
-	__lwp_sema_surrender(&lwp_sem->sema,lwp_sem->object.id);
+	status = __lwp_sema_surrender(&lwp_sem->sema,lwp_sem->object.id);
 	__lwp_thread_dispatchenable();
 
+	switch(status) {
+		case LWP_SEMA_SUCCESSFUL:
+			break;
+		case LWP_SEMA_UNSATISFIED_NOWAIT:
+			return EAGAIN;
+		case LWP_SEMA_DELETED:
+			return EINVAL;
+		case LWP_SEMA_TIMEOUT:
+			return ETIMEDOUT;
+		case LWP_SEMA_MAXCNT_EXCEEDED:
+			return EOVERFLOW;
+	}
 	return 0;
 }
 
