@@ -54,6 +54,7 @@ distribution.
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include "asm.h"
 #include "processor.h"
 #include "sys_state.h"
@@ -647,7 +648,7 @@ u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 p
 	thethread->stack_size = act_stack_size;
 
 	thethread->detach_state = LWP_DETACH_STATE_JOINABLE;
-	__lwp_threadqueue_init(&thethread->join_list,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_FOR_JOIN,0);
+	__lwp_threadqueue_init(&thethread->join_list,LWP_THREADQ_MODEFIFO,LWP_STATES_WAITING_FOR_JOIN,ETIMEDOUT);
 
 	memset(&thethread->context,0,sizeof(thethread->context));
 	memset(&thethread->wait,0,sizeof(thethread->wait));
@@ -724,7 +725,7 @@ void __lwp_thread_exit(lwp_cntrl *thethread,void *value_ptr)
 	if(thethread->detach_state==LWP_DETACH_STATE_JOINABLE) {
 		if((p=__lwp_threadqueue_dequeue(&thethread->join_list))) {
 			do {
-				*(void**)p->wait.ret_arg = value_ptr;
+				if(p->wait.ret_arg) *(void**)p->wait.ret_arg = value_ptr;
 			} while((p=__lwp_threadqueue_dequeue(&thethread->join_list)));
 		} else {
 			__lwp_thread_setstate(thethread,LWP_STATES_WAITING_FOR_JOINATEXIT);

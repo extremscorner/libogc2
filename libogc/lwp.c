@@ -357,10 +357,9 @@ void LWP_ExitThread(void *value_ptr)
 	__builtin_unreachable();
 }
 
-s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
+static s32 __lwp_thread_joinsupp(lwp_t thethread,void **value_ptr,u8 block,s64 timeout)
 {
 	u32 level;
-	void *return_ptr;
 	lwp_cntrl *exec,*lwp_thread;
 	
 	lwp_thread = __lwp_cntrl_open(thethread);
@@ -377,24 +376,51 @@ s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 	}
 
 	if(__lwp_statewaitjoinatexit(lwp_thread->cur_state)) {
-		return_ptr = lwp_thread->wait.ret_arg;
+		if(value_ptr) *value_ptr = lwp_thread->wait.ret_arg;
 		__lwp_thread_clearstate(lwp_thread,LWP_STATES_WAITING_FOR_JOINATEXIT);
-	} else {
-		exec = _thr_executing;
-		_CPU_ISR_Disable(level);
-		__lwp_threadqueue_csenter(&lwp_thread->join_list);
-		exec->wait.ret_code = 0;
-		exec->wait.ret_arg_1 = NULL;
-		exec->wait.ret_arg = (void*)&return_ptr;
-		exec->wait.queue = &lwp_thread->join_list;
-		exec->wait.id = thethread;
-		_CPU_ISR_Restore(level);
-		__lwp_threadqueue_enqueue(&lwp_thread->join_list,LWP_WD_NOTIMEOUT);
+		__lwp_thread_dispatchenable();
+		return 0;
 	}
-	__lwp_thread_dispatchenable();
 
-	if(value_ptr) *value_ptr = return_ptr;
-	return 0;
+	if(!block) {
+		__lwp_thread_dispatchenable();
+		return EBUSY;
+	}
+
+	exec = _thr_executing;
+	_CPU_ISR_Disable(level);
+	__lwp_threadqueue_csenter(&lwp_thread->join_list);
+	exec->wait.ret_code = 0;
+	exec->wait.ret_arg = (void*)value_ptr;
+	exec->wait.queue = &lwp_thread->join_list;
+	exec->wait.id = thethread;
+	_CPU_ISR_Restore(level);
+	__lwp_threadqueue_enqueue(&lwp_thread->join_list,timeout);
+	__lwp_thread_dispatchenable();
+	return exec->wait.ret_code;
+}
+
+s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
+{
+	return __lwp_thread_joinsupp(thethread,value_ptr,TRUE,LWP_THREADQ_NOTIMEOUT);
+}
+
+s32 LWP_TimedJoinThread(lwp_t thethread,void **value_ptr,const struct timespec *reltime)
+{
+	s64 timeout = LWP_THREADQ_NOTIMEOUT;
+	u8 block = TRUE;
+
+	if(reltime) {
+		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
+		timeout = __lwp_wd_calc_ticks(reltime);
+		if(timeout<=0) block = FALSE;
+	}
+	return __lwp_thread_joinsupp(thethread,value_ptr,block,timeout);
+}
+
+s32 LWP_TryJoinThread(lwp_t thethread,void **value_ptr)
+{
+	return __lwp_thread_joinsupp(thethread,value_ptr,FALSE,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_DetachThread(lwp_t thethread)
@@ -467,7 +493,6 @@ static s32 __lwp_tqueue_sleepsupp(lwpq_t thequeue,s64 timeout,u8 timedout)
 	}
 
 	if(timedout) {
-		__lwp_thread_yield();
 		__lwp_thread_dispatchenable();
 		return ETIMEDOUT;
 	}

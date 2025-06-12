@@ -196,6 +196,27 @@ void LWP_ExitThread(void *value_ptr) __attribute__((noreturn));
 s32 LWP_JoinThread(lwp_t thethread,void **value_ptr);
 
 
+/*! \fn s32 LWP_TimedJoinThread(lwp_t thethread,void **value_ptr,const struct timespec *reltime)
+\brief Try to join the given thread until timeout.
+\param[in] thethread handle to the thread's context which should be tried to join on termination.
+\param[in] value_ptr pointer-pointer to a variable to receive the return code of the terminated thread.
+\param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
+
+\return 0 on success, non-zero on error
+*/
+s32 LWP_TimedJoinThread(lwp_t thethread,void **value_ptr,const struct timespec *reltime);
+
+
+/*! \fn s32 LWP_TryJoinThread(lwp_t thethread,void **value_ptr)
+\brief Try to join the given thread.
+\param[in] thethread handle to the thread's context which should be tried to join on termination.
+\param[in] value_ptr pointer-pointer to a variable to receive the return code of the terminated thread.
+
+\return 0 on success, non-zero on error
+*/
+s32 LWP_TryJoinThread(lwp_t thethread,void **value_ptr);
+
+
 /*! \fn s32 LWP_DetachThread(lwp_t thethread)
 \brief Detach the given thread.
 \param[in] thethread handle to the thread's context which should be detached. If NULL, the current thread will be taken.
