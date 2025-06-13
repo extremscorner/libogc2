@@ -80,7 +80,7 @@ u32 __lwp_sema_surrender(lwp_sema *sema,u32 id)
 	return ret;
 }
 
-u32 __lwp_sema_seize(lwp_sema *sema,u32 id,u32 wait,s64 timeout)
+u32 __lwp_sema_seize(lwp_sema *sema,u32 id,u32 wait_status,s64 timeout)
 {
 	u32 level;
 	lwp_cntrl *exec;
@@ -95,10 +95,10 @@ u32 __lwp_sema_seize(lwp_sema *sema,u32 id,u32 wait,s64 timeout)
 		return LWP_SEMA_SUCCESSFUL;
 	}
 
-	if(!wait) {
+	if(wait_status) {
 		_CPU_ISR_Restore(level);
-		exec->wait.ret_code = LWP_SEMA_UNSATISFIED_NOWAIT;
-		return LWP_SEMA_UNSATISFIED_NOWAIT;
+		exec->wait.ret_code = wait_status;
+		return wait_status;
 	}
 
 	__lwp_threadqueue_csenter(&sema->wait_queue);

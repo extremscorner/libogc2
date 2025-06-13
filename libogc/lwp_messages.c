@@ -126,7 +126,7 @@ u32 __lwpmq_initialize(mq_cntrl *mqueue,mq_attr *attrs,u32 max_pendingmsgs,u32 m
 	return 1;
 }
 
-u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,s64 timeout)
+u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait_status,s64 timeout)
 {
 	u32 level;
 	mq_buffercntrl *msg;
@@ -135,7 +135,7 @@ u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,s64 ti
 	exec = _thr_executing;
 	exec->wait.ret_code = LWP_MQ_STATUS_SUCCESSFUL;
 #ifdef _LWPMQ_DEBUG
-	printf("__lwpmq_seize(%p,%d,%p,%p,%d,%d)\n",mqueue,id,buffer,size,wait,mqueue->num_pendingmsgs);
+	printf("__lwpmq_seize(%p,%d,%p,%p,%d,%d)\n",mqueue,id,buffer,size,wait_status,mqueue->num_pendingmsgs);
 #endif
 	
 	_CPU_ISR_Disable(level);
@@ -162,10 +162,10 @@ u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,s64 ti
 		return LWP_MQ_STATUS_SUCCESSFUL;
 	}
 
-	if(!wait) {
+	if(wait_status) {
 		_CPU_ISR_Restore(level);
-		exec->wait.ret_code = LWP_MQ_STATUS_UNSATISFIED_NOWAIT;
-		return LWP_MQ_STATUS_UNSATISFIED_NOWAIT;
+		exec->wait.ret_code = wait_status;
+		return wait_status;
 	}
 
 	__lwp_threadqueue_csenter(&mqueue->wait_queue);
@@ -179,14 +179,14 @@ u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,s64 ti
 	return LWP_MQ_STATUS_SUCCESSFUL;
 }
 
-u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wait,s64 timeout)
+u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wait_status,s64 timeout)
 {
 	u32 level;
 	lwp_cntrl *thread;
 	mq_buffercntrl *msg;
 
 #ifdef _LWPMQ_DEBUG
-	printf("__lwpmq_submit(%p,%p,%d,%d,%d,%d)\n",mqueue,buffer,size,id,type,wait);
+	printf("__lwpmq_submit(%p,%p,%d,%d,%d,%d)\n",mqueue,buffer,size,id,type,wait_status);
 #endif
 	if(size>mqueue->max_msgsize)
 		return LWP_MQ_STATUS_INVALID_SIZE;
@@ -212,7 +212,7 @@ u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wa
 		return LWP_MQ_STATUS_SUCCESSFUL;
 	}
 
-	if(!wait) return LWP_MQ_STATUS_TOO_MANY;
+	if(wait_status) return wait_status;
 	if(__lwp_isr_in_progress()) return LWP_MQ_STATUS_UNSATISFIED;
 
 	{

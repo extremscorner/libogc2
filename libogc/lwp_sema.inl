@@ -64,7 +64,7 @@ static __inline__ u32 __lwp_sema_getcount(lwp_sema *sema)
 	return sema->count;
 }
 
-static __inline__ void __lwp_sema_seize_isrdisable(lwp_sema *sema,u32 id,u32 wait,u32 *isrlevel)
+static __inline__ void __lwp_sema_seize_isrdisable(lwp_sema *sema,u32 id,u32 wait_status,u32 *isrlevel)
 {
 	lwp_cntrl *exec;
 	u32 level = *isrlevel;
@@ -77,9 +77,9 @@ static __inline__ void __lwp_sema_seize_isrdisable(lwp_sema *sema,u32 id,u32 wai
 		return;
 	}
 
-	if(!wait) {
+	if(wait_status) {
 		_CPU_ISR_Restore(level);
-		exec->wait.ret_code = LWP_SEMA_UNSATISFIED_NOWAIT;
+		exec->wait.ret_code = wait_status;
 		return;
 	}
 
@@ -89,7 +89,7 @@ static __inline__ void __lwp_sema_seize_isrdisable(lwp_sema *sema,u32 id,u32 wai
 	exec->wait.id = id;
 	_CPU_ISR_Restore(level);
 
-	__lwp_threadqueue_enqueue(&sema->wait_queue,0);
+	__lwp_threadqueue_enqueue(&sema->wait_queue,LWP_THREADQ_NOTIMEOUT);
 	__lwp_thread_dispatchenable();
 }
 

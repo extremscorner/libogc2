@@ -81,7 +81,7 @@ typedef struct _lwpthrqueue {
 	u32 sync_state;
 	u32 mode;
 	u32 state;
-	u32 timeout_state;
+	u32 timeout_status;
 } lwp_thrqueue;
 
 #ifdef __cplusplus

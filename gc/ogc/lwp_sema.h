@@ -83,7 +83,7 @@ typedef struct _lwpsema {
 
 void __lwp_sema_initialize(lwp_sema *sema,lwp_semattr *attrs,u32 init_count);
 u32 __lwp_sema_surrender(lwp_sema *sema,u32 id);
-u32 __lwp_sema_seize(lwp_sema *sema,u32 id,u32 wait,s64 timeout);
+u32 __lwp_sema_seize(lwp_sema *sema,u32 id,u32 wait_status,s64 timeout);
 void __lwp_sema_flush(lwp_sema *sema,u32 status);
 
 #ifdef LIBOGC_INTERNAL

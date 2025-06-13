@@ -71,7 +71,7 @@ void __lwp_threadqueue_enqueuefifo(lwp_thrqueue *queue,lwp_cntrl *thethread,s64 
 lwp_cntrl* __lwp_threadqueue_dequeuefifo(lwp_thrqueue *queue);
 void __lwp_threadqueue_enqueuepriority(lwp_thrqueue *queue,lwp_cntrl *thethread,s64 timeout);
 lwp_cntrl* __lwp_threadqueue_dequeuepriority(lwp_thrqueue *queue);
-void __lwp_threadqueue_init(lwp_thrqueue *queue,u32 mode,u32 state,u32 timeout_state);
+void __lwp_threadqueue_init(lwp_thrqueue *queue,u32 mode,u32 state,u32 timeout_status);
 lwp_cntrl* __lwp_threadqueue_first(lwp_thrqueue *queue);
 void __lwp_threadqueue_enqueue(lwp_thrqueue *queue,s64 timeout);
 lwp_cntrl* __lwp_threadqueue_dequeue(lwp_thrqueue *queue);

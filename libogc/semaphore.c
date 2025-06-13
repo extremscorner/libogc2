@@ -108,14 +108,14 @@ static sema_st* __lwp_sema_allocate(void)
 	return NULL;
 }
 
-static s32 __lwp_sema_waitsupp(sem_t sem,u8 block,s64 timeout)
+static s32 __lwp_sema_waitsupp(sem_t sem,u32 wait_status,s64 timeout)
 {
 	sema_st *lwp_sem;
 
 	lwp_sem = __lwp_sema_open(sem);
 	if(!lwp_sem) return EINVAL;
 
-	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,block,timeout);
+	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,wait_status,timeout);
 	__lwp_thread_dispatchenable();
 
 	switch(_thr_executing->wait.ret_code) {
@@ -154,25 +154,25 @@ s32 LWP_SemInit(sem_t *sem,u32 start,u32 max)
 
 s32 LWP_SemWait(sem_t sem)
 {
-	return __lwp_sema_waitsupp(sem,TRUE,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_sema_waitsupp(sem,LWP_SEMA_SUCCESSFUL,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_SemTimedWait(sem_t sem,const struct timespec *reltime)
 {
+	u32 wait_status = LWP_SEMA_SUCCESSFUL;
 	s64 timeout = LWP_THREADQ_NOTIMEOUT;
-	u8 block = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
 		timeout = __lwp_wd_calc_ticks(reltime);
-		if(timeout<=0) block = FALSE;
+		if(timeout<=0) wait_status = LWP_SEMA_TIMEOUT;
 	}
-	return __lwp_sema_waitsupp(sem,block,timeout);
+	return __lwp_sema_waitsupp(sem,wait_status,timeout);
 }
 
 s32 LWP_SemTryWait(sem_t sem)
 {
-	return __lwp_sema_waitsupp(sem,FALSE,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_sema_waitsupp(sem,LWP_SEMA_UNSATISFIED_NOWAIT,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_SemPost(sem_t sem)

@@ -69,7 +69,7 @@ static void __lwp_threadqueue_timeout(void *usr_data)
 	if(thequeue->sync_state!=LWP_THREADQ_SYNCHRONIZED && __lwp_thread_isexec(thethread)) {
 		if(thequeue->sync_state!=LWP_THREADQ_SATISFIED) thequeue->sync_state = LWP_THREADQ_TIMEOUT;
 	} else {
-		thethread->wait.ret_code = thethread->wait.queue->timeout_state;
+		thethread->wait.ret_code = thethread->wait.queue->timeout_status;
 		__lwp_threadqueue_extract(thethread->wait.queue,thethread);
 	}
 	__lwp_thread_dispatchunnest();
@@ -113,7 +113,7 @@ void __lwp_threadqueue_enqueuefifo(lwp_thrqueue *queue,lwp_cntrl *thethread,s64 
 			_CPU_ISR_Restore(level);
 			return;
 		case LWP_THREADQ_TIMEOUT:
-			thethread->wait.ret_code = thethread->wait.queue->timeout_state;
+			thethread->wait.ret_code = thethread->wait.queue->timeout_status;
 			_CPU_ISR_Restore(level);
 			break;
 		case LWP_THREADQ_SATISFIED:
@@ -275,7 +275,7 @@ synchronize:
 		case LWP_THREADQ_NOTHINGHAPPEND:
 			break;
 		case LWP_THREADQ_TIMEOUT:
-			thethread->wait.ret_code = thethread->wait.queue->timeout_state;
+			thethread->wait.ret_code = thethread->wait.queue->timeout_status;
 			_CPU_ISR_Restore(level);
 			break;
 		case LWP_THREADQ_SATISFIED:
@@ -358,16 +358,16 @@ dequeue:
 	return ret;
 }
 
-void __lwp_threadqueue_init(lwp_thrqueue *queue,u32 mode,u32 state,u32 timeout_state)
+void __lwp_threadqueue_init(lwp_thrqueue *queue,u32 mode,u32 state,u32 timeout_status)
 {
 	u32 index;
 
 	queue->state = state;
 	queue->mode = mode;
-	queue->timeout_state = timeout_state;
+	queue->timeout_status = timeout_status;
 	queue->sync_state = LWP_THREADQ_SYNCHRONIZED;
 #ifdef _LWPTHRQ_DEBUG
-	printf("__lwp_threadqueue_init(%p,%08x,%d,%d)\n",queue,state,timeout_state,mode);
+	printf("__lwp_threadqueue_init(%p,%08x,%d,%d)\n",queue,state,timeout_status,mode);
 #endif
 	switch(mode) {
 		case LWP_THREADQ_MODEFIFO:

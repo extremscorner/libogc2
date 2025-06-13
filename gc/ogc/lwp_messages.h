@@ -113,8 +113,8 @@ typedef struct _mqcntrl {
 
 u32 __lwpmq_initialize(mq_cntrl *mqueue,mq_attr *attrs,u32 max_pendingmsgs,u32 max_msgsize);
 void __lwpmq_close(mq_cntrl *mqueue,u32 status);
-u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait,s64 timeout);
-u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wait,s64 timeout);
+u32 __lwpmq_seize(mq_cntrl *mqueue,u32 id,void *buffer,u32 *size,u32 wait_status,s64 timeout);
+u32 __lwpmq_submit(mq_cntrl *mqueue,u32 id,void *buffer,u32 size,u32 type,u32 wait_status,s64 timeout);
 u32 __lwpmq_broadcast(mq_cntrl *mqueue,void *buffer,u32 size,u32 id,u32 *count);
 void __lwpmq_msg_insert(mq_cntrl *mqueue,mq_buffercntrl *msg,u32 type);
 u32 __lwpmq_flush(mq_cntrl *mqueue);

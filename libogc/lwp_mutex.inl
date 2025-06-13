@@ -138,12 +138,12 @@ static __inline__ u32 __lwp_mutex_seize_irq_trylock(lwp_mutex *mutex,u32 *isr_le
 	return 1;
 }
 
-#define __lwp_mutex_seize(_mutex_t,_id,_wait,_timeout,_level) \
+#define __lwp_mutex_seize(_mutex_t,_id,_wait_status,_timeout,_level) \
 	do { \
 		if(__lwp_mutex_seize_irq_trylock(_mutex_t,&_level)) { \
-			if(!_wait) { \
+			if(_wait_status) { \
 				_CPU_ISR_Restore(_level); \
-				_thr_executing->wait.ret_code = LWP_MUTEX_UNSATISFIED_NOWAIT; \
+				_thr_executing->wait.ret_code = _wait_status; \
 			} else { \
 				__lwp_threadqueue_csenter(&(_mutex_t)->wait_queue); \
 				_thr_executing->wait.queue = &(_mutex_t)->wait_queue; \

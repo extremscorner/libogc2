@@ -141,16 +141,16 @@ void udelay(u32 usec)
 	}
 }
 
-int __syscall_nanosleep(const struct timespec *tb, struct timespec *rem)
+int __syscall_nanosleep(const struct timespec *req, struct timespec *rem)
 {
 	s64 timeout;
 
-	if (!__lwp_wd_timespec_valid(tb)) {
+	if (!__lwp_wd_timespec_valid(req)) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	timeout = __lwp_wd_calc_ticks(tb);
+	timeout = __lwp_wd_calc_ticks(req);
 	if (timeout <= 0) {
 		__lwp_thread_dispatchdisable();
 		__lwp_thread_yield();

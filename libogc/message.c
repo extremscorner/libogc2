@@ -108,7 +108,7 @@ static mqbox_st* __lwp_mqbox_allocate(void)
 	return NULL;
 }
 
-static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,s64 timeout)
+static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait_status,s64 timeout)
 {
 	u32 status,size = sizeof(mqmsg_t);
 	mqbox_st *mbox;
@@ -116,7 +116,7 @@ static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,s64
 	mbox = __lwp_mqbox_open(mqbox);
 	if(!mbox) return FALSE;
 
-	status = __lwpmq_submit(&mbox->mqueue,mbox->object.id,(void*)&msg,size,type,wait,timeout);
+	status = __lwpmq_submit(&mbox->mqueue,mbox->object.id,(void*)&msg,size,type,wait_status,timeout);
 	__lwp_thread_dispatchenable();
 
 	if(status==LWP_MQ_STATUS_UNSATISFIED_WAIT)
@@ -124,7 +124,7 @@ static BOOL __lwp_mqbox_sendsupp(mqbox_t mqbox,mqmsg_t msg,u32 type,u32 wait,s64
 	return (status==LWP_MQ_STATUS_SUCCESSFUL);
 }
 
-static BOOL __lwp_mqbox_recvsupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait,s64 timeout)
+static BOOL __lwp_mqbox_recvsupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait_status,s64 timeout)
 {
 	u32 status,size;
 	mqbox_st *mbox;
@@ -132,7 +132,7 @@ static BOOL __lwp_mqbox_recvsupp(mqbox_t mqbox,mqmsg_t *msg,u32 wait,s64 timeout
 	mbox = __lwp_mqbox_open(mqbox);
 	if(!mbox) return FALSE;
 
-	__lwpmq_seize(&mbox->mqueue,mbox->object.id,(void*)msg,&size,wait,timeout);
+	__lwpmq_seize(&mbox->mqueue,mbox->object.id,(void*)msg,&size,wait_status,timeout);
 	__lwp_thread_dispatchenable();
 
 	status = _thr_executing->wait.ret_code;
@@ -177,60 +177,60 @@ s32 MQ_Close(mqbox_t mqbox)
 
 BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 {
-	u32 wait = (flags==MQ_MSG_BLOCK)?TRUE:FALSE;
+	u32 wait_status = (flags==MQ_MSG_BLOCK)?LWP_MQ_STATUS_SUCCESSFUL:LWP_MQ_STATUS_TOO_MANY;
 
-	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,wait,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,wait_status,LWP_THREADQ_NOTIMEOUT);
 }
 
 BOOL MQ_TimedSend(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 {
+	u32 wait_status = LWP_MQ_STATUS_SUCCESSFUL;
 	s64 timeout = LWP_THREADQ_NOTIMEOUT;
-	u32 wait = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
 		timeout = __lwp_wd_calc_ticks(reltime);
-		if(timeout<=0) wait = FALSE;
+		if(timeout<=0) wait_status = LWP_MQ_STATUS_TIMEOUT;
 	}
-	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,wait,timeout);
+	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_REQUEST,wait_status,timeout);
 }
 
 BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 {
-	u32 wait = (flags==MQ_MSG_BLOCK)?TRUE:FALSE;
+	u32 wait_status = (flags==MQ_MSG_BLOCK)?LWP_MQ_STATUS_SUCCESSFUL:LWP_MQ_STATUS_TOO_MANY;
 
-	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,wait,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,wait_status,LWP_THREADQ_NOTIMEOUT);
 }
 
 BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime)
 {
+	u32 wait_status = LWP_MQ_STATUS_SUCCESSFUL;
 	s64 timeout = LWP_THREADQ_NOTIMEOUT;
-	u32 wait = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
 		timeout = __lwp_wd_calc_ticks(reltime);
-		if(timeout<=0) wait = FALSE;
+		if(timeout<=0) wait_status = LWP_MQ_STATUS_TIMEOUT;
 	}
-	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,wait,timeout);
+	return __lwp_mqbox_sendsupp(mqbox,msg,LWP_MQ_SEND_URGENT,wait_status,timeout);
 }
 
 BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
 {
-	u32 wait = (flags==MQ_MSG_BLOCK)?TRUE:FALSE;
+	u32 wait_status = (flags==MQ_MSG_BLOCK)?LWP_MQ_STATUS_SUCCESSFUL:LWP_MQ_STATUS_UNSATISFIED_NOWAIT;
 
-	return __lwp_mqbox_recvsupp(mqbox,msg,wait,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_mqbox_recvsupp(mqbox,msg,wait_status,LWP_THREADQ_NOTIMEOUT);
 }
 
 BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *reltime)
 {
+	u32 wait_status = LWP_MQ_STATUS_SUCCESSFUL;
 	s64 timeout = LWP_THREADQ_NOTIMEOUT;
-	u32 wait = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return FALSE;
 		timeout = __lwp_wd_calc_ticks(reltime);
-		if(timeout<=0) wait = FALSE;
+		if(timeout<=0) wait_status = LWP_MQ_STATUS_TIMEOUT;
 	}
-	return __lwp_mqbox_recvsupp(mqbox,msg,wait,timeout);
+	return __lwp_mqbox_recvsupp(mqbox,msg,wait_status,timeout);
 }

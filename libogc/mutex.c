@@ -77,7 +77,7 @@ typedef struct _mutex_st
 
 lwp_objinfo _lwp_mutex_objects;
 
-static s32 __lwp_mutex_locksupp(mutex_t lock,s64 timeout,u8 block)
+static s32 __lwp_mutex_locksupp(mutex_t lock,u32 wait_status,s64 timeout)
 {
 	u32 level;
 	mutex_st *p;
@@ -87,7 +87,7 @@ static s32 __lwp_mutex_locksupp(mutex_t lock,s64 timeout,u8 block)
 	p = (mutex_st*)__lwp_objmgr_getisrdisable(&_lwp_mutex_objects,LWP_OBJMASKID(lock),&level);
 	if(!p) return EINVAL;
 
-	__lwp_mutex_seize(&p->mutex,p->object.id,block,timeout,level);
+	__lwp_mutex_seize(&p->mutex,p->object.id,wait_status,timeout,level);
 
 	switch(_thr_executing->wait.ret_code) {
 		case LWP_MUTEX_SUCCESSFUL:
@@ -180,25 +180,25 @@ s32 LWP_MutexDestroy(mutex_t mutex)
 
 s32 LWP_MutexLock(mutex_t mutex)
 {
-	return __lwp_mutex_locksupp(mutex,LWP_THREADQ_NOTIMEOUT,TRUE);
+	return __lwp_mutex_locksupp(mutex,LWP_MUTEX_SUCCESSFUL,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_MutexTimedLock(mutex_t mutex,const struct timespec *reltime)
 {
+	u32 wait_status = LWP_MUTEX_SUCCESSFUL;
 	s64 timeout = LWP_THREADQ_NOTIMEOUT;
-	u8 block = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
 		timeout = __lwp_wd_calc_ticks(reltime);
-		if(timeout<=0) block = FALSE;
+		if(timeout<=0) wait_status = LWP_MUTEX_TIMEOUT;
 	}
-	return __lwp_mutex_locksupp(mutex,timeout,block);
+	return __lwp_mutex_locksupp(mutex,wait_status,timeout);
 }
 
 s32 LWP_MutexTryLock(mutex_t mutex)
 {
-	return __lwp_mutex_locksupp(mutex,LWP_THREADQ_NOTIMEOUT,FALSE);
+	return __lwp_mutex_locksupp(mutex,LWP_MUTEX_UNSATISFIED_NOWAIT,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_MutexUnlock(mutex_t mutex)

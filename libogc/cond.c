@@ -111,7 +111,7 @@ static cond_st* __lwp_cond_allocate(void)
 
 static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,s64 timeout,u8 timedout)
 {
-	u32 status,mstatus,level;
+	u32 status,mutex_status,level;
 	cond_st *thecond;
 
 	thecond = __lwp_cond_open(cond);
@@ -142,8 +142,8 @@ static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,s64 timeout,u8 timedout
 		status = ETIMEDOUT;
 	}
 
-	mstatus = LWP_MutexLock(mutex);
-	if(mstatus)
+	mutex_status = LWP_MutexLock(mutex);
+	if(mutex_status)
 		return EINVAL;
 
 	return status;

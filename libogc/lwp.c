@@ -357,7 +357,7 @@ void LWP_ExitThread(void *value_ptr)
 	__builtin_unreachable();
 }
 
-static s32 __lwp_thread_joinsupp(lwp_t thethread,void **value_ptr,u8 block,s64 timeout)
+static s32 __lwp_thread_joinsupp(lwp_t thethread,void **value_ptr,u32 wait_status,s64 timeout)
 {
 	u32 level;
 	lwp_cntrl *exec,*lwp_thread;
@@ -382,9 +382,9 @@ static s32 __lwp_thread_joinsupp(lwp_t thethread,void **value_ptr,u8 block,s64 t
 		return 0;
 	}
 
-	if(!block) {
+	if(wait_status) {
 		__lwp_thread_dispatchenable();
-		return EBUSY;
+		return wait_status;
 	}
 
 	exec = _thr_executing;
@@ -402,25 +402,25 @@ static s32 __lwp_thread_joinsupp(lwp_t thethread,void **value_ptr,u8 block,s64 t
 
 s32 LWP_JoinThread(lwp_t thethread,void **value_ptr)
 {
-	return __lwp_thread_joinsupp(thethread,value_ptr,TRUE,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_thread_joinsupp(thethread,value_ptr,0,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_TimedJoinThread(lwp_t thethread,void **value_ptr,const struct timespec *reltime)
 {
+	u32 wait_status = 0;
 	s64 timeout = LWP_THREADQ_NOTIMEOUT;
-	u8 block = TRUE;
 
 	if(reltime) {
 		if(!__lwp_wd_timespec_valid(reltime)) return EINVAL;
 		timeout = __lwp_wd_calc_ticks(reltime);
-		if(timeout<=0) block = FALSE;
+		if(timeout<=0) wait_status = ETIMEDOUT;
 	}
-	return __lwp_thread_joinsupp(thethread,value_ptr,block,timeout);
+	return __lwp_thread_joinsupp(thethread,value_ptr,wait_status,timeout);
 }
 
 s32 LWP_TryJoinThread(lwp_t thethread,void **value_ptr)
 {
-	return __lwp_thread_joinsupp(thethread,value_ptr,FALSE,LWP_THREADQ_NOTIMEOUT);
+	return __lwp_thread_joinsupp(thethread,value_ptr,EBUSY,LWP_THREADQ_NOTIMEOUT);
 }
 
 s32 LWP_DetachThread(lwp_t thethread)
