@@ -216,7 +216,10 @@ void __thread_dispatch_fp(void)
 #ifdef _LWPTHREADS_DEBUG
 	__lwp_dumpcontext_fp(exec,_thr_allocated_fp);
 #endif
-	if(!__lwp_thread_isallocatedfp(exec)) {
+	if(__lwp_isr_in_progress()) {
+		if(_thr_allocated_fp) _cpu_context_save_fp(&_thr_allocated_fp->context);
+		_thr_allocated_fp = NULL;
+	} else if(!__lwp_thread_isallocatedfp(exec)) {
 		if(_thr_allocated_fp) _cpu_context_save_fp(&_thr_allocated_fp->context);
 		_cpu_context_restore_fp(&exec->context);
 		_thr_allocated_fp = exec;
