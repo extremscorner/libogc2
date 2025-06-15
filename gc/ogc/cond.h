@@ -63,6 +63,7 @@ distribution.
 
 #include <gctypes.h>
 #include <time.h>
+#include "mutex.h"
 
 #define LWP_COND_NULL		0xffffffff
 
@@ -115,7 +116,7 @@ s32 LWP_CondBroadcast(cond_t cond);
 
 
 /*! \fn s32 LWP_CondTimedWait(cond_t cond,mutex_t mutex,const struct timespec *reltime)
-\brief Timed wait on a conditionvariable.
+\brief Timed wait on a condition variable.
 \param[in] cond handle to the cond_t structure
 \param[in] mutex handle to the mutex_t structure
 \param[in] reltime pointer to a timespec structure holding the relative time for the timeout.

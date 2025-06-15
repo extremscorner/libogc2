@@ -80,7 +80,7 @@ typedef u32 mutex_t;
 /*! \fn s32 LWP_MutexInit(mutex_t *mutex,bool use_recursive)
 \brief Initializes a mutex lock.
 \param[out] mutex pointer to a mutex_t handle.
-\param[in] use_recursive whether to allow the thread, whithin the same context, to enter multiple times the lock or not.
+\param[in] use_recursive whether to allow the thread, within the same context, to enter multiple times the lock or not.
 
 \return 0 on success, non-zero on error
 */

@@ -62,6 +62,7 @@ distribution.
 */ 
 
 #include <gctypes.h>
+#include <time.h>
 
 #define MQ_BOX_NULL				0xffffffff
 
@@ -153,7 +154,7 @@ BOOL MQ_TimedJam(mqbox_t mqbox,mqmsg_t msg,const struct timespec *reltime);
 /*! \fn BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
 \brief Receives a message from the given message queue.
 \param[in] mqbox mqbox_t handle to the message queue
-\param[in] msg pointer to a mqmsg_t_t-type message to receive.
+\param[in] msg pointer to a mqmsg_t-type message to receive.
 \param[in] flags message flags (MQ_MSG_BLOCK, MQ_MSG_NOBLOCK)
 
 \return bool result
@@ -164,7 +165,7 @@ BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags);
 /*! \fn BOOL MQ_TimedReceive(mqbox_t mqbox,mqmsg_t *msg,const struct timespec *reltime)
 \brief Receives a message from the given message queue, blocking until timeout.
 \param[in] mqbox mqbox_t handle to the message queue
-\param[in] msg pointer to a mqmsg_t_t-type message to receive.
+\param[in] msg pointer to a mqmsg_t-type message to receive.
 \param[in] reltime pointer to a timespec structure holding the relative time for the timeout.
 
 \return bool result
