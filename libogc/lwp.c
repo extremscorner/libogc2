@@ -300,13 +300,13 @@ s32 LWP_GetThreadPriority(lwp_t thethread)
 	lwp_thread = __lwp_cntrl_open(thethread);
 	if(!lwp_thread) return LWP_CLOSED;
 
-	cur_prio = __lwp_priotocore(lwp_thread->cur_prio);
+	cur_prio = __lwp_priotocore(lwp_thread->real_prio);
 	__lwp_thread_dispatchenable();
 
 	return cur_prio;
 }
 
-s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio)
+s32 LWP_SetThreadPriority(lwp_t thethread,u8 prio)
 {
 	u32 old_prio;
 	lwp_cntrl *lwp_thread;
@@ -316,8 +316,12 @@ s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio)
 	lwp_thread = __lwp_cntrl_open(thethread);
 	if(!lwp_thread) return LWP_CLOSED;
 
-	old_prio = __lwp_priotocore(lwp_thread->cur_prio);
-	__lwp_thread_changepriority(lwp_thread,__lwp_priotocore(prio),TRUE);
+	lwp_thread->budget_algo = (prio<128 ? LWP_CPU_BUDGET_ALGO_TIMESLICE : LWP_CPU_BUDGET_ALGO_NONE);
+	lwp_thread->cpu_time_budget = _lwp_ticks_per_timeslice;
+
+	old_prio = __lwp_priotocore(lwp_thread->real_prio);
+	lwp_thread->real_prio = __lwp_priotocore(prio);
+	__lwp_thread_changepriority(lwp_thread,lwp_thread->real_prio,TRUE);
 	__lwp_thread_dispatchenable();
 
 	return old_prio;
@@ -330,10 +334,10 @@ void LWP_YieldThread(void)
 	__lwp_thread_dispatchenable();
 }
 
-void LWP_Reschedule(u32 prio)
+void LWP_Reschedule(u8 prio)
 {
 	__lwp_thread_dispatchdisable();
-	__lwp_rotate_readyqueue(prio);
+	__lwp_rotate_readyqueue(__lwp_priotocore(prio));
 	__lwp_thread_dispatchenable();
 }
 
