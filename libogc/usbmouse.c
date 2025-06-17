@@ -42,7 +42,7 @@ distribution.
 #include <ogc/semaphore.h>
 
 #define MOUSE_THREAD_STACKSIZE		(1024 * 4)
-#define MOUSE_THREAD_PRIO			65
+#define MOUSE_THREAD_PRIO			(LWP_PRIO_NORMAL + 1)
 
 #define MOUSE_MAX_DATA				32
 

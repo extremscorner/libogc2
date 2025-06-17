@@ -48,7 +48,7 @@ distribution.
 #include "wsksymvar.h"
 
 #define KBD_THREAD_STACKSIZE (1024 * 4)
-#define KBD_THREAD_PRIO 64
+#define KBD_THREAD_PRIO (LWP_PRIO_NORMAL)
 #define KBD_THREAD_UDELAY (1000 * 10)
 #define KBD_THREAD_KBD_SCAN_INTERVAL (3 * 100)
 

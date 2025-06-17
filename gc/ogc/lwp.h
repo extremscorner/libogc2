@@ -64,14 +64,15 @@ distribution.
 #include <gctypes.h>
 #include <time.h>
 
-#define LWP_CLOSED					-1
-#define LWP_SUCCESSFUL				0
-#define LWP_ALREADY_SUSPENDED		1
-#define LWP_NOT_SUSPENDED			2
+#define LWP_CLOSED					 -1
+#define LWP_SUCCESSFUL				  0
+#define LWP_ALREADY_SUSPENDED		  1
+#define LWP_NOT_SUSPENDED			  2
 
-#define LWP_PRIO_IDLE				0
-#define LWP_PRIO_NORMAL			   64
-#define LWP_PRIO_HIGHEST		  127
+#define LWP_PRIO_IDLE				  0
+#define LWP_PRIO_LOWEST				  1
+#define LWP_PRIO_NORMAL				 64
+#define LWP_PRIO_HIGHEST			127
 
 #define LWP_THREAD_NULL				0xffffffff
 #define LWP_TQUEUE_NULL				0xffffffff
