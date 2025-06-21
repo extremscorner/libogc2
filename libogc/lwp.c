@@ -93,7 +93,14 @@ extern u8 __stack_addr[],__stack_end[];
 
 static __inline__ u32 __lwp_priotocore(u32 prio)
 {
-	return (255 - prio);
+	if(prio&128) return (128 ^ prio);
+	return (255 ^ prio);
+}
+
+static __inline__ u32 __lwp_priofromcore(u32 prio)
+{
+	if(prio&128) return (255 ^ prio);
+	return (128 ^ prio);
 }
 
 static __inline__ lwp_cntrl* __lwp_cntrl_open(lwp_t thr_id)
@@ -156,7 +163,7 @@ static void* idle_func(void *arg)
 		mtmsr(msr);
 		_isync();
 	}
-	return 0;
+	return NULL;
 }
 
 void __lwp_sysinit(void)
@@ -164,9 +171,9 @@ void __lwp_sysinit(void)
 	__lwp_objmgr_initinfo(&_lwp_thr_objects,LWP_MAX_THREADS,sizeof(lwp_cntrl));
 	__lwp_objmgr_initinfo(&_lwp_tqueue_objects,LWP_MAX_TQUEUES,sizeof(tqueue_st));
 
-	// create idle thread, is needed iff all threads are locked on a queue
+	// create idle thread, is needed if all threads are locked on a queue
 	_thr_idle = (lwp_cntrl*)__lwp_objmgr_allocate(&_lwp_thr_objects);
-	__lwp_thread_init(_thr_idle,NULL,0,__lwp_priotocore(LWP_PRIO_IDLE),0,TRUE);
+	__lwp_thread_init(_thr_idle,NULL,0,__lwp_priotocore(LWP_PRIO_IDLE),TRUE,LWP_CPU_BUDGET_ALGO_NONE,0);
 	_thr_executing = _thr_heir = _thr_idle;
 	__lwp_thread_start(_thr_idle,idle_func,NULL);
 	__lwp_objmgr_open(&_lwp_thr_objects,&_thr_idle->object);
@@ -174,7 +181,7 @@ void __lwp_sysinit(void)
 	// create main thread, as this is our entry point
 	// for every GC application.
 	_thr_main = (lwp_cntrl*)__lwp_objmgr_allocate(&_lwp_thr_objects);
-	__lwp_thread_init(_thr_main,__stack_end,((u32)__stack_addr-(u32)__stack_end),__lwp_priotocore(LWP_PRIO_NORMAL),0,TRUE);
+	__lwp_thread_init(_thr_main,__stack_end,((u32)__stack_addr-(u32)__stack_end),__lwp_priotocore(LWP_PRIO_NORMAL),TRUE,LWP_CPU_BUDGET_ALGO_TIMESLICE,0);
 	__lwp_thread_start(_thr_main,(void*)__crtmain,NULL);
 	__lwp_objmgr_open(&_lwp_thr_objects,&_thr_main->object);
 }
@@ -223,11 +230,12 @@ s32 LWP_CreateThread(lwp_t *thethread,void* (*entry)(void *),void *arg,void *sta
 	lwp_cntrl *lwp_thread;
 	
 	if(!thethread || !entry) return EINVAL;
+	if(prio<LWP_PRIO_LOWEST) prio = LWP_PRIO_LOWEST;
 
 	lwp_thread = __lwp_cntrl_allocate();
 	if(!lwp_thread) return EAGAIN;
 
-	status = __lwp_thread_init(lwp_thread,stackbase,stack_size,__lwp_priotocore(prio),0,TRUE);
+	status = __lwp_thread_init(lwp_thread,stackbase,stack_size,__lwp_priotocore(prio),TRUE,(prio>LWP_PRIO_HIGHEST)?LWP_CPU_BUDGET_ALGO_NONE:LWP_CPU_BUDGET_ALGO_TIMESLICE,0);
 	if(!status) {
 		__lwp_cntrl_free(lwp_thread);
 		__lwp_thread_dispatchenable();
@@ -300,7 +308,7 @@ s32 LWP_GetThreadPriority(lwp_t thethread)
 	lwp_thread = __lwp_cntrl_open(thethread);
 	if(!lwp_thread) return LWP_CLOSED;
 
-	cur_prio = __lwp_priotocore(lwp_thread->real_prio);
+	cur_prio = __lwp_priofromcore(lwp_thread->real_prio);
 	__lwp_thread_dispatchenable();
 
 	return cur_prio;
@@ -312,14 +320,15 @@ s32 LWP_SetThreadPriority(lwp_t thethread,u8 prio)
 	lwp_cntrl *lwp_thread;
 
 	if(thethread==LWP_THREAD_NULL) thethread = LWP_GetSelf();
+	if(prio<LWP_PRIO_LOWEST) prio = LWP_PRIO_LOWEST;
 
 	lwp_thread = __lwp_cntrl_open(thethread);
 	if(!lwp_thread) return LWP_CLOSED;
 
-	lwp_thread->budget_algo = (prio<128 ? LWP_CPU_BUDGET_ALGO_TIMESLICE : LWP_CPU_BUDGET_ALGO_NONE);
+	lwp_thread->budget_algo = (prio>LWP_PRIO_HIGHEST)?LWP_CPU_BUDGET_ALGO_NONE:LWP_CPU_BUDGET_ALGO_TIMESLICE;
 	lwp_thread->cpu_time_budget = _lwp_ticks_per_timeslice;
 
-	old_prio = __lwp_priotocore(lwp_thread->real_prio);
+	old_prio = __lwp_priofromcore(lwp_thread->real_prio);
 	lwp_thread->real_prio = __lwp_priotocore(prio);
 	__lwp_thread_changepriority(lwp_thread,lwp_thread->real_prio,TRUE);
 	__lwp_thread_dispatchenable();

@@ -73,6 +73,7 @@ distribution.
 #define LWP_PRIO_LOWEST				  1
 #define LWP_PRIO_NORMAL				 64
 #define LWP_PRIO_HIGHEST			127
+#define LWP_PRIO_TIME_CRITICAL		128
 
 #define LWP_THREAD_NULL				0xffffffff
 #define LWP_TQUEUE_NULL				0xffffffff

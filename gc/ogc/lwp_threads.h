@@ -142,7 +142,7 @@ void __lwp_thread_suspend(lwp_cntrl *);
 void __lwp_thread_resume(lwp_cntrl *,u32);
 void __lwp_thread_loadenv(lwp_cntrl *);
 void __lwp_thread_ready(lwp_cntrl *);
-u32 __lwp_thread_init(lwp_cntrl *,void *,u32,u32,u32,bool);
+u32 __lwp_thread_init(lwp_cntrl *,void *,u32,u32,bool,lwp_cpu_budget_algorithms,u32);
 u32 __lwp_thread_start(lwp_cntrl *,void* (*)(void*),void *);
 void __lwp_thread_exit(lwp_cntrl *,void *);
 void __lwp_thread_close(lwp_cntrl *);

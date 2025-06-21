@@ -150,9 +150,9 @@ s32 LWP_MutexInit(mutex_t *mutex,bool use_recursive)
 	if(!ret) return EAGAIN;
 
 	attr.mode = LWP_MUTEX_FIFO;
-	attr.nest_behavior = use_recursive?LWP_MUTEX_NEST_ACQUIRE:LWP_MUTEX_NEST_ERROR;
+	attr.nest_behavior = (use_recursive)?LWP_MUTEX_NEST_ACQUIRE:LWP_MUTEX_NEST_ERROR;
 	attr.onlyownerrelease = TRUE;
-	attr.prioceil = 1; //__lwp_priotocore(LWP_PRIO_MAX-1);
+	attr.prioceil = LWP_PRIO_MIN + 1;
 	__lwp_mutex_initialize(&ret->mutex,&attr,LWP_MUTEX_UNLOCKED);
 
 	*mutex = (mutex_t)(LWP_OBJMASKTYPE(LWP_OBJTYPE_MUTEX)|LWP_OBJMASKID(ret->object.id));

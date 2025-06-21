@@ -25,7 +25,7 @@ void __memlock_init(void)
 		attr.mode = LWP_MUTEX_FIFO;
 		attr.nest_behavior = LWP_MUTEX_NEST_ACQUIRE;
 		attr.onlyownerrelease = TRUE;
-		attr.prioceil = 1;
+		attr.prioceil = LWP_PRIO_MIN + 1;
 		__lwp_mutex_initialize(&mem_lock,&attr,LWP_MUTEX_UNLOCKED);
 	}
 	__lwp_thread_dispatchunnest();

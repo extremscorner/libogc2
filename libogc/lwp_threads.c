@@ -302,7 +302,7 @@ void __lwp_rotate_readyqueue(u32 prio)
 	if(_thr_heir->ready==ready)
 		_thr_heir = (lwp_cntrl*)ready->first;
 
-	if(exec!=_thr_heir)
+	if(!__lwp_thread_isheir(exec))
 		_context_switch_want = TRUE;
 
 #ifdef _LWPTHREADS_DEBUG
@@ -412,7 +412,7 @@ void __lwp_thread_clearstate(lwp_cntrl *thethread,u32 state)
 				_thr_heir = thethread;
 				if(_thr_executing->is_preemptible
 					|| thethread->cur_prio==0)
-				_context_switch_want = TRUE;
+					_context_switch_want = TRUE;
 			}
 		}
 	}
@@ -426,7 +426,7 @@ u32 __lwp_evaluatemode(void)
 	
 	exec = _thr_executing;
 	if(!__lwp_stateready(exec->cur_state)
-		|| (!__lwp_thread_isheir(exec) && exec->is_preemptible)){
+		|| (!__lwp_thread_isheir(exec) && exec->is_preemptible)) {
 		_context_switch_want = TRUE;
 		return TRUE;
 	}
@@ -460,8 +460,7 @@ void __lwp_thread_changepriority(lwp_cntrl *thethread,u32 prio,u32 prependit)
 
 	__lwp_thread_calcheir();
 	
-	if(!(_thr_executing==_thr_heir)
-		&& _thr_executing->is_preemptible)
+	if(!__lwp_thread_isheir(_thr_executing) && _thr_executing->is_preemptible)
 		_context_switch_want = TRUE;
 
 	_CPU_ISR_Restore(level);
@@ -561,7 +560,7 @@ void __lwp_thread_resume(lwp_cntrl *thethread,u32 force)
 				_thr_heir = thethread;
 				if(_thr_executing->is_preemptible
 					|| thethread->cur_prio==0)
-				_context_switch_want = TRUE;
+					_context_switch_want = TRUE;
 			}
 		}
 	}
@@ -606,7 +605,6 @@ void __lwp_thread_loadenv(lwp_cntrl *thethread)
 void __lwp_thread_ready(lwp_cntrl *thethread)
 {
 	u32 level;
-	lwp_cntrl *heir;
 
 	_CPU_ISR_Disable(level);
 #ifdef _LWPTHREADS_DEBUG
@@ -618,14 +616,14 @@ void __lwp_thread_ready(lwp_cntrl *thethread)
 	_CPU_ISR_Flash(level);
 
 	__lwp_thread_calcheir();
-	heir = _thr_heir;
-	if(!(__lwp_thread_isexec(heir)) && _thr_executing->is_preemptible)
+
+	if(!__lwp_thread_isheir(_thr_executing) && _thr_executing->is_preemptible)
 		_context_switch_want = TRUE;
 	
 	_CPU_ISR_Restore(level);
 }
 
-u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 prio,u32 isr_level,bool is_preemptible)
+u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 prio,bool is_preemptible,lwp_cpu_budget_algorithms budget_algo,u32 isr_level)
 {
 	u32 act_stack_size = 0;
 
@@ -656,7 +654,7 @@ u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 p
 	memset(&thethread->context,0,sizeof(thethread->context));
 	memset(&thethread->wait,0,sizeof(thethread->wait));
 
-	thethread->budget_algo = (prio<128 ? LWP_CPU_BUDGET_ALGO_NONE : LWP_CPU_BUDGET_ALGO_TIMESLICE);
+	thethread->budget_algo = budget_algo;
 	thethread->is_preemptible = is_preemptible;
 	thethread->isr_level = isr_level;
 	thethread->real_prio = prio;
