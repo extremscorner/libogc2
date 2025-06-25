@@ -934,11 +934,13 @@ void __SYS_SetBootTime(void)
 #endif
 
 	if(__SYS_GetRTC(&gctime)==1) {
+		if(getenv("TZ")==NULL) {
 #if defined(HW_RVL)
-		if(CONF_GetCounterBias(&bias)==0) gctime += bias;
+			if(CONF_GetCounterBias(&bias)==0) gctime += bias;
 #else
-		gctime += SYS_GetCounterBias();
+			gctime += SYS_GetCounterBias();
 #endif
+		}
 		__SYS_SetTime(secs_to_ticks(gctime));
 	}
 }
