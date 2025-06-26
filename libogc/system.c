@@ -513,7 +513,6 @@ static u32 __getrtc(u32 *gctime)
 
 	ret = 0;
 	cmd = 0x20000000;
-	*gctime = 0;
 	if(EXI_ImmEx(EXI_CHANNEL_0,&cmd,4,EXI_WRITE)==0) ret |= 0x01;
 	if(EXI_ImmEx(EXI_CHANNEL_0,gctime,4,EXI_READ)==0) ret |= 0x02;
 	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
@@ -868,6 +867,8 @@ u32 __SYS_GetRTC(u32 *gctime)
 		if(__getrtc(&time1)==0) ret |= 0x01;
 		if(__getrtc(&time2)==0) ret |= 0x02;
 		if(ret) return 0;
+		if(time1==0xffffffff) return 0;
+		if(time2==0xffffffff) return 0;
 		if(time1==time2) {
 			*gctime = time1;
 			return 1;
