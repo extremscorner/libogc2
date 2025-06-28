@@ -1481,7 +1481,6 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 	struct ip_addr loc_ip, mask, gw;
 	struct netif *pnet;
 	struct timespec tb;
-	dev_s hbba = NULL;
 
 	if(g_netinitiated) return 0;
 	g_netinitiated = 1;
@@ -1514,8 +1513,7 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 			mask.addr = netmask->s_addr;
 			gw.addr = gateway->s_addr;
 	}
-	hbba = bba_create(&g_hNetIF);
-	pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,hbba,bba_init,net_input);
+	pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,NULL,bba_init,net_input);
 	if(!pnet)
 		pnet = netif_add(&g_hNetIF,&loc_ip,&mask,&gw,NULL,w6x00if_init,net_input);
 	if(!pnet)

@@ -872,7 +872,33 @@ static s32 bba_event_handler(s32 nChn,s32 nDev)
 err_t bba_init(struct netif *dev)
 {
 	err_t ret;
-	struct bba_priv *priv = (struct bba_priv*)dev->state;
+	struct bba_priv *priv = NULL;
+
+	LWIP_DEBUGF(NETIF_DEBUG, ("bba_init()\n"));
+
+	priv = (struct bba_priv*)mem_malloc(sizeof(struct bba_priv));
+	if(!priv) {
+		LWIP_ERROR(("bba_init: out of memory for bba_priv\n"));
+		return ERR_MEM;
+	}
+	memset(priv,0,sizeof(struct bba_priv));
+
+	dev->name[0] = IFNAME0;
+	dev->name[1] = IFNAME1;
+	dev->output = __bba_start_tx;
+	dev->linkoutput = __bba_link_tx;
+	dev->state = priv;
+	dev->mtu = 1500;
+	dev->flags = NETIF_FLAG_BROADCAST;
+	dev->hwaddr_len = 6;
+
+	priv->ethaddr = (struct eth_addr*)&(dev->hwaddr[0]);
+	priv->state = ERR_OK;
+
+	gc_netif = dev;
+
+	LWP_InitQueue(&priv->tq_xmit);
+	LWP_InitQueue(&wait_exi_queue);
 
 	__bba_exi_stop(priv);
 
@@ -897,35 +923,4 @@ err_t bba_init(struct netif *dev)
 
 	__bba_exi_wake(priv);
 	return ret;
-}
-
-dev_s bba_create(struct netif *dev)
-{
-	struct bba_priv *priv = NULL;
-
-	LWIP_DEBUGF(NETIF_DEBUG, ("bba_create()\n"));
-
-	priv = (struct bba_priv*)mem_malloc(sizeof(struct bba_priv));
-	if(!priv) {
-		LWIP_ERROR(("bba_create: out of memory for bba_priv\n"));
-		return NULL;
-	}
-	memset(priv,0,sizeof(struct bba_priv));
-
-	LWP_InitQueue(&priv->tq_xmit);
-	LWP_InitQueue(&wait_exi_queue);
-
-	dev->name[0] = IFNAME0;
-	dev->name[1] = IFNAME1;
-	dev->output = __bba_start_tx;
-	dev->linkoutput = __bba_link_tx;
-	dev->mtu = 1500;
-	dev->flags = NETIF_FLAG_BROADCAST;
-	dev->hwaddr_len = 6;
-
-	priv->ethaddr = (struct eth_addr*)&(dev->hwaddr[0]);
-	priv->state = ERR_OK;
-
-	gc_netif = dev;
-	return priv;
 }
