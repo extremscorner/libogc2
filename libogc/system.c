@@ -314,7 +314,7 @@ static void __doreboot(u32 resetcode,s32 force_menu)
 
 	*((u32*)0x817ffffc) = 0;
 	*((u32*)0x817ffff8) = 0;
-	*((u32*)0x800030e2) = 1;
+	*((u8*)0x800030e2) = 1;
 }
 #endif
 
@@ -1097,7 +1097,8 @@ void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
 
 	while(__call_resetfuncs(FALSE)==0);
 
-	if(reset==SYS_HOTRESET && force_menu==TRUE) {
+	if((reset==SYS_HOTRESET && force_menu==TRUE)
+		|| reset==SYS_RETURNTOMENU) {
 		sram = __SYS_LockSram();
 		sram->flags |= 0x40;
 		__SYS_UnlockSram(TRUE);
@@ -1110,7 +1111,7 @@ void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
 	LCDisable();
 
 	__lwp_thread_dispatchdisable();
-	if(reset==SYS_HOTRESET) {
+	if(reset==SYS_HOTRESET || reset==SYS_RETURNTOMENU) {
 		__SYS_DoHotReset(reset_code);
 	} else if(reset==SYS_RESTART) {
 		__lwp_thread_closeall();
@@ -1143,8 +1144,15 @@ void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
 	while(__call_resetfuncs(FALSE)==0);
 
 	switch(reset) {
-		case SYS_RESTART:
-			STM_RebootSystem();
+		case SYS_HOTRESET:
+			if(force_menu==TRUE) {
+				WII_ReturnToMenu();
+			} else {
+				STM_RebootSystem();
+			}
+			break;
+		case SYS_RETURNTOMENU:
+			WII_ReturnToMenu();
 			break;
 		case SYS_POWEROFF:
 			if(CONF_GetShutdownMode() == CONF_SHUTDOWN_IDLE) {
@@ -1160,15 +1168,12 @@ void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
 			break;
 		case SYS_POWEROFF_IDLE:
 			ret = CONF_GetIdleLedMode();
-			if(ret >= 0 && ret <= 2) STM_SetLedMode(ret);
+			if(ret <= 2) STM_SetLedMode(ret);
 			STM_ShutdownToIdle();
-			break;
-		case SYS_RETURNTOMENU:
-			WII_ReturnToMenu();
 			break;
 	}
 
-	//TODO: implement SYS_HOTRESET
+	//TODO: implement SYS_RESTART
 	// either restart failed or this is SYS_SHUTDOWN
 
 	__IOS_ShutdownSubsystems();
