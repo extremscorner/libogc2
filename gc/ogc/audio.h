@@ -272,14 +272,14 @@ void AUDIO_ResetStreamSampleCnt(void);
 
 
 /*! 
- * \fn void AUDIO_SetDSPSampleRate(u8 rate)
+ * \fn void AUDIO_SetDSPSampleRate(u32 rate)
  * \brief Set the sampling rate for the DSP interface
  *
  * \param[in] rate sampling rate to set for the DSP (AI_SAMPLERATE_32KHZ,AI_SAMPLERATE_48KHZ)
  *
  * \return none
  */
-void AUDIO_SetDSPSampleRate(u8 rate);
+void AUDIO_SetDSPSampleRate(u32 rate);
 
 
 /*! 
