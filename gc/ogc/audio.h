@@ -59,6 +59,9 @@ distribution.
 
 #define AI_SAMPLERATE_32KHZ		0x00000000		/*!< AI sampling rate at 32kHz */
 #define AI_SAMPLERATE_48KHZ		0x00000001		/*!< AI sampling rate at 48kHz */
+#if defined(HW_DOL)
+#define AI_SAMPLERATE_96KHZ		0x00000003		/*!< AI sampling rate at 96kHz */
+#endif
 
 /*!
  * @}
@@ -275,7 +278,7 @@ void AUDIO_ResetStreamSampleCnt(void);
  * \fn void AUDIO_SetDSPSampleRate(u32 rate)
  * \brief Set the sampling rate for the DSP interface
  *
- * \param[in] rate sampling rate to set for the DSP (AI_SAMPLERATE_32KHZ,AI_SAMPLERATE_48KHZ)
+ * \param[in] rate sampling rate to set for the DSP (AI_SAMPLERATE_32KHZ,AI_SAMPLERATE_48KHZ,AI_SAMPLERATE_96KHZ)
  *
  * \return none
  */
@@ -286,7 +289,7 @@ void AUDIO_SetDSPSampleRate(u32 rate);
  * \fn u32 AUDIO_GetDSPSampleRate(void)
  * \brief Get the sampling rate for the DSP interface
  *
- * \return DSP sampling rate (AI_SAMPLERATE_32KHZ,AI_SAMPLERATE_48KHZ)
+ * \return DSP sampling rate (AI_SAMPLERATE_32KHZ,AI_SAMPLERATE_48KHZ,AI_SAMPLERATE_96KHZ)
  */
 u32 AUDIO_GetDSPSampleRate(void);
 

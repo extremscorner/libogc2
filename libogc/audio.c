@@ -146,6 +146,8 @@ static void __AISRCINIT(void)
 	u64 time1, time2, tdiff;
 	u64 wait = 0;
 
+	_aiReg[AI_INT_TIMING] &= ~0x80000000;
+
 	while (!done) {
 		_aiReg[AI_CONTROL] |=  AI_SCRESET;
 		_aiReg[AI_CONTROL] &= ~AI_AISFR;
@@ -398,10 +400,11 @@ void AUDIO_SetDSPSampleRate(u32 rate)
 			_aiReg[AI_CONTROL] |= AI_DMAFR;
 			_CPU_ISR_Restore(level);
 		}
+		_aiReg[AI_INT_TIMING] = (_aiReg[AI_INT_TIMING]&~0x80000000)|(_SHIFTL((rate>>1),31,1));
 	}
 }
 
 u32 AUDIO_GetDSPSampleRate(void)
 {
-	return (_SHIFTR(_aiReg[AI_CONTROL],6,1)^1);		//0^1(1) = 48kHz, 1^1(0) = 32kHz
+	return (_SHIFTR(_aiReg[AI_INT_TIMING],31,1)<<1)|(_SHIFTR(_aiReg[AI_CONTROL],6,1)^1);		//0^1(1) = 48kHz, 1^1(0) = 32kHz
 }
