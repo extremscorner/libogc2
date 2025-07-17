@@ -326,9 +326,10 @@ u32 AUDIO_GetStreamPlayState(void)
 AISCallback AUDIO_RegisterStreamCallback(AISCallback callback)
 {
 	u32 level;
+	AISCallback old;
 
-	AISCallback old = __AIS_Callback;
 	_CPU_ISR_Disable(level);
+	old = __AIS_Callback;
 	__AIS_Callback = callback;
 	_CPU_ISR_Restore(level);
 	return old;
