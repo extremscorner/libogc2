@@ -130,6 +130,9 @@ distribution.
 #define SYS_CONSOLE_NDEV_ES3_1			0x10000031
 #endif
 
+#define SYS_BOOT_DEVELOPMENT			0x00
+#define SYS_BOOT_PRODUCTION				0x80
+
 #define SYS_LANG_ENGLISH				0
 #define SYS_LANG_GERMAN					1
 #define SYS_LANG_FRENCH					2
