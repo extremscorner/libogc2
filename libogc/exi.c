@@ -187,10 +187,10 @@ static s32 __exi_probe(s32 nChn)
 			exi->exi_idtime = 0;
 			last_exi_idtime[nChn] = 0;
 		}
-		if(_exiReg[nChn][0]&EXI_EXT_BIT) {
+		if(val&EXI_EXT_BIT) {
 			time = __SYS_GetSystemTime();
 			if(last_exi_idtime[nChn]==0) last_exi_idtime[nChn] = time;
-			if((val=diff_usec(last_exi_idtime[nChn],time)+10)<30) ret = 0;
+			if((val=diff_msec(last_exi_idtime[nChn],time))<=300) ret = 0;
 			else ret = 1;
 #ifdef _EXI_DEBUG
 			printf("val = %u, ret = %d, last_exi_idtime[chn] = %llu\n",val,ret,last_exi_idtime[nChn]);
@@ -205,7 +205,7 @@ static s32 __exi_probe(s32 nChn)
 		}
 	}
 
-	if(!(_exiReg[nChn][0]&EXI_EXT_BIT) || (_exiReg[nChn][0]&EXI_EXT_IRQ)) {
+	if(!(val&EXI_EXT_BIT) || (val&EXI_EXT_IRQ)) {
 		exi->exi_idtime = 0;
 		last_exi_idtime[nChn] = 0;
 		ret = 0;
@@ -665,8 +665,8 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 #ifdef _EXI_DEBUG
 	printf("EXI_GetID(interrupts set)\n");
 #endif
-	lck = 0;
 	if(nChn<EXI_CHANNEL_2 && nDev==EXI_DEVICE_0) lck = 1;
+	else lck = 0;
 
 	if(lck) ret = EXI_Lock(nChn,nDev,__unlocked_handler);
 	else ret = EXI_Lock(nChn,nDev,NULL);
@@ -852,7 +852,7 @@ s32 EXI_Detach(s32 nChn)
 #endif
 	_CPU_ISR_Disable(level);
 	if(exi->flags&EXI_FLAG_ATTACH) {
-		if(exi->flags&EXI_FLAG_LOCKED && exi->lockeddev!=EXI_DEVICE_0) ret = 0;
+		if(exi->flags&EXI_FLAG_LOCKED && exi->lockeddev==EXI_DEVICE_0) ret = 0;
 		else {
 			exi->flags &= ~EXI_FLAG_ATTACH;
 			__MaskIrq(((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI0_TC)|IRQMASK(IRQ_EXI0_EXT))>>(nChn*3)));
