@@ -229,15 +229,15 @@ s32 CARD_Init(const char *gamecode,const char *company);
 s32 CARD_Probe(s32 chn);
 
 
-/*! \fn s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sect_size)
+/*! \fn s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sector_size)
 \brief Performs a check against the desired EXI channel if a memory card is inserted or mounted
 \param[in] chn CARD slot
 \param[out] mem_size pointer to a integer variable, ready to take the resulting value (this param is optional and can be NULL)
-\param[out] sect_size pointer to a integer variable, ready to take the resulting value (this param is optional and can be NULL)
+\param[out] sector_size pointer to a integer variable, ready to take the resulting value (this param is optional and can be NULL)
 
 \return \ref card_errors "card error codes"
 */
-s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sect_size);
+s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sector_size);
 
 
 /*! \fn s32 CARD_Mount(s32 chn,void *workarea,cardcallback detach_cb)
@@ -482,7 +482,8 @@ s32 CARD_FindNext(card_dir *dir);
 \return \ref card_errors "card error codes"
 */
 s32 CARD_GetDirectory(s32 chn, card_dir *dir_entries, s32 *count, bool showall);
- 
+
+s32 CARD_GetMemSize(s32 chn,u16 *mem_size);
 
 /*! \fn s32 CARD_GetSectorSize(s32 chn,u32 *sector_size)
 \brief Returns the next directory entry from the memory cards directory structure.
@@ -494,14 +495,14 @@ s32 CARD_GetDirectory(s32 chn, card_dir *dir_entries, s32 *count, bool showall);
 s32 CARD_GetSectorSize(s32 chn,u32 *sector_size);
 
 
-/*! \fn s32 CARD_GetBlockCount(s32 chn,u32 *block_count)
+/*! \fn s32 CARD_GetBlockCount(s32 chn,u16 *block_count)
 \brief Returns the next directory entry from the memory cards directory structure.
 \param[in] chn CARD slot.
-\param[out] sector_size pointer to receive the result.
+\param[out] block_count pointer to receive the result.
 
 \return \ref card_errors "card error codes"
 */
-s32 CARD_GetBlockCount(s32 chn,u32 *block_count);
+s32 CARD_GetBlockCount(s32 chn,u16 *block_count);
 
 
 /*! \fn s32 CARD_GetStatus(s32 chn,s32 fileno,card_stat *stats)

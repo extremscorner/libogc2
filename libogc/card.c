@@ -114,13 +114,13 @@ typedef struct _card_block {
 	u8 cmd[9];
 	u32 cmd_len;
 	u32 cmd_mode;
-	u32 cmd_blck_cnt;
+	u32 cmd_block_cnt;
 	u32 cmd_sector_addr;
 	u32 cmd_retries;
 	u32 attached;
 	s32 result;
 	u32 cid;
-	u16 card_size;
+	u16 mem_size;
 	u32 mount_step;
 	u32 format_step;
 	u32 sector_size;
@@ -1358,7 +1358,7 @@ static void __blockwritecallback(s32 chn,s32 result)
 		card->transfer_cnt += 128;
 		card->cmd_sector_addr += 128;
 		card->cmd_usr_buf += 128;
-		if((--card->cmd_blck_cnt)>0) {
+		if((--card->cmd_block_cnt)>0) {
 			if((ret=__card_writepage(chn,__blockwritecallback))>=CARD_ERROR_READY) return;
 		}
 	}
@@ -1385,7 +1385,7 @@ static void __blockreadcallback(s32 chn,s32 result)
 		card->transfer_cnt += CARD_READSIZE;
 		card->cmd_sector_addr += CARD_READSIZE;
 		card->cmd_usr_buf += CARD_READSIZE;
-		if((--card->cmd_blck_cnt)>0) {
+		if((--card->cmd_block_cnt)>0) {
 			if((ret=__card_readsegment(chn,__blockreadcallback))>=CARD_ERROR_READY) return;
 		}
 	}
@@ -1622,7 +1622,7 @@ static s32 __card_write(s32 chn,u32 address,u32 block_len,void *buffer,cardcallb
 	
 	if(!card->attached) return CARD_ERROR_NOCARD;
 	
-	card->cmd_blck_cnt = block_len>>7;
+	card->cmd_block_cnt = block_len>>7;
 	card->cmd_sector_addr = address;
 	card->cmd_usr_buf = buffer;
 	card->card_xfer_cb = callback;
@@ -1642,7 +1642,7 @@ static s32 __card_read(s32 chn,u32 address,u32 block_len,void *buffer,cardcallba
 	card = &cardmap[chn];
 
 	card->cmd_sector_addr = address;
-	card->cmd_blck_cnt = block_len>>9;
+	card->cmd_block_cnt = block_len>>9;
 	card->cmd_usr_buf = buffer;
 	card->card_xfer_cb = callback;
 	ret = __card_readsegment(chn,__blockreadcallback);
@@ -1700,7 +1700,7 @@ static s32 __card_formatregion(s32 chn,u16 encode,cardcallback callback)
 	*(u64*)&(header->serial[3]) = time;
 	header->serial[7] = tmp;
 	header->device_id = 0;
-	header->size = card->card_size;
+	header->size = card->mem_size;
 	__card_checksum((u16*)header,508,&header->chksum1,&header->chksum2);
 	
 	cnt = 0;
@@ -1942,14 +1942,14 @@ static s32 __card_domount(s32 chn)
 
 		if(ret<0) goto exit;
 		card->cid = id;
-		card->card_size = (id&0xfc);
+		card->mem_size = id&0xfc;
 #ifdef _CARD_DEBUG
-		printf("__card_domount(card_type = %08x,%08x,%08x)\n",card->card_size,card->cid,id);
+		printf("__card_domount(card_type = %08x,%08x,%08x)\n",card->mem_size,card->cid,id);
 #endif
-		if(card->card_size) {
+		if(card->mem_size) {
 			idx = _ROTL(id,23)&0x1c;
 			card->sector_size = card_sector_size[idx>>2];
-			card->blocks = ((card->card_size<<20)>>3)/card->sector_size;
+			card->blocks = ((card->mem_size<<20)>>3)/card->sector_size;
 
 			if(card->blocks>0x0008) {
 				idx = _ROTL(id,26)&0x1c;
@@ -2469,13 +2469,13 @@ s32 CARD_Probe(s32 chn)
 	return EXI_Probe(chn);
 }
 
-s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sect_size)
+s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sector_size)
 {
 	s32 ret;
 	u32 level,card_id;
 	card_block *card = NULL;
 #ifdef _CARD_DEBUG
-	printf("CARD_ProbeEx(%d,%p,%p)\n",chn,mem_size,sect_size);
+	printf("CARD_ProbeEx(%d,%p,%p)\n",chn,mem_size,sector_size);
 #endif
 	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_FATAL_ERROR;
 	card = &cardmap[chn];
@@ -2494,8 +2494,8 @@ s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sect_size)
 			_CPU_ISR_Restore(level);
 			return CARD_ERROR_BUSY;
 		}
-		if(mem_size) *mem_size = card->card_size;
-		if(sect_size) *sect_size = card->sector_size;
+		if(mem_size) *mem_size = card->mem_size;
+		if(sector_size) *sector_size = card->sector_size;
 
 		_CPU_ISR_Restore(level);
 		return CARD_ERROR_READY;
@@ -2507,10 +2507,10 @@ s32 CARD_ProbeEx(s32 chn,s32 *mem_size,s32 *sect_size)
 		if(EXI_GetID(chn,EXI_DEVICE_0,&card_id)) {
 			if(!__card_iscard(card_id)) ret = CARD_ERROR_WRONGDEVICE;
 			else {
-				if(mem_size) *mem_size = card_id&0xFC;
-				if(sect_size) {
+				if(mem_size) *mem_size = card_id&0xfc;
+				if(sector_size) {
 					u32 idx = _ROTL(card_id,23)&0x1c;
-					*sect_size = card_sector_size[idx>>2];
+					*sector_size = card_sector_size[idx>>2];
 				}
 				ret = CARD_ERROR_READY; 
 			}
@@ -3108,30 +3108,44 @@ s32 CARD_GetDirectory(s32 chn,card_dir *dir_entries,s32 *count,bool showall)
 	return ret;
 }
 
-s32 CARD_GetSectorSize(s32 chn,u32 *sector_size)
+s32 CARD_GetMemSize(s32 chn,u16 *mem_size)
 {
-	s32 ret; 
-	card_block *card = NULL; 
+	s32 ret;
+	card_block *card = NULL;
 
-	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD; 
-	if((ret=__card_getcntrlblock(chn,&card))<0) return ret; 
+	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD;
+	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
 
-	*sector_size = card->sector_size;
-	ret = __card_putcntrlblock(card,CARD_ERROR_READY); 
+	*mem_size = card->mem_size;
+	ret = __card_putcntrlblock(card,CARD_ERROR_READY);
 
 	return ret;
 }
 
-s32 CARD_GetBlockCount(s32 chn,u32 *block_count)
+s32 CARD_GetSectorSize(s32 chn,u32 *sector_size)
 {
-	s32 ret; 
-	card_block *card = NULL; 
+	s32 ret;
+	card_block *card = NULL;
 
-	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD; 
-	if((ret=__card_getcntrlblock(chn,&card))<0) return ret; 
+	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD;
+	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
+
+	*sector_size = card->sector_size;
+	ret = __card_putcntrlblock(card,CARD_ERROR_READY);
+
+	return ret;
+}
+
+s32 CARD_GetBlockCount(s32 chn,u16 *block_count)
+{
+	s32 ret;
+	card_block *card = NULL;
+
+	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD;
+	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
 
 	*block_count = card->blocks;
-	ret = __card_putcntrlblock(card,CARD_ERROR_READY); 
+	ret = __card_putcntrlblock(card,CARD_ERROR_READY);
 
 	return ret;
 }
