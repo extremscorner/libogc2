@@ -63,7 +63,6 @@ distribution.
 #define _SHIFTR(v, s, w)	\
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
-
 struct _lck_dev {
 	lwp_node node;
 	u32 dev;
@@ -84,6 +83,7 @@ typedef struct _exibus_priv {
 	u32 lck_cnt;
 	u32 lckd_dev_bits;
 	lwp_queue lckd_dev;
+	lwpq_t unlockqueue;
 	lwpq_t syncqueue;
 } exibus_priv;
 
@@ -164,6 +164,7 @@ static void __exi_initmap(exibus_priv *exim)
 		m->lck_cnt = 0;
 		m->lckd_dev_bits = 0;
 		__lwp_queue_init_empty(&m->lckd_dev);
+		m->unlockqueue = LWP_TQUEUE_NULL;
 		m->syncqueue = LWP_TQUEUE_NULL;
 	}
 }
@@ -265,6 +266,35 @@ s32 EXI_Lock(s32 nChn,s32 nDev,EXICallback unlockCB)
 	exi->flags |= EXI_FLAG_LOCKED;
 	__exi_setinterrupts(nChn,exi);
 
+	_CPU_ISR_Restore(level);
+	return 1;
+}
+
+static s32 __exi_unlockedhandler(s32 nChn,s32 nDev)
+{
+	exibus_priv *exi = &eximap[nChn];
+	LWP_ThreadSignal(exi->unlockqueue);
+	return 1;
+}
+
+s32 EXI_LockEx(s32 nChn,s32 nDev)
+{
+	u32 level;
+	exibus_priv *exi = &eximap[nChn];
+
+	_CPU_ISR_Disable(level);
+	if(exi->unlockqueue==LWP_TQUEUE_NULL) {
+		if(LWP_InitQueue(&exi->unlockqueue)!=0) {
+			_CPU_ISR_Restore(level);
+			return 0;
+		}
+	}
+	while(!EXI_Lock(nChn,nDev,__exi_unlockedhandler)) {
+		if(LWP_ThreadSleep(exi->unlockqueue)!=0) {
+			_CPU_ISR_Restore(level);
+			return 0;
+		}
+	}
 	_CPU_ISR_Restore(level);
 	return 1;
 }
@@ -485,7 +515,10 @@ static s32 __exi_syncex(s32 nChn)
 		}
 	}
 	while(exi->flags&(EXI_FLAG_DMA|EXI_FLAG_IMM)) {
-		LWP_ThreadSleep(exi->syncqueue);
+		if(LWP_ThreadSleep(exi->syncqueue)!=0) {
+			_CPU_ISR_Restore(level);
+			return 0;
+		}
 	}
 	_CPU_ISR_Restore(level);
 	return 1;

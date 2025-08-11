@@ -14,40 +14,6 @@
 #define _SHIFTR(v, s, w)	\
 	((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
-
-static u32 usbgecko_inited = 0;
-static lwpq_t wait_exi_queue[EXI_CHANNEL_MAX];
-
-static s32 __usbgecko_exi_unlock(s32 chan,s32 dev)
-{
-	LWP_ThreadBroadcast(wait_exi_queue[chan]);
-	return 1;
-}
-
-static void __usbgecko_init(void)
-{
-	u32 i;
-
-	for(i=0;i<EXI_CHANNEL_MAX;i++) {
-		LWP_InitQueue(&wait_exi_queue[i]);
-	}
-	usbgecko_inited = 1;
-}
-
-static __inline__ int __usbgecko_exi_wait(s32 chn)
-{
-	s32 ret;
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-	if(!usbgecko_inited) __usbgecko_init();
-	while((ret=EXI_Lock(chn,EXI_DEVICE_0,__usbgecko_exi_unlock))==0) {
-		if(LWP_ThreadSleep(wait_exi_queue[chn])) break;
-	}
-	_CPU_ISR_Restore(level);
-	return ret;
-}
-
 static __inline__ int __send_command(s32 chn,u16 *cmd)
 {
 	s32 ret = 0;
@@ -149,7 +115,7 @@ void usb_flush(s32 chn)
 {
 	char tmp;
 
-	if(__usbgecko_exi_wait(chn)) {
+	if (EXI_LockEx(chn, EXI_DEVICE_0)) {
 		while(__usb_recvbyte(chn,&tmp));
 		EXI_Unlock(chn);
 	}
@@ -166,13 +132,13 @@ int usb_isgeckoalive(s32 chn)
 
 	while (EXI_ProbeEx(chn) == 0);
 
-	if (EXI_GetID(chn, EXI_DEVICE_0, &id) == 0)
+	if (!EXI_GetID(chn, EXI_DEVICE_0, &id))
 		return 0;
 
 	if (id != 0)
 		return 0;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	val = 0x9000;
@@ -190,7 +156,7 @@ int usb_recvbuffer_ex(s32 chn,void *buffer,int size, int retries)
 	s32 left = size;
 	char *ptr = (char*)buffer;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	while(left>0) {
@@ -221,7 +187,7 @@ int usb_sendbuffer_ex(s32 chn,const void *buffer,int size, int retries)
 	s32 left = size;
 	char *ptr = (char*)buffer;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	while(left>0) {
@@ -252,7 +218,7 @@ int usb_recvbuffer_safe_ex(s32 chn,void *buffer,int size, int retries)
 	s32 left = size;
 	char *ptr = (char*)buffer;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	while(left>0) {
@@ -285,7 +251,7 @@ int usb_sendbuffer_safe_ex(s32 chn,const void *buffer,int size, int retries)
 	s32 left = size;
 	char *ptr = (char*)buffer;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	while(left>0) {
@@ -339,7 +305,7 @@ int usb_flashread(s32 chn, u32 offset, void *buffer, size_t length)
 	s32 ret=1;
 	u8 *data = (u8*)buffer;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	while (ret && length--)
@@ -356,7 +322,7 @@ int usb_flashwrite(s32 chn, u32 offset, const void *buffer, size_t length)
 	const u8 *data = (const u8*)buffer;
 	u8 verify;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	while (ret && length--)
@@ -381,7 +347,7 @@ int usb_flashverify(s32 chn)
 	u8 id[2];
 	s32 ret=0;
 
-	if (!__usbgecko_exi_wait(chn))
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
 		return 0;
 
 	if (__flashsoftwareid_entry(chn) &&__flashreadcommand(chn, 0, id+0) &&

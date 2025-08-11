@@ -179,6 +179,7 @@ s32 EXI_Probe(s32 nChn);
 */
 s32 EXI_Lock(s32 nChn,s32 nDev,EXICallback unlockCB);
 
+s32 EXI_LockEx(s32 nChn,s32 nDev);
 
 /*! \fn s32 EXI_Unlock(s32 nChn)
 \brief Unlock the desired EXI channel.

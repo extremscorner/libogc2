@@ -325,7 +325,6 @@ struct w5500if {
 	s32 txQueued;
 	u16 txQueue[W5500_TX_QUEUELEN + 1];
 	u16 rxQueue;
-	lwpq_t unlockQueue;
 	lwpq_t syncQueue;
 	struct eth_addr *ethaddr;
 };
@@ -543,13 +542,6 @@ static void DbgHandler(u32 irq, frame_context *ctx)
 	ExiHandler(EXI_CHANNEL_2, EXI_DEVICE_0);
 }
 
-static s32 UnlockedHandler(s32 chan, s32 dev)
-{
-	struct w5500if *w5500if = w5500_netif->state;
-	LWP_ThreadBroadcast(w5500if->unlockQueue);
-	return TRUE;
-}
-
 static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 {
 	bool err = false;
@@ -561,10 +553,7 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
-	u32 level = IRQ_Disable();
-	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(w5500if->unlockQueue);
-	IRQ_Restore(level);
+	EXI_LockEx(chan, dev);
 
 	if (!EXI_GetID(chan, dev, &id) || id != W5500_CID) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
@@ -660,8 +649,7 @@ static err_t w5500_output(struct netif *netif, struct pbuf *p)
 		}
 	}
 
-	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(w5500if->unlockQueue);
+	EXI_LockEx(chan, dev);
 	IRQ_Restore(level);
 
 	u16 wr = w5500if->txQueue[w5500if->txQueued];
@@ -704,7 +692,6 @@ err_t w5500if_init(struct netif *netif)
 	netif->mtu = 1500;
 	netif->flags = NETIF_FLAG_BROADCAST;
 
-	LWP_InitQueue(&w5500if->unlockQueue);
 	LWP_InitQueue(&w5500if->syncQueue);
 
 	w5500if->ethaddr = (struct eth_addr *)netif->hwaddr;
@@ -731,7 +718,6 @@ err_t w5500if_init(struct netif *netif)
 	}
 
 	LWP_CloseQueue(w5500if->syncQueue);
-	LWP_CloseQueue(w5500if->unlockQueue);
 
 	mem_free(w5500if);
 	return ERR_IF;

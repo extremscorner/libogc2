@@ -301,7 +301,6 @@ typedef enum {
 struct enc28j60if {
 	s32 chan;
 	s32 dev;
-	lwpq_t unlockQueue;
 	lwpq_t linkupQueue;
 	sem_t txSemaphore;
 	struct eth_addr *ethaddr;
@@ -568,13 +567,6 @@ static void DbgHandler(u32 irq, frame_context *ctx)
 	ExiHandler(EXI_CHANNEL_2, EXI_DEVICE_0);
 }
 
-static s32 UnlockedHandler(s32 chan, s32 dev)
-{
-	struct enc28j60if *enc28j60if = enc28j60_netif->state;
-	LWP_ThreadBroadcast(enc28j60if->unlockQueue);
-	return TRUE;
-}
-
 static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 {
 	bool err = false;
@@ -586,10 +578,7 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
-	u32 level = IRQ_Disable();
-	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(enc28j60if->unlockQueue);
-	IRQ_Restore(level);
+	EXI_LockEx(chan, dev);
 
 	if (!EXI_GetID(chan, dev, &id) || id == 0xFFFFFFFF) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
@@ -684,8 +673,7 @@ static err_t enc28j60_output(struct netif *netif, struct pbuf *p)
 		return ERR_IF;
 	}
 
-	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(enc28j60if->unlockQueue);
+	EXI_LockEx(chan, dev);
 	IRQ_Restore(level);
 
 	ENC28J60_WriteReg16(chan, ENC28J60_EWRPT, ENC28J60_INIT_ETXST);
@@ -725,7 +713,6 @@ err_t enc28j60if_init(struct netif *netif)
 	netif->mtu = 1500;
 	netif->flags = NETIF_FLAG_BROADCAST;
 
-	LWP_InitQueue(&enc28j60if->unlockQueue);
 	LWP_InitQueue(&enc28j60if->linkupQueue);
 	LWP_SemInit(&enc28j60if->txSemaphore, 1, 1);
 
@@ -754,7 +741,6 @@ err_t enc28j60if_init(struct netif *netif)
 
 	LWP_SemDestroy(enc28j60if->txSemaphore);
 	LWP_CloseQueue(enc28j60if->linkupQueue);
-	LWP_CloseQueue(enc28j60if->unlockQueue);
 
 	mem_free(enc28j60if);
 	return ERR_IF;

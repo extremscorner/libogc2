@@ -692,7 +692,6 @@ struct w6x00if {
 	s32 txQueued;
 	u16 txQueue[W6100_TX_QUEUELEN + 1];
 	u16 rxQueue;
-	lwpq_t unlockQueue;
 	lwpq_t syncQueue;
 	struct eth_addr *ethaddr;
 };
@@ -944,13 +943,6 @@ static void DbgHandler(u32 irq, frame_context *ctx)
 	ExiHandler(EXI_CHANNEL_2, EXI_DEVICE_0);
 }
 
-static s32 UnlockedHandler(s32 chan, s32 dev)
-{
-	struct w6x00if *w6x00if = w6x00_netif->state;
-	LWP_ThreadBroadcast(w6x00if->unlockQueue);
-	return TRUE;
-}
-
 static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 {
 	bool err = false;
@@ -963,10 +955,7 @@ static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
-	u32 level = IRQ_Disable();
-	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(w6x00if->unlockQueue);
-	IRQ_Restore(level);
+	EXI_LockEx(chan, dev);
 
 	if (!EXI_GetID(chan, dev, &id) || (id != W6100_CID && id != W6300_CID)) {
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
@@ -1089,8 +1078,7 @@ static err_t w6x00_output(struct netif *netif, struct pbuf *p)
 		}
 	}
 
-	while (!EXI_Lock(chan, dev, UnlockedHandler))
-		LWP_ThreadSleep(w6x00if->unlockQueue);
+	EXI_LockEx(chan, dev);
 	IRQ_Restore(level);
 
 	u16 wr = w6x00if->txQueue[w6x00if->txQueued];
@@ -1133,7 +1121,6 @@ err_t w6x00if_init(struct netif *netif)
 	netif->mtu = 1500;
 	netif->flags = NETIF_FLAG_BROADCAST;
 
-	LWP_InitQueue(&w6x00if->unlockQueue);
 	LWP_InitQueue(&w6x00if->syncQueue);
 
 	w6x00if->ethaddr = (struct eth_addr *)netif->hwaddr;
@@ -1160,7 +1147,6 @@ err_t w6x00if_init(struct netif *netif)
 	}
 
 	LWP_CloseQueue(w6x00if->syncQueue);
-	LWP_CloseQueue(w6x00if->unlockQueue);
 
 	mem_free(w6x00if);
 	return ERR_IF;

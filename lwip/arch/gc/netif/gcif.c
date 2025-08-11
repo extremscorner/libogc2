@@ -200,7 +200,6 @@ struct bba_priv {
 	} txrx_stats;
 };
 
-static lwpq_t wait_exi_queue;
 static struct bba_descr cur_descr;
 static struct netif *gc_netif = NULL;
 
@@ -342,22 +341,9 @@ static inline void bba_out8(u32 reg,u8 val)
 	bba_outs(reg,&val,sizeof(val));
 }
 
-static s32 __bba_exi_unlockcb(s32 chn,s32 dev)
-{
-	LWP_ThreadBroadcast(wait_exi_queue);
-	return 1;
-}
-
 static __inline__ void __bba_exi_stop(struct bba_priv *priv)
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-	while(EXI_Lock(EXI_CHANNEL_0,EXI_DEVICE_2,__bba_exi_unlockcb)==0) {
-		LWIP_DEBUGF(NETIF_DEBUG|1,("__bba_exi_wait(exi locked)\n"));
-		LWP_ThreadSleep(wait_exi_queue);
-	}
-	_CPU_ISR_Restore(level);
+	EXI_LockEx(EXI_CHANNEL_0,EXI_DEVICE_2);
 }
 
 static __inline__ void __bba_exi_wake(struct bba_priv *priv)
@@ -385,7 +371,7 @@ static __inline__ void __bba_tx_wake(struct bba_priv *priv)
 	_CPU_ISR_Disable(level);
 	if(priv->state==ERR_TXPENDING) {
 		priv->state = ERR_OK;
-		LWP_ThreadBroadcast(priv->tq_xmit);
+		LWP_ThreadSignal(priv->tq_xmit);
 	}
 	_CPU_ISR_Restore(level);
 }
@@ -898,8 +884,6 @@ err_t bba_init(struct netif *dev)
 	gc_netif = dev;
 
 	LWP_InitQueue(&priv->tq_xmit);
-	LWP_InitQueue(&wait_exi_queue);
-
 	__bba_exi_stop(priv);
 
 	LWIP_DEBUGF(NETIF_DEBUG, ("bba_init(call EXI_RegisterEXICallback())\n"));

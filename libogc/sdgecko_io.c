@@ -73,8 +73,6 @@ static u32 _ioHighSpeed[MAX_DRIVE];
 static u32 _ioRetryCnt[MAX_DRIVE];
 static cardiocallback _ioRetryCB = NULL;
 
-static lwpq_t _ioEXILock[MAX_DRIVE];
-
 static u32 _ioPageSize[MAX_DRIVE];
 static u32 _ioReadSector[MAX_DRIVE];
 static u32 _ioFlag[MAX_DRIVE];
@@ -263,22 +261,6 @@ static u32 __card_checktimeout(s32 drv_no,u32 startT,u32 timeout)
 	return 1;
 }
 
-static s32 __exi_unlock(s32 chn,s32 dev)
-{
-	LWP_ThreadBroadcast(_ioEXILock[chn]);
-	return 1;
-}
-
-static void __exi_wait(s32 drv_no)
-{
-	u32 ret;
-
-	do {
-		if((ret=EXI_Lock(drv_no,_ioCardSelect[drv_no],__exi_unlock))==1) break;
-		LWP_ThreadSleep(_ioEXILock[drv_no]);
-	} while(ret==0);
-}
-
 static s32 __card_exthandler(s32 chn,s32 dev)
 {
 	_ioFlag[chn] = NOT_INITIALIZED;
@@ -299,7 +281,7 @@ static s32 __card_writecmd0(s32 drv_no)
 	cmd[0] = 0x40;
 	crc = __make_crc7(cmd,5);
 
-	__exi_wait(drv_no);
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if(EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
@@ -354,7 +336,7 @@ static s32 __card_writecmd(s32 drv_no,void *buf,s32 len)
 	ptr[0] |= 0x40;
 	crc = __make_crc7(buf,len);
 
-	__exi_wait(drv_no);
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
@@ -395,7 +377,7 @@ static s32 __card_readresponse(s32 drv_no,void *buf,s32 len)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	__exi_wait(drv_no);
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
 		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
@@ -434,7 +416,7 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	__exi_wait(drv_no);
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
 		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
@@ -530,7 +512,7 @@ static s32 __card_datares(s32 drv_no,void *buf)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	__exi_wait(drv_no);
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
 		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
@@ -640,8 +622,8 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	__exi_wait(drv_no);
-	
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
+
 	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
 		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
 		EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]))==0) {
@@ -730,7 +712,7 @@ static s32 __card_datawrite(s32 drv_no,void *buf,u32 len)
 
 	crc = __make_crc16(buf,len);
 
-	__exi_wait(drv_no);
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
@@ -768,8 +750,8 @@ static s32 __card_multidatawrite(s32 drv_no,void *buf,u32 len)
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
 	crc = __make_crc16(buf,len);
-	
-	__exi_wait(drv_no);
+
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
 
 	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
@@ -805,8 +787,8 @@ static s32 __card_multiwritestop(s32 drv_no)
 
 	if(drv_no<0 || drv_no>=MAX_DRIVE) return CARDIO_ERROR_NOCARD;
 
-	__exi_wait(drv_no);
-	
+	EXI_LockEx(drv_no,_ioCardSelect[drv_no]);
+
 	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
@@ -1255,7 +1237,6 @@ void sdgecko_initIODefault(void)
 		_ioCardFreq[i] = EXI_SPEED1MHZ;
 		_ioDefaultSpeed[i] = EXI_SPEED32MHZ;
 		_ioHighSpeed[i] = EXI_SPEEDMAX-1;
-		LWP_InitQueue(&_ioEXILock[i]);
 	}
 }
 
