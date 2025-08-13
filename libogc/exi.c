@@ -655,6 +655,7 @@ static s32 __unlocked_handler(s32 nChn,s32 nDev)
 #ifdef _EXI_DEBUG
 	printf("__unlocked_handler(%d,%d)\n",nChn,nDev);
 #endif
+	EXI_Detach(nChn);
 	EXI_GetID(nChn,nDev,&nId);
 	return 1;
 }
@@ -712,18 +713,16 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 		EXI_Unlock(nChn);
 	}
 
-	if(nChn<EXI_CHANNEL_2 && nDev==EXI_DEVICE_0) {
+	if(nChn<EXI_CHANNEL_2 && nDev==EXI_DEVICE_0 && ret) {
 		EXI_Detach(nChn);
 
-		if(ret) {
-			_CPU_ISR_Disable(level);
-			if(idtime==last_exi_idtime[nChn]) {
-				exi->exi_idtime = idtime;
-				exi->exi_id = *nId;
-			} else
-				ret = 0;
-			_CPU_ISR_Restore(level);
-		}
+		_CPU_ISR_Disable(level);
+		if(idtime==last_exi_idtime[nChn]) {
+			exi->exi_idtime = idtime;
+			exi->exi_id = *nId;
+		} else
+			ret = 0;
+		_CPU_ISR_Restore(level);
 #ifdef _EXI_DEBUG
 		printf("EXI_GetID(exi_id = %d)\n",exi->exi_id);
 #endif
