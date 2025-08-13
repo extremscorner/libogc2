@@ -81,7 +81,6 @@ typedef struct _exibus_priv {
 	u32 exi_id;
 	u64 exi_idtime;
 	u32 lck_cnt;
-	u32 lckd_dev_bits;
 	lwp_queue lckd_dev;
 	lwpq_t unlockqueue;
 	lwpq_t syncqueue;
@@ -162,7 +161,6 @@ static void __exi_initmap(exibus_priv *exim)
 		m->exi_id = 0;
 		m->exi_idtime = 0;
 		m->lck_cnt = 0;
-		m->lckd_dev_bits = 0;
 		__lwp_queue_init_empty(&m->lckd_dev);
 		m->unlockqueue = LWP_TQUEUE_NULL;
 		m->syncqueue = LWP_TQUEUE_NULL;
@@ -248,11 +246,10 @@ s32 EXI_Lock(s32 nChn,s32 nDev,EXICallback unlockCB)
 #endif
 	_CPU_ISR_Disable(level);
 	if(exi->flags&EXI_FLAG_LOCKED) {
-		if(unlockCB && !(exi->lckd_dev_bits&(1<<nDev))) {
+		if(unlockCB) {
 			lckd = (struct _lck_dev*)__lwp_queue_getI(&_lckdev_queue);
 			if(lckd) {
 				exi->lck_cnt++;
-				exi->lckd_dev_bits |= (1<<nDev);
 				lckd->dev = nDev;
 				lckd->unlockcb = unlockCB;
 				__lwp_queue_appendI(&exi->lckd_dev,&lckd->node);
@@ -328,7 +325,6 @@ s32 EXI_Unlock(s32 nChn)
 
 	cb = lckd->unlockcb;
 	dev = lckd->dev;
-	exi->lckd_dev_bits &= ~(1<<dev);
 	if(cb) cb(nChn,dev);
 
 	_CPU_ISR_Restore(level);
