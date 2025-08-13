@@ -574,19 +574,14 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	u32 id;
 
 	while (!EXI_ProbeEx(chan));
+
+	if (!EXI_GetID(chan, dev, &id) || id == 0xFFFFFFFF)
+		return false;
 	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
 	EXI_LockEx(chan, dev);
-
-	if (!EXI_GetID(chan, dev, &id) || id == 0xFFFFFFFF) {
-		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
-			EXI_Detach(chan);
-		EXI_Unlock(chan);
-		return false;
-	}
-
 	Dev[chan] = dev;
 	ENC28J60_Reset(chan);
 	CurrBank[chan] = 0;
@@ -595,9 +590,9 @@ static bool ENC28J60_Init(s32 chan, s32 dev, struct enc28j60if *enc28j60if)
 	if (!EXI_GetIDEx(chan, dev, &id) || id != ENC28J60_CID ||
 		!ENC28J60_ReadPHYReg(chan, ENC28J60_PHID1, &phid1) || phid1 != 0x0083 ||
 		!ENC28J60_ReadPHYReg(chan, ENC28J60_PHID2, &phid2) || phid2 != 0x1400) {
+		EXI_Unlock(chan);
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
-		EXI_Unlock(chan);
 		return false;
 	}
 

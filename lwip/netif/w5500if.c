@@ -549,25 +549,20 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 	u32 id;
 
 	while (!EXI_ProbeEx(chan));
+
+	if (!EXI_GetID(chan, dev, &id) || id != W5500_CID)
+		return false;
 	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
 	EXI_LockEx(chan, dev);
-
-	if (!EXI_GetID(chan, dev, &id) || id != W5500_CID) {
-		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
-			EXI_Detach(chan);
-		EXI_Unlock(chan);
-		return false;
-	}
-
 	Dev[chan] = dev;
 
 	if (!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04) {
+		EXI_Unlock(chan);
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
-		EXI_Unlock(chan);
 		return false;
 	}
 

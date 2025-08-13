@@ -951,18 +951,15 @@ static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 	u32 id;
 
 	while (!EXI_ProbeEx(chan));
+
+	if (!EXI_GetID(chan, dev, &id) || (id != W6100_CID && id != W6300_CID))
+		return false;
 	if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
 	EXI_LockEx(chan, dev);
-
-	if (!EXI_GetID(chan, dev, &id) || (id != W6100_CID && id != W6300_CID)) {
-		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
-			EXI_Detach(chan);
-		EXI_Unlock(chan);
-		return false;
-	}
+	Dev[chan] = dev;
 
 	switch (id) {
 		case W6100_CID:
@@ -975,14 +972,12 @@ static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 			break;
 	}
 
-	Dev[chan] = dev;
-
 	if (!W6X00_ReadReg16(chan, W6X00_CIDR, &cidr) || cidr != 0x6100 ||
 		!W6X00_ReadReg16(chan, W6X00_VER, &ver) || ver != 0x4661 ||
 		!W6X00_ReadReg(chan, W6X00_CIDR2, &cidr2) || cidr2 < 0x10 || cidr2 > 0x11) {
+		EXI_Unlock(chan);
 		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
 			EXI_Detach(chan);
-		EXI_Unlock(chan);
 		return false;
 	}
 
