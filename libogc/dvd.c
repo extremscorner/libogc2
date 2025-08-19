@@ -903,7 +903,7 @@ static void __dvd_statebusycb(s32 result)
 		}
 		if(__dvd_currcmd==0x0019) {
 			if(_diReg[7]&DVD_DI_MODE) {
-				DVD_GcodeLowWrite(__dvd_executing->currtxsize,__dvd_executing->offset+__dvd_executing->txdsize,__dvd_statebusycb);
+				DVD_LowGcodeWrite(__dvd_executing->currtxsize,__dvd_executing->offset+__dvd_executing->txdsize,__dvd_statebusycb);
 				return;
 			}
 			if(_diReg[8]) {
@@ -1623,14 +1623,14 @@ static void __dvd_statebusy(dvdcmdblk *block)
 		case 24:
 			_diReg[1] = _diReg[1];
 			block->currtxsize = block->len;
-			DVD_GcodeLowRead(block->buf,block->len,block->offset,__dvd_statebusycb);
+			DVD_LowGcodeRead(block->buf,block->len,block->offset,__dvd_statebusycb);
 			return;
 		case 25:
 			_diReg[1] = _diReg[1];
 			len = block->len-block->txdsize;
 			if(len<__dvd_gcode_writebufsize) block->currtxsize = len;
 			else block->currtxsize = __dvd_gcode_writebufsize;
-			DVD_GcodeLowWriteBuffer(block->buf+(DVD_GCODE_BLKSIZE*block->txdsize),block->currtxsize,__dvd_statebusycb);
+			DVD_LowGcodeWriteBuffer(block->buf+(DVD_GCODE_BLKSIZE*block->txdsize),block->currtxsize,__dvd_statebusycb);
 			return;
 		default:
 			return;
@@ -2134,10 +2134,10 @@ s32 DVD_LowWriteDma(dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcallbacklow cb)
 	return 1;
 }
 
-s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb)
+s32 DVD_LowGcodeRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
-	printf("DVD_GcodeLowRead(%p,%d,%d)\n",buf,len,offset);
+	printf("DVD_LowGcodeRead(%p,%d,%d)\n",buf,len,offset);
 #endif
 	struct timespec tb;
 
@@ -2158,10 +2158,10 @@ s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb)
 	return 1;
 }
 
-s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb)
+s32 DVD_LowGcodeWriteBuffer(void *buf,u32 len,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
-	printf("DVD_GcodeLowWriteBuffer(%p,%d)\n",buf,len);
+	printf("DVD_LowGcodeWriteBuffer(%p,%d)\n",buf,len);
 #endif
 	struct timespec tb;
 
@@ -2191,10 +2191,10 @@ s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb)
 	return 1;
 }
 
-s32 DVD_GcodeLowWrite(u32 len,u32 offset,dvdcallbacklow cb)
+s32 DVD_LowGcodeWrite(u32 len,u32 offset,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
-	printf("DVD_GcodeLowWrite(%d,%d)\n",len,offset);
+	printf("DVD_LowGcodeWrite(%d,%d)\n",len,offset);
 #endif
 	struct timespec tb;
 
@@ -3527,7 +3527,7 @@ void DVD_Init(void)
 u32 DVD_SetAutoInvalidation(u32 auto_inv)
 {
 	u32 ret = __dvd_autoinvalidation;
-	__dvd_autoinvalidation= auto_inv;
+	__dvd_autoinvalidation = auto_inv;
 	return ret;
 }
 
@@ -3568,6 +3568,7 @@ static bool __gcdvd_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 	if(numSectors & ~0x1fffff) return false;
 	if(disc->bytesPerSector != 2048) return false;
 	if(!SYS_IsDMAAddress(buffer, 32)) return false;
+	if(!__dvd_initflag) return false;
 
 	if(DVD_ReadAbs(&blk, buffer, numSectors << 11, sector << 11) < 0)
 		return false;
@@ -3588,21 +3589,30 @@ static bool __gcdvd_ClearStatus(DISC_INTERFACE *disc)
 static bool __gcdvd_Shutdown(DISC_INTERFACE *disc)
 {
 	dvdcmdblk blk;
+
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_DVD) return false;
+	if(!__dvd_initflag) return true;
+
 	DVD_StopMotor(&blk);
 	return true;
 }
 
 static bool __gcode_Startup(DISC_INTERFACE *disc)
 {
+	s32 cover;
 	dvdcmdblk blk;
+
+	do {
+		cover = DVD_LowGetCoverStatus();
+	} while(cover == DVD_COVER_RESET);
+
+	if(cover == DVD_COVER_OPEN)
+		return false;
 
 	DVD_Init();
 	DVD_Reset(DVD_RESETNONE);
 
-	if(DVD_Inquiry(&blk, &__dvd_driveinfo) < 0)
-		return false;
-
-	if(__dvd_driveinfo.rel_date != 0x20196c64)
+	if(DVD_Inquiry(&blk, &__dvd_driveinfo) < 0 || __dvd_driveinfo.rel_date != 0x20196c64)
 		return false;
 
 	if(__dvd_driveinfo.pad[1] == 'w')
@@ -3611,13 +3621,18 @@ static bool __gcode_Startup(DISC_INTERFACE *disc)
 		disc->features &= ~FEATURE_MEDIUM_CANWRITE;
 
 	__dvd_gcode_writebufsize = __dvd_driveinfo.pad[3] + 1;
-
 	return true;
 }
 
 static bool __gcode_IsInserted(DISC_INTERFACE *disc)
 {
-	if(DVD_LowGetCoverStatus() == DVD_COVER_OPEN)
+	s32 cover;
+
+	do {
+		cover = DVD_LowGetCoverStatus();
+	} while(cover == DVD_COVER_RESET);
+
+	if(cover == DVD_COVER_OPEN)
 		return false;
 
 	return true;
@@ -3633,6 +3648,7 @@ static bool __gcode_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 	if(numSectors & ~0x7fffff) return false;
 	if(disc->bytesPerSector != 512) return false;
 	if(!SYS_IsDMAAddress(buffer, 32)) return false;
+	if(!__dvd_initflag) return false;
 
 	if(DVD_GcodeRead(&blk, buffer, numSectors << 9, sector) < 0)
 		return false;
@@ -3650,6 +3666,7 @@ static bool __gcode_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSect
 	if((u32)numSectors != numSectors) return false;
 	if(disc->bytesPerSector != 512) return false;
 	if(!SYS_IsDMAAddress(buffer, 32)) return false;
+	if(!__dvd_initflag) return false;
 
 	if(DVD_GcodeWrite(&blk, buffer, numSectors, sector) < 0)
 		return false;

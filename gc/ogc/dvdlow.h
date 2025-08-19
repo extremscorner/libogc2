@@ -44,9 +44,9 @@ s32 DVD_LowReadImm(dvdcmdbuf cmdbuf,dvdcallbacklow cb);
 s32 DVD_LowWriteImm(dvdcmdbuf cmdbuf,u32 immbuf,dvdcallbacklow cb);
 s32 DVD_LowReadDma(dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcallbacklow cb);
 s32 DVD_LowWriteDma(dvdcmdbuf cmdbuf,void *buf,u32 len,dvdcallbacklow cb);
-s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb);
-s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb);
-s32 DVD_GcodeLowWrite(u32 len,u32 offset,dvdcallbacklow cb);
+s32 DVD_LowGcodeRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb);
+s32 DVD_LowGcodeWriteBuffer(void *buf,u32 len,dvdcallbacklow cb);
+s32 DVD_LowGcodeWrite(u32 len,u32 offset,dvdcallbacklow cb);
 
 #ifdef __cplusplus
    }
