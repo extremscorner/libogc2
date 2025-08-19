@@ -1957,12 +1957,12 @@ u32 SYS_GetConsoleType(void)
 			case 0x0003:
 			case 0x0203:
 				type = SYS_CONSOLE_RETAIL_ES1_0;
-				type += *((u32*)0x80003138);
+				type += SYS_GetHollywoodRevision();
 				break;
 			case 0x0201:
 			case 0x0202:
 				type = SYS_CONSOLE_NDEV_ES1_0;
-				type += *((u32*)0x80003138);
+				type += SYS_GetHollywoodRevision();
 				break;
 			case 0x0300:
 				type = SYS_CONSOLE_ARCADE;
@@ -1970,7 +1970,7 @@ u32 SYS_GetConsoleType(void)
 		}
 	} else {
 		type = SYS_CONSOLE_RETAIL_ES1_0;
-		type += *((u32*)0x80003138);
+		type += SYS_GetHollywoodRevision();
 	}
 	return type;
 }
@@ -1978,7 +1978,6 @@ u32 SYS_GetConsoleType(void)
 u32 SYS_GetHollywoodRevision(void)
 {
 	u32 rev;
-	DCInvalidateRange((void*)0x80003138,8);
 	rev = *((u32*)0x80003138);
 	return rev;
 }

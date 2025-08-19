@@ -219,11 +219,12 @@ s32 STM_ShutdownToIdle(void)
 #endif
 		return STM_ENOTINIT;
 	}
-	switch(SYS_GetHollywoodRevision()) {
+	switch(SYS_GetHollywoodRevision()>>4) {
 		case 0:
+			__stm_immbufin[0] = 0xBCA08280;
+			break;
 		case 1:
-		case 2:
-			__stm_immbufin[0] = 0xFCA08280;
+			__stm_immbufin[0] = 0xBCE082C0;
 			break;
 		default:
 			__stm_immbufin[0] = 0xFCE082C0;
