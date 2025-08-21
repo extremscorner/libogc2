@@ -104,6 +104,8 @@ static sys_fontheader *sys_fontdata = NULL;
 
 static lwp_queue sys_reset_func_queue;
 static u32 system_initialized = 0;
+static bool sys_restart = false;
+static bool sys_poweroff = false;
 
 static void *__sysarena1lo = NULL;
 static void *__sysarena1hi = NULL;
@@ -115,12 +117,10 @@ static void *__ipcbufferhi = NULL;
 #endif
 
 static void __RSWDefaultHandler(void);
-static resetcallback __RSWCallback = NULL;
+static resetcallback __RSWCallback = __RSWDefaultHandler;
 #if defined(HW_RVL)
 static void __POWDefaultHandler(void);
-static powercallback __POWCallback = NULL;
-
-static u32 __sys_resetdown = 0;
+static powercallback __POWCallback = __POWDefaultHandler;
 #endif
 
 static vu16* const _viReg = (u16*)0xCC002000;
@@ -263,6 +263,11 @@ void __reload(void)
 
 void __syscall_exit(int rc)
 {
+#if defined(HW_RVL)
+	if(sys_poweroff) {
+		SYS_ResetSystem(SYS_POWEROFF, 0, FALSE);
+	}
+#endif
 	if(__stub_found()) {
 		SYS_ResetSystem(SYS_SHUTDOWN, 0, FALSE);
 		__lwp_thread_stopmultitasking(reload);
@@ -333,12 +338,13 @@ static void __MEMInterruptHandler(u32 irq,frame_context *ctx)
 
 static void __RSWDefaultHandler(void)
 {
-
+	sys_restart = true;
 }
 
 #if defined(HW_RVL)
 static void __POWDefaultHandler(void)
 {
+	sys_poweroff = true;
 }
 #endif
 
@@ -373,10 +379,7 @@ static void __STMEventHandler(u32 event)
 		ret = SYS_ResetButtonDown();
 		if(ret) {
 			_CPU_ISR_Disable(level);
-			__sys_resetdown = 1;
-			if(__RSWCallback) {
-				__RSWCallback();
-			}
+			__RSWCallback();
 			_CPU_ISR_Restore(level);
 		}
 	}
@@ -997,15 +1000,6 @@ void __SYS_DoPowerCB(void)
 }
 #endif
 
-void __SYS_InitCallbacks(void)
-{
-#if defined(HW_RVL)
-	__POWCallback = __POWDefaultHandler;
-	__sys_resetdown = 0;
-#endif
-	__RSWCallback = __RSWDefaultHandler;
-}
-
 void __attribute__((weak)) __SYS_PreInit(void)
 {
 
@@ -1053,12 +1047,11 @@ void SYS_Init(void)
 		__memprotect_init();
 
 	DisableWriteGatherPipe();
-	__SYS_InitCallbacks();
 #if defined(HW_RVL)
 	__IPC_ClntInit();
 #elif defined(HW_DOL)
 	IRQ_Request(IRQ_PI_RSW,__RSWHandler);
-	__MaskIrq(IRQMASK(IRQ_PI_RSW));
+	__UnmaskIrq(IRQMASK(IRQ_PI_RSW));
 #endif
 	__libc_init(1);
 	__lwp_thread_startmultitasking();
@@ -1083,6 +1076,11 @@ void SYS_PreMain(void)
 	__SYS_SetBootTime();
 	WII_Initialize();
 #endif
+}
+
+bool SYS_MainLoop(void)
+{
+	return !(sys_restart|sys_poweroff);
 }
 
 u32 SYS_ResetButtonDown(void)
@@ -1619,15 +1617,12 @@ resetcallback SYS_SetResetCallback(resetcallback cb)
 
 	_CPU_ISR_Disable(level);
 	old = __RSWCallback;
-	__RSWCallback = cb;
-#if defined(HW_DOL)
-	if(__RSWCallback) {
-		_piReg[0] = 2;
-		__UnmaskIrq(IRQMASK(IRQ_PI_RSW));
-	} else
-		__MaskIrq(IRQMASK(IRQ_PI_RSW));
-#endif
+	if(cb)
+		__RSWCallback = cb;
+	else
+		__RSWCallback = __RSWDefaultHandler;
 	_CPU_ISR_Restore(level);
+
 	return old;
 }
 
@@ -1639,8 +1634,12 @@ powercallback SYS_SetPowerCallback(powercallback cb)
 
 	_CPU_ISR_Disable(level);
 	old = __POWCallback;
-	__POWCallback = cb;
+	if(cb)
+		__POWCallback = cb;
+	else
+		__POWCallback = __POWDefaultHandler;
 	_CPU_ISR_Restore(level);
+
 	return old;
 }
 #endif

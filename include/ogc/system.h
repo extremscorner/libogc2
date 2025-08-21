@@ -2,7 +2,7 @@
 
 system.h -- OS functions and initialization
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -296,6 +296,29 @@ struct _sys_resetinfo {
 \return none
 */
 void SYS_Init(void);
+
+
+/*!
+ * \fn bool SYS_MainLoop(void)
+ * \brief Performs default processing of reset and power button events.
+ *
+ * This function checks the state of the reset (and on Wii, power) buttons. If either button is pressed
+ * this function returns false, indicating that the application should quit. Call this function in your
+ * main loop like this:
+ *
+ * @code
+ * while (SYS_MainLoop()) {
+ *   VIDEO_WaitVSync();
+ *   // processing etc ...
+ * }
+ * @endcode
+ *
+ * If this function returns false, returning from main() or calling exit() ignores the reload stub, and
+ * libogc2 will automatically reset or power off the console.
+ *
+ * \return Returns true if the application should continue running, false if it should clean up and exit.
+ */
+bool SYS_MainLoop(void);
 
 
 /*!
