@@ -1788,7 +1788,7 @@ void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u
 {
 	f32 x0,y0,x1,y1,n,f,z;
 	static const f32 Xfactor = 0.5f;
-	static const f32 Yfactor = 342.0f;
+	static const f32 Yfactor = 342.0f+(0.5f/12.0f);
 	static const f32 Zfactor = 16777215.0f;
 
 	if(!field) yOrig -= Xfactor;
@@ -4075,8 +4075,8 @@ void GX_SetClipMode(u8 mode)
 
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
 {
-	u32 xo = xOrigin+0x156;
-	u32 yo = yOrigin+0x156;
+	u32 xo = xOrigin+342;
+	u32 yo = yOrigin+342;
 	u32 nwd = xo+(wd-1);
 	u32 nht = yo+(ht-1);
 
@@ -4097,16 +4097,16 @@ void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
 	u32 nwd = _SHIFTR(__gx->sciBRcorner,12,11);
 	u32 nht = _SHIFTL(__gx->sciBRcorner,0,11);
 
-	*xOrigin = xo-0x156;
-	*yOrigin = yo-0x156;
+	*xOrigin = xo-342;
+	*yOrigin = yo-342;
 	*wd = (nwd+1)-xo;
 	*ht = (nht+1)-yo;
 }
 
 void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
 {
-	s32 xoff = _SHIFTR((xoffset+0x156),1,24);
-	s32 yoff = _SHIFTR((yoffset+0x156),1,24);
+	s32 xoff = _SHIFTR((xoffset+342),1,24);
+	s32 yoff = _SHIFTR((yoffset+342),1,24);
 
 	GX_LOAD_BP_REG((0x59000000|(_SHIFTL(yoff,10,10))|(xoff&0x3ff)));
 }
@@ -4490,7 +4490,7 @@ void GX_SetFogRangeAdj(u8 enable,u16 center,const GXFogAdjTbl *table)
 		val = 0xed000000|(_SHIFTL(table->r[9],12,12))|(table->r[8]&0x0fff);
 		GX_LOAD_BP_REG(val);
 	}
-	val = 0xe8000000|(_SHIFTL(enable,10,1))|((center + 342)&0x03ff);
+	val = 0xe8000000|(_SHIFTL(enable,10,1))|((center+342)&0x03ff);
 	GX_LOAD_BP_REG(val);
 }
 
