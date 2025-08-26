@@ -2089,7 +2089,7 @@ static inline void __adjustPosition(u16 acv)
 	if(HorVer.fbMode==VI_XFBMODE_SF) fact = 2;
 
 	dispPosY = HorVer.dispPosY+displayOffsetV;
-	field = dispPosY&0x0001;
+	field = dispPosY&1;
 	if(dispPosY>field) HorVer.adjustedDispPosY = dispPosY;
 	else HorVer.adjustedDispPosY = field;
 
@@ -2899,19 +2899,21 @@ u32 VIDEO_GetRetraceCount(void)
 
 u32 VIDEO_GetNextField(void)
 {
-	u32 level,nextfield;
+	u32 level,field;
 
 	_CPU_ISR_Disable(level);
-	nextfield = __getCurrentFieldEvenOdd()^1;		//we've to swap the result because it shows us only the current field,so we've the next field either even or odd
+	if(HorVer.fbMode<VI_XFBMODE_PSF) {
+		field = __getCurrentFieldEvenOdd();
+		field ^= (HorVer.adjustedDispPosY&1)^1;
+	} else field = VI_FRAME;
 	_CPU_ISR_Restore(level);
 
-	return nextfield^(HorVer.adjustedDispPosY&0x0001);	//if the YOrigin is at an odd position we've to swap it again, since the Fb registers are set swapped if this rule applies
+	return field;
 }
 
 u32 VIDEO_GetCurrentTvMode(void)
 {
-	u32 level;
-	u32 tv;
+	u32 level,tv;
 
 	_CPU_ISR_Disable(level);
 	if(currTvMode==VI_PAL) tv = VI_PAL;
@@ -2926,8 +2928,7 @@ u32 VIDEO_GetCurrentTvMode(void)
 
 u32 VIDEO_GetScanMode(void)
 {
-	u32 level;
-	u32 nonint;
+	u32 level,nonint;
 
 	_CPU_ISR_Disable(level);
 	if(_SHIFTR(_viReg[1],2,1)) {
@@ -3019,16 +3020,14 @@ GXRModeObj *rmode = NULL;
 
 u32 VIDEO_GetCurrentLine(void)
 {
-	u32 level,curr_hl = 0;
+	u32 level,hline;
 
 	_CPU_ISR_Disable(level);
-	curr_hl = __getCurrentHalfLine();
+	hline = __getCurrentHalfLine();
+	if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
 	_CPU_ISR_Restore(level);
 
-	if(curr_hl>=currTiming->nhlines) curr_hl -=currTiming->nhlines;
-	curr_hl >>= 1;
-
-	return curr_hl;
+	return hline>>1;
 }
 
 VIRetraceCallback VIDEO_SetPreRetraceCallback(VIRetraceCallback callback)
@@ -3089,8 +3088,7 @@ void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)
 
 u32 VIDEO_HaveComponentCable(void)
 {
-	u32 level;
-	u32 dtv;
+	u32 level,dtv;
 
 	_CPU_ISR_Disable(level);
 	dtv = (_viReg[55]&0x0001);
