@@ -208,10 +208,10 @@ GXRModeObj TVNtsc240IntAa =
 
     // sample points arranged in increasing Y order
     {
-        {3,2},{9,6},{3,10}, // pix 0, 3 sample points, 1/12 units, 4 bits each
-        {3,2},{9,6},{3,10}, // pix 1
-        {9,2},{3,6},{9,10}, // pix 2
-        {9,2},{3,6},{9,10}  // pix 3
+        {3,4},{9,6},{3,8},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {3,4},{9,6},{3,8},  // pix 1
+        {9,4},{3,6},{9,8},  // pix 2
+        {9,4},{3,6},{9,8}   // pix 3
     },
     // vertical filter[7], 1/64 units, 6 bits each
     {
@@ -538,10 +538,10 @@ GXRModeObj TVMpal240IntAa =
 
     // sample points arranged in increasing Y order
     {
-        {3,2},{9,6},{3,10}, // pix 0, 3 sample points, 1/12 units, 4 bits each
-        {3,2},{9,6},{3,10}, // pix 1
-        {9,2},{3,6},{9,10}, // pix 2
-        {9,2},{3,6},{9,10}  // pix 3
+        {3,4},{9,6},{3,8},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {3,4},{9,6},{3,8},  // pix 1
+        {9,4},{3,6},{9,8},  // pix 2
+        {9,4},{3,6},{9,8}   // pix 3
     },
     // vertical filter[7], 1/64 units, 6 bits each
     {
@@ -868,10 +868,10 @@ GXRModeObj TVPal264IntAa =
 
     // sample points arranged in increasing Y order
     {
-        {3,2},{9,6},{3,10}, // pix 0, 3 sample points, 1/12 units, 4 bits each
-        {3,2},{9,6},{3,10}, // pix 1
-        {9,2},{3,6},{9,10}, // pix 2
-        {9,2},{3,6},{9,10}  // pix 3
+        {3,4},{9,6},{3,8},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {3,4},{9,6},{3,8},  // pix 1
+        {9,4},{3,6},{9,8},  // pix 2
+        {9,4},{3,6},{9,8}   // pix 3
     },
     // vertical filter[7], 1/64 units, 6 bits each
     {
@@ -1330,10 +1330,10 @@ GXRModeObj TVEurgb60Hz240IntAa =
 
     // sample points arranged in increasing Y order
     {
-        {3,2},{9,6},{3,10}, // pix 0, 3 sample points, 1/12 units, 4 bits each
-        {3,2},{9,6},{3,10}, // pix 1
-        {9,2},{3,6},{9,10}, // pix 2
-        {9,2},{3,6},{9,10}  // pix 3
+        {3,4},{9,6},{3,8},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {3,4},{9,6},{3,8},  // pix 1
+        {9,4},{3,6},{9,8},  // pix 2
+        {9,4},{3,6},{9,8}   // pix 3
     },
     // vertical filter[7], 1/64 units, 6 bits each
     {
@@ -2397,9 +2397,8 @@ static inline u32 __getCurrentFieldEvenOdd(void)
 	u32 hline;
 
 	hline = __getCurrentHalfLine();
-	if(hline<currTiming->nhlines) return 1;
-
-	return 0;
+	if(hline<currTiming->nhlines) return VI_FIELD_ABOVE;
+	else return VI_FIELD_BELOW;
 }
 
 static inline u32 __VISetRegs(void)
