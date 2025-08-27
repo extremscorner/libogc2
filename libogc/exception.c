@@ -46,6 +46,7 @@ distribution.
 #include "console.h"
 #include "lwp_threads.h"
 #include "ios.h"
+#include "stm.h"
 
 #include "video.h"
 #include "video_types.h"
@@ -173,7 +174,7 @@ static void _cpu_print_stack(void *pc,void *lr,void *r1)
 	p = r1;
 	if(!p) __asm__ __volatile__("mr %0,%%r1" : "=r"(p));
 
-	kprintf("\n\tSTACK DUMP:");
+	kprintf("\n\n\tSTACK DUMP:");
 
 	for(i=0;i<CPU_STACK_TRACE_DEPTH-1 && p->up;p=p->up,i++) {
 		if(i%4) kprintf(" --> ");
@@ -209,17 +210,17 @@ void __exception_setreload(int t)
 
 static void waitForReload(void)
 {
-	u32 level;
-
 	PAD_Init();
 
 	PAD_ControlAllMotors(rumble_cmds);
 
-	if(reload_timer > 0)
-		kprintf("\n\tReloading in %d seconds\n", reload_timer/50);
+	kprintf("\n\n\tPress RESET (or Z on your GameCube Controller) to reload.\n\n");
 
 	while ( 1 )
 	{
+		if(reload_timer > 0)
+			kprintf("\tReloading in %d seconds\x1b[0K\r", reload_timer/50);
+
 		PAD_ScanPads();
 
 		u16 buttonsDown = PAD_ButtonsDown(0) | PAD_ButtonsDown(1) | PAD_ButtonsDown(2) | PAD_ButtonsDown(3);
@@ -227,18 +228,17 @@ static void waitForReload(void)
 		if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() || 
 			reload_timer == 0 )
 		{
-			kprintf("\n\tReload\n\n\n");
-			_CPU_ISR_Disable(level);
-			__reload ();
+			kprintf("\tReloading\x1b[0K\n\n\n");
+			__reload();
 		}
 
 		if ( buttonsDown & PAD_BUTTON_A )
 		{
-			kprintf("\n\tReset\n\n\n");
+			kprintf("\tResetting\x1b[0K\n\n\n");
 #if defined(HW_DOL)
 			__SYS_DoHotReset(0);
 #else
-			__reload ();
+			STM_RebootSystem();
 #endif
 		}
 
@@ -260,27 +260,27 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	VIDEO_SetFramebuffer(exception_xfb);
 
-	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
+	kprintf("\n\n\n\tException (%s) occurred!", exception_name[pCtx->EXCPT_Number]);
 
-	kprintf("\tGPR00 %08X GPR08 %08X GPR16 %08X GPR24 %08X\n",pCtx->GPR[0], pCtx->GPR[8], pCtx->GPR[16], pCtx->GPR[24]);
-	kprintf("\tGPR01 %08X GPR09 %08X GPR17 %08X GPR25 %08X\n",pCtx->GPR[1], pCtx->GPR[9], pCtx->GPR[17], pCtx->GPR[25]);
-	kprintf("\tGPR02 %08X GPR10 %08X GPR18 %08X GPR26 %08X\n",pCtx->GPR[2], pCtx->GPR[10], pCtx->GPR[18], pCtx->GPR[26]);
-	kprintf("\tGPR03 %08X GPR11 %08X GPR19 %08X GPR27 %08X\n",pCtx->GPR[3], pCtx->GPR[11], pCtx->GPR[19], pCtx->GPR[27]);
-	kprintf("\tGPR04 %08X GPR12 %08X GPR20 %08X GPR28 %08X\n",pCtx->GPR[4], pCtx->GPR[12], pCtx->GPR[20], pCtx->GPR[28]);
-	kprintf("\tGPR05 %08X GPR13 %08X GPR21 %08X GPR29 %08X\n",pCtx->GPR[5], pCtx->GPR[13], pCtx->GPR[21], pCtx->GPR[29]);
-	kprintf("\tGPR06 %08X GPR14 %08X GPR22 %08X GPR30 %08X\n",pCtx->GPR[6], pCtx->GPR[14], pCtx->GPR[22], pCtx->GPR[30]);
-	kprintf("\tGPR07 %08X GPR15 %08X GPR23 %08X GPR31 %08X\n",pCtx->GPR[7], pCtx->GPR[15], pCtx->GPR[23], pCtx->GPR[31]);
-	kprintf("\tLR %08X SRR0 %08X SRR1 %08X MSR %08X\n", pCtx->LR, pCtx->SRR0, pCtx->SRR1, pCtx->MSR);
-	kprintf("\tDAR %08X DSISR %08X\n", mfspr(19), mfspr(18));
+	kprintf("\n\tGPR00 %08X GPR08 %08X GPR16 %08X GPR24 %08X", pCtx->GPR[0], pCtx->GPR[8], pCtx->GPR[16], pCtx->GPR[24]);
+	kprintf("\n\tGPR01 %08X GPR09 %08X GPR17 %08X GPR25 %08X", pCtx->GPR[1], pCtx->GPR[9], pCtx->GPR[17], pCtx->GPR[25]);
+	kprintf("\n\tGPR02 %08X GPR10 %08X GPR18 %08X GPR26 %08X", pCtx->GPR[2], pCtx->GPR[10], pCtx->GPR[18], pCtx->GPR[26]);
+	kprintf("\n\tGPR03 %08X GPR11 %08X GPR19 %08X GPR27 %08X", pCtx->GPR[3], pCtx->GPR[11], pCtx->GPR[19], pCtx->GPR[27]);
+	kprintf("\n\tGPR04 %08X GPR12 %08X GPR20 %08X GPR28 %08X", pCtx->GPR[4], pCtx->GPR[12], pCtx->GPR[20], pCtx->GPR[28]);
+	kprintf("\n\tGPR05 %08X GPR13 %08X GPR21 %08X GPR29 %08X", pCtx->GPR[5], pCtx->GPR[13], pCtx->GPR[21], pCtx->GPR[29]);
+	kprintf("\n\tGPR06 %08X GPR14 %08X GPR22 %08X GPR30 %08X", pCtx->GPR[6], pCtx->GPR[14], pCtx->GPR[22], pCtx->GPR[30]);
+	kprintf("\n\tGPR07 %08X GPR15 %08X GPR23 %08X GPR31 %08X", pCtx->GPR[7], pCtx->GPR[15], pCtx->GPR[23], pCtx->GPR[31]);
+	kprintf("\n\tLR %08X SRR0 %08X SRR1 %08X MSR %08X", pCtx->LR, pCtx->SRR0, pCtx->SRR1, pCtx->MSR);
+	kprintf("\n\tDAR %08X DSISR %08X", mfspr(19), mfspr(18));
 
 	_cpu_print_stack((void*)pCtx->SRR0,(void*)pCtx->LR,(void*)pCtx->GPR[1]);
 
 	if((pCtx->EXCPT_Number==EX_DSI) || (pCtx->EXCPT_Number==EX_FP)) {
 		u32 i;
 		u32 *pAdd = (u32*)pCtx->SRR0;
-		kprintf("\n\n\tCODE DUMP:\n");
+		kprintf("\n\n\tCODE DUMP:");
 		for (i=0; i<12; i+=4)
-			kprintf("\t%p:  %08X %08X %08X %08X\n",
+			kprintf("\n\t%p:  %08X %08X %08X %08X",
 			&(pAdd[i]),pAdd[i], pAdd[i+1], pAdd[i+2], pAdd[i+3]);
 	}
 
