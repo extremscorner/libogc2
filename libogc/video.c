@@ -129,9 +129,9 @@ GXRModeObj TVNtsc240Ds =
 GXRModeObj TVNtsc240DsAa =
 {
     VI_TVMODE_NTSC_DS,      // viTVMode
-    640,             // fbWidth
-    240,             // efbHeight
-    240,             // xfbHeight
+    640,            // fbWidth
+    240,            // efbHeight
+    240,            // xfbHeight
     (VI_MAX_WIDTH_NTSC - 640)/2,        // viXOrigin
     (VI_MAX_HEIGHT_NTSC/2 - 480/2)/2,   // viYOrigin
     640,            // viWidth
