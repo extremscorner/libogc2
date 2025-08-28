@@ -214,7 +214,7 @@ static void waitForReload(void)
 
 	PAD_ControlAllMotors(rumble_cmds);
 
-	kprintf("\n\n\tPress RESET (or Z on your GameCube Controller) to reload.\n\n");
+	kprintf("\n\n\tPress RESET, or Z on a GameCube Controller, to reload.\n\n");
 
 	while ( 1 )
 	{
