@@ -39,6 +39,7 @@ export LIBASNDDIR	:= $(BASEDIR)/libasnd
 export LIBAESNDDIR	:= $(BASEDIR)/libaesnd
 export LIBISODIR	:= $(BASEDIR)/libiso9660
 export LIBWIIKEYB	:= $(BASEDIR)/libwiikeyboard
+export LIBM2LOADER	:= $(BASEDIR)/libm2loader
 export DEPS			:=	$(BASEDIR)/deps
 export LIBS			:=	$(BASEDIR)/lib
 
@@ -69,6 +70,7 @@ ASNDLIB		:= $(LIBDIR)/libasnd
 AESNDLIB	:= $(LIBDIR)/libaesnd
 ISOLIB		:= $(LIBDIR)/libiso9660
 WIIKEYBLIB	:= $(LIBDIR)/libwiikeyboard
+M2LOADERLIB	:= $(LIBDIR)/libm2loader
 
 #---------------------------------------------------------------------------------
 DEFINCS		:= -I$(BASEDIR) -I$(BASEDIR)/gc
@@ -118,7 +120,8 @@ VPATH :=	$(LWIPDIR)				\
 			$(LIBASNDDIR)		\
 			$(LIBAESNDDIR)		\
 			$(LIBISODIR)		\
-			$(LIBWIIKEYB)
+			$(LIBWIIKEYB)		\
+			$(LIBM2LOADER)
 
 
 #---------------------------------------------------------------------------------
@@ -178,6 +181,8 @@ ISOLIBOBJ	:=	iso9660.o
 #---------------------------------------------------------------------------------
 WIIKEYBLIBOBJ	:=	usbkeyboard.o keyboard.o ukbdmap.o wskbdutil.o
 
+#---------------------------------------------------------------------------------
+M2LOADEROBJ	:=	m2loader.o
 
 
 all: wii cube
@@ -263,6 +268,8 @@ $(BTELIB).a: $(BTEOBJ)
 #---------------------------------------------------------------------------------
 $(WIIUSELIB).a: $(WIIUSEOBJ)
 #---------------------------------------------------------------------------------
+$(M2LOADERLIB).a: $(M2LOADEROBJ)
+#---------------------------------------------------------------------------------
 
 .PHONY: libs wii cube install-headers install uninstall dist docs
 
@@ -278,6 +285,7 @@ install-headers:
 	@mkdir -p $(INCDIR)/sdcard
 	@mkdir -p $(INCDIR)/di
 	@mkdir -p $(INCDIR)/wiikeyboard
+	@mkdir -p $(INCDIR)/m2loader
 	@cp ./gc/*.h $(INCDIR)
 	@cp ./gc/ogc/*.h $(INCDIR)/ogc
 	@cp ./gc/ogc/machine/*.h $(INCDIR)/ogc/machine
@@ -288,6 +296,7 @@ install-headers:
 	@cp ./gc/sdcard/*.h $(INCDIR)/sdcard
 	@cp ./gc/di/*.h $(INCDIR)/di
 	@cp ./gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
+	@cp ./gc/m2loader/*.h $(INCDIR)/m2loader
 
 #---------------------------------------------------------------------------------
 install: wii cube install-headers
@@ -315,7 +324,7 @@ dist: wii cube install-headers
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a $(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
 
 ifeq ($(PLATFORM),cube)
-LIBRARIES	+=	$(BBALIB).a
+LIBRARIES	+=	$(BBALIB).a $(M2LOADERLIB).a
 endif
 ifeq ($(PLATFORM),wii)
 LIBRARIES	+=	$(BTELIB).a $(WIIUSELIB).a $(DILIB).a $(WIIKEYBLIB).a
