@@ -14,16 +14,8 @@
 #include "gx_regdef.h"
 
 //#define _GP_DEBUG
-#define TEXCACHE_TESTING
 
-
-#define GX_FINISH		2
-
-#if defined(HW_DOL)
-	#define LARGE_NUMBER	(-1048576.0f)
-#elif defined(HW_RVL)
-	#define LARGE_NUMBER	(-1.0e+18f)
-#endif
+#define LARGE_NUMBER	(-1.0e+18f)
 
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
@@ -112,7 +104,6 @@ static const u8 _gxteximg2ids[8] = {0x90,0x91,0x92,0x93,0xB0,0xB1,0xB2,0xB3};
 static const u8 _gxteximg3ids[8] = {0x94,0x95,0x96,0x97,0xB4,0xB5,0xB6,0xB7};
 static const u8 _gxtextlutids[8] = {0x98,0x99,0x9A,0x9B,0xB8,0xB9,0xBA,0xBB};
 
-#if defined(HW_RVL)
 static const u32 _gxtexregionaddrtable[48] =
 {
 	0x00000000,0x00010000,0x00020000,0x00030000,
@@ -128,8 +119,6 @@ static const u32 _gxtexregionaddrtable[48] =
 	0x00080000,0x00010000,0x000A0000,0x00030000,
 	0x00080000,0x00050000,0x000A0000,0x00070000
 };
-#endif
-
 
 static u8 __gxregs[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
 static struct __gx_regdef* const __gx = (struct __gx_regdef*)__gxregs;
@@ -289,7 +278,6 @@ static u32 __GX_ReadPECounterU32(u32 reg)
 	return (u32)((ucnt<<16)|lcnt);
 }
 
-#ifdef HW_RVL
 static u32 __GX_ReadMemCounterU32(u32 reg)
 {
 	u16 lcnt,ucnt,tmp;
@@ -326,7 +314,6 @@ static void __GX_Abort(void)
 	_piReg[6] = 0;
 	__GX_WaitAbort(5);
 }
-#endif
 
 static void __GX_SaveFifo(void)
 {
@@ -577,7 +564,6 @@ static void __GX_SetTmemConfig(u8 nr)
 	}
 }
 
-#if defined(HW_RVL)
 static GXTexRegion* __GXDefTexRegionCallback(const GXTexObj *obj,u8 mapid)
 {
 	u32 fmt,mipmap;
@@ -596,26 +582,6 @@ static GXTexRegion* __GXDefTexRegionCallback(const GXTexObj *obj,u8 mapid)
 
 	return ret;
 }
-#else
-static GXTexRegion* __GXDefTexRegionCallback(const GXTexObj *obj,u8 mapid)
-{
-	u32 fmt;
-	u32 idx;
-	static u32 regionA = 0;
-	static u32 regionB = 0;
-	GXTexRegion *ret = NULL;
-
-	fmt = GX_GetTexObjFmt(obj);
-	if(fmt==0x0008 || fmt==0x0009 || fmt==0x000a) {
-		idx = regionB++;
-		ret = &__gx->texRegion[(idx&3)+8];
-	} else {
-		idx = regionA++;
-		ret = &__gx->texRegion[(idx&7)];
-	}
-	return ret;
-}
-#endif
 
 static GXTlutRegion* __GXDefTlutRegionCallback(u32 tlut_name)
 {
@@ -636,7 +602,7 @@ static void __GX_InitGX(void)
 
 	rmode = VIDEO_GetPreferredMode(NULL);
 
-	GX_SetCopyClear((GXColor)BLACK,0xffffff);
+	GX_SetCopyClear((GXColor)BLACK,GX_MAX_Z24);
 	GX_SetTexCoordGen(GX_TEXCOORD0,GX_TG_MTX2x4,GX_TG_TEX0,GX_IDENTITY);
 	GX_SetTexCoordGen(GX_TEXCOORD1,GX_TG_MTX2x4,GX_TG_TEX1,GX_IDENTITY);
 	GX_SetTexCoordGen(GX_TEXCOORD2,GX_TG_MTX2x4,GX_TG_TEX2,GX_IDENTITY);
@@ -747,7 +713,7 @@ static void __GX_InitGX(void)
 	if(rmode->viHeight==(rmode->xfbHeight<<1)) flag = 1;
 	GX_SetFieldMode(rmode->field_rendering,flag);
 
-	GX_SetCopyClear((GXColor)GX_DEFAULT_BG,0x00ffffff);
+	GX_SetCopyClear((GXColor)GX_DEFAULT_BG,GX_MAX_Z24);
 	GX_SetDispCopySrc(0,0,rmode->fbWidth,rmode->efbHeight);
 	GX_SetDispCopyDst(rmode->fbWidth,rmode->efbHeight);
 	GX_SetDispCopyYScale(1.0);
@@ -955,7 +921,7 @@ static void __GX_SetGenMode(void)
 
 static void __GX_UpdateBPMask(void)
 {
-#if defined(HW_DOL)
+#if 0
 	u32 i;
 	u32 nbmp,nres;
 	u8 ntexmap;
@@ -1101,11 +1067,7 @@ static u32 __GX_GetNumXfbLines(u16 efbHeight,u32 yscale)
 GXFifoObj* GX_Init(void *base,u32 size)
 {
 	s32 i,re0,re1;
-#if defined(HW_RVL)
 	u32 tmem;
-#else
-	u32 tmem_even,tmem_odd;
-#endif
 	u32 divis,res;
 	u32 divid = TB_BUS_CLOCK;
 	GXTexRegion *region = NULL;
@@ -1199,7 +1161,6 @@ GXFifoObj* GX_Init(void *base,u32 size)
 		i++;
 	}
 
-#if defined(HW_RVL)
 	i = 0;
 	while(i<8) {
 		region = &__gx->texRegion[i];
@@ -1229,29 +1190,7 @@ GXFifoObj* GX_Init(void *base,u32 size)
 		GX_InitTlutRegion(tregion,tmem,GX_TLUT_1K);
 		i++;
 	}
-#else
-	for(i=0;i<8;i++) {
-		tmem_even = tmem_odd = (i<<15);
-		region = &__gx->texRegion[i];
-		GX_InitTexCacheRegion(region,GX_FALSE,tmem_even,GX_TEXCACHE_32K,(tmem_odd+0x00080000),GX_TEXCACHE_32K);
-	}
-	for(i=0;i<4;i++) {
-		tmem_even = ((0x08+(i<<1))<<15);
-		tmem_odd = ((0x09+(i<<1))<<15);
-		region = &__gx->texRegion[i+8];
-		GX_InitTexCacheRegion(region,GX_FALSE,tmem_even,GX_TEXCACHE_32K,tmem_odd,GX_TEXCACHE_32K);
-	}
-	for(i=0;i<16;i++) {
-		tmem_even = (i<<13)+0x000C0000;
-		tregion = &__gx->tlutRegion[i];
-		GX_InitTlutRegion(tregion,tmem_even,GX_TLUT_256);
-	}
-	for(i=0;i<4;i++) {
-		tmem_even = (i<<15)+0x000E0000;
-		tregion = &__gx->tlutRegion[i+16];
-		GX_InitTlutRegion(tregion,tmem_even,GX_TLUT_1K);
-	}
-#endif
+
 	_cpReg[3] = 0;
 	GX_LOAD_CP_REG(0x20,0x00000000);
 	GX_LOAD_XF_REG(0x1006,0x0);
@@ -1261,11 +1200,7 @@ GXFifoObj* GX_Init(void *base,u32 size)
 	GX_LOAD_BP_REG(0x67000000);
 
 	__GX_SetIndirectMask(0);
-#if defined(HW_RVL)
 	__GX_SetTmemConfig(2);
-#else
-	__GX_SetTmemConfig(0);
-#endif
 	__GX_InitGX();
 
 	return &_gxfifoobj;
@@ -1643,18 +1578,6 @@ void GX_DisableBreakPt(void)
 	_CPU_ISR_Restore(level);
 }
 
-#if defined(HW_DOL)
-void GX_AbortFrame(void)
-{
-	_piReg[6] = 1;
-	__GX_WaitAbort(50);
-	_piReg[6] = 0;
-	__GX_WaitAbort(5);
-
-	if(__GX_IsGPFifoReady())
-		__GX_CleanGPFifo();
-}
-#elif defined(HW_RVL)
 void GX_AbortFrame(void)
 {
 	__GX_Abort();
@@ -1666,7 +1589,6 @@ void GX_AbortFrame(void)
 		GX_Flush();
 	}
 }
-#endif
 
 void GX_SetDrawSync(u16 token)
 {
