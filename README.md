@@ -2,6 +2,10 @@
 
 [![libogc2 build](https://github.com/extremscorner/libogc2/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/extremscorner/libogc2/actions/workflows/continuous-integration-workflow.yml) [![Extrems' Corner.org Discord](https://discordapp.com/api/guilds/243509579961466881/widget.png)](https://discord.extremscorner.org/)
 
+**libogc2** contains wide-ranging fixes and additions to most subsystems of libogc, provides hardware enablement for most new (and old) Nintendo GameCube accessories on the market or in prototype stage, and enables greater interoperability with [Swiss](https://github.com/emukidid/swiss-gc).
+
+It is largely API compatible with libogc 2.1.0 and earlier.
+
 ## Projects using libogc2
 
 - [240p Test Suite](https://github.com/ArtemioUrbina/240pTestSuite) - Video suite for game consoles
@@ -19,6 +23,11 @@
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
 - [Xeno Crisis](https://shop.bitmapbureau.com/collections/gamecube/products/xeno-crisis-gamecube) - Retro-style arena shooter
+
+### Unofficial ports
+
+- [Nicky Boom](https://github.com/emukidid/Nicky-Boum) - Side-scrolling platformer
+- [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/ppc-sys) - Vertically scrolling shooter
 
 ### Subprojects
 
