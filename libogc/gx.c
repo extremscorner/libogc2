@@ -643,11 +643,11 @@ static void __GX_InitGX(void)
 
 	GX_SetNumChans(0);
 
-	GX_SetChanCtrl(GX_COLOR0A0,GX_DISABLE,GX_SRC_REG,GX_SRC_VTX,GX_LIGHTNULL,GX_DF_NONE,GX_AF_NONE);
+	GX_SetChanCtrl(GX_COLOR0A0,GX_DISABLE,GX_SRC_REG,GX_SRC_VTX,GX_LIGHT_NULL,GX_DF_NONE,GX_AF_NONE);
 	GX_SetChanAmbColor(GX_COLOR0A0,(GXColor)BLACK);
 	GX_SetChanMatColor(GX_COLOR0A0,(GXColor)WHITE);
 
-	GX_SetChanCtrl(GX_COLOR1A1,GX_DISABLE,GX_SRC_REG,GX_SRC_VTX,GX_LIGHTNULL,GX_DF_NONE,GX_AF_NONE);
+	GX_SetChanCtrl(GX_COLOR1A1,GX_DISABLE,GX_SRC_REG,GX_SRC_VTX,GX_LIGHT_NULL,GX_DF_NONE,GX_AF_NONE);
 	GX_SetChanAmbColor(GX_COLOR1A1,(GXColor)BLACK);
 	GX_SetChanMatColor(GX_COLOR1A1,(GXColor)WHITE);
 
@@ -663,14 +663,14 @@ static void __GX_InitGX(void)
 	GX_SetTevOrder(GX_TEVSTAGE5,GX_TEXCOORD5,GX_TEXMAP5,GX_COLOR0A0);
 	GX_SetTevOrder(GX_TEVSTAGE6,GX_TEXCOORD6,GX_TEXMAP6,GX_COLOR0A0);
 	GX_SetTevOrder(GX_TEVSTAGE7,GX_TEXCOORD7,GX_TEXMAP7,GX_COLOR0A0);
-	GX_SetTevOrder(GX_TEVSTAGE8,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE9,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE10,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE11,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE12,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE13,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE14,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
-	GX_SetTevOrder(GX_TEVSTAGE15,GX_TEXCOORDNULL,GX_TEXMAP_NULL,GX_COLORNULL);
+	GX_SetTevOrder(GX_TEVSTAGE8,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE9,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE10,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE11,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE12,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE13,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE14,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
+	GX_SetTevOrder(GX_TEVSTAGE15,GX_TEXCOORD_NULL,GX_TEXMAP_NULL,GX_COLOR_NULL);
 	GX_SetNumTevStages(1);
 	GX_SetTevOp(GX_TEVSTAGE0,GX_REPLACE);
 	GX_SetAlphaCompare(GX_ALWAYS,0,GX_AOP_AND,GX_ALWAYS,0);
@@ -2248,7 +2248,7 @@ void GX_SetArray(u32 attr,const void *ptr,u8 stride)
 static __inline__ void __SETVCDATTR(u8 attr,u8 type)
 {
 	switch(attr) {
-		case GX_VA_PTNMTXIDX:
+		case GX_VA_PNMTXIDX:
 			__gx->vcdLo = (__gx->vcdLo&~0x1)|(type&0x1);
 			break;
 		case GX_VA_TEX0MTXIDX:
@@ -2351,7 +2351,7 @@ void GX_GetVtxDescv(GXVtxDesc *attr_list)
 
 	count = 0;
 	if(__gx->vcdLo&0x1) {
-		attr_list[count].attr = GX_VA_PTNMTXIDX;
+		attr_list[count].attr = GX_VA_PNMTXIDX;
 		attr_list[count].type = __gx->vcdLo&0x1;
 		count++;
 	}
@@ -2605,7 +2605,7 @@ void GX_Begin(u8 primitve,u8 vtxfmt,u16 vtxcnt)
 
 void GX_SetTexCoordGen(u16 texcoord,u32 tgen_typ,u32 tgen_src,u32 mtxsrc)
 {
-		GX_SetTexCoordGen2(texcoord,tgen_typ,tgen_src,mtxsrc,GX_FALSE,GX_DTTIDENTITY);
+	GX_SetTexCoordGen2(texcoord,tgen_typ,tgen_src,mtxsrc,GX_FALSE,GX_DTTIDENTITY);
 }
 
 void GX_SetTexCoordGen2(u16 texcoord,u32 tgen_typ,u32 tgen_src,u32 mtxsrc,u32 normalize,u32 postmtx)
@@ -2614,7 +2614,7 @@ void GX_SetTexCoordGen2(u16 texcoord,u32 tgen_typ,u32 tgen_src,u32 mtxsrc,u32 no
 	u32 texcoords;
 	u8 vtxrow,stq;
 
-	if(texcoord>=GX_MAXCOORD) return;
+	if(texcoord>=GX_MAX_TEXCOORD) return;
 
 	stq = 0;
 	switch(tgen_src) {
@@ -4056,7 +4056,7 @@ void GX_SetTevOrder(u8 tevstage,u8 texcoord,u32 texmap,u8 color)
 
 	texm = (texmap&~0x100);
 	if(texm>=GX_MAX_TEXMAP) texm = 0;
-	if(texcoord>=GX_MAXCOORD) {
+	if(texcoord>=GX_MAX_TEXCOORD) {
 		texc = 0;
 		__gx->tevTexCoordEnable &= ~(_SHIFTL(1,tevstage,1));
 	} else {
@@ -4069,7 +4069,7 @@ void GX_SetTevOrder(u8 tevstage,u8 texcoord,u32 texmap,u8 color)
 		__gx->tevRasOrder[reg] = (__gx->tevRasOrder[reg]&~0x38000)|(_SHIFTL(texc,15,3));
 
 		colid = GX_ALPHA_BUMP;
-		if(color!=GX_COLORNULL) colid = _gxtevcolid[color];
+		if(color!=GX_COLOR_NULL) colid = _gxtevcolid[color];
 		__gx->tevRasOrder[reg] = (__gx->tevRasOrder[reg]&~0x380000)|(_SHIFTL(colid,19,3));
 
 		tmp = 1;
@@ -4080,7 +4080,7 @@ void GX_SetTevOrder(u8 tevstage,u8 texcoord,u32 texmap,u8 color)
 		__gx->tevRasOrder[reg] = (__gx->tevRasOrder[reg]&~0x38)|(_SHIFTL(texc,3,3));
 
 		colid = GX_ALPHA_BUMP;
-		if(color!=GX_COLORNULL) colid = _gxtevcolid[color];
+		if(color!=GX_COLOR_NULL) colid = _gxtevcolid[color];
 		__gx->tevRasOrder[reg] = (__gx->tevRasOrder[reg]&~0x380)|(_SHIFTL(colid,7,3));
 
 		tmp = 1;

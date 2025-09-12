@@ -48,10 +48,13 @@
 #define GX_ALPHA1			3
 #define GX_COLOR0A0			4
 #define GX_COLOR1A1			5
-#define GX_COLORZERO		6
+#define GX_COLOR_ZERO		6
 #define GX_ALPHA_BUMP		7
 #define GX_ALPHA_BUMPN		8
-#define GX_COLORNULL		0xff
+#define GX_COLOR_NULL		0xff
+
+#define GX_COLORZERO		GX_COLOR_ZERO
+#define GX_COLORNULL		GX_COLOR_NULL
 /*! @} */
 
 /*! \addtogroup mtxtype Matrix type
@@ -72,8 +75,8 @@
 #define GX_VTXFMT5			5
 #define GX_VTXFMT6			6
 #define GX_VTXFMT7			7
-#define GX_MAXVTXFMT		8
-
+#define GX_MAX_VTXFMT		8
+#define GX_MAXVTXFMT		GX_MAX_VTXFMT
 /*! @} */
 
 
@@ -121,7 +124,7 @@
 /*! \addtogroup vtxattr Vertex attribute array type
  * @{
  */
-#define GX_VA_PTNMTXIDX			0
+#define GX_VA_PNMTXIDX			0
 #define GX_VA_TEX0MTXIDX		1
 #define GX_VA_TEX1MTXIDX		2
 #define GX_VA_TEX2MTXIDX		3
@@ -147,8 +150,11 @@
 #define GX_TEXMTXARRAY			23
 #define GX_LIGHTARRAY			24
 #define GX_VA_NBT				25
-#define GX_VA_MAXATTR			26
+#define GX_VA_MAX_ATTR			26
 #define GX_VA_NULL				0xff
+
+#define GX_VA_PTNMTXIDX			GX_VA_PNMTXIDX
+#define GX_VA_MAXATTR			GX_VA_MAX_ATTR
 /*! @} */
 
 /*! \addtogroup primtype Primitive type
@@ -184,8 +190,11 @@
 #define GX_LIGHT5			0x020			/*!< Light 6 */
 #define GX_LIGHT6			0x040			/*!< Light 7 */
 #define GX_LIGHT7			0x080			/*!< Light 8 */
-#define GX_MAXLIGHT			0x100			/*!< All lights */
-#define GX_LIGHTNULL		0x000			/*!< No lights */
+#define GX_MAX_LIGHT		0x100			/*!< All lights */
+#define GX_LIGHT_NULL		0x000			/*!< No lights */
+
+#define GX_MAXLIGHT			GX_MAX_LIGHT
+#define GX_LIGHTNULL		GX_LIGHT_NULL
 /*! @} */
 
 /*! \addtogroup difffn Diffuse function
@@ -277,8 +286,11 @@
 #define GX_TEXCOORD5		0x5
 #define GX_TEXCOORD6		0x6
 #define GX_TEXCOORD7		0x7
-#define GX_MAXCOORD			0x8
-#define GX_TEXCOORDNULL		0xff
+#define GX_MAX_TEXCOORD		0x8
+#define GX_TEXCOORD_NULL	0xff
+
+#define GX_MAXCOORD			GX_MAX_TEXCOORD
+#define GX_TEXCOORDNULL		GX_TEXCOORD_NULL
 /*! @} */
 
 /* tex format */
@@ -298,12 +310,13 @@
 #define GX_TF_RGBA8			0x6
 #define GX_TF_CI4			0x8
 #define GX_TF_CI8			0x9
-#define GX_TF_CI14			0xa
+#define GX_TF_CI14			0xA
 #define GX_TF_CMPR			0xE			/*!< Compressed */
 
-#define GX_TL_IA8			0x00
-#define GX_TL_RGB565		0x01
-#define GX_TL_RGB5A3		0x02
+#define GX_TL_IA8			0x0
+#define GX_TL_RGB565		0x1
+#define GX_TL_RGB5A3		0x2
+#define GX_MAX_TLUTFMT		0x3
 
 #define GX_CTF_R4			(0x0|_GX_TF_CTF)			/*!< For copying 4 bits from red */
 #define GX_CTF_RA4			(0x2|_GX_TF_CTF)			/*!< For copying 4 bits from red, 4 bits from alpha */
@@ -421,7 +434,8 @@
 #define GX_CLAMP			0
 #define GX_REPEAT			1
 #define GX_MIRROR			2
-#define GX_MAXTEXWRAPMODE	3
+#define GX_MAX_TEXWRAPMODE	3
+#define GX_MAXTEXWRAPMODE	GX_MAX_TEXWRAPMODE
 
 /*! \addtogroup blendmode Blending type
  * @{
@@ -445,6 +459,7 @@
 #define GX_BL_INVSRCALPHA	5			/*!< 1.0 - (source alpha) */
 #define GX_BL_DSTALPHA		6			/*!< framebuffer alpha */
 #define GX_BL_INVDSTALPHA	7			/*!< 1.0 - (FB alpha) */
+
 #define GX_BL_DSTCLR		GX_BL_SRCCLR
 #define GX_BL_INVDSTCLR		GX_BL_INVSRCCLR
 /*! @} */
@@ -524,6 +539,8 @@
 #define GX_CC_KONST			14
 #define GX_CC_ZERO			15				/*!< Use to pass zero value */
 
+#define GX_CC_QUARTER		GX_CC_KONST
+
 /*! @} */
 
 
@@ -539,6 +556,8 @@
 #define GX_CA_RASA			5				/*!< Use the alpha value from rasterizer */
 #define GX_CA_KONST			6
 #define GX_CA_ZERO			7				/*!< Use to pass zero value */
+
+#define GX_CA_ONE			GX_CA_KONST
 
 /*! @} */
 
@@ -578,6 +597,7 @@
 
 #define GX_TEV_ADD				0
 #define GX_TEV_SUB				1
+
 #define GX_TEV_COMP_R8_GT		8
 #define GX_TEV_COMP_R8_EQ		9
 #define GX_TEV_COMP_GR16_GT		10
@@ -586,7 +606,8 @@
 #define GX_TEV_COMP_BGR24_EQ	13
 #define GX_TEV_COMP_RGB8_GT		14
 #define GX_TEV_COMP_RGB8_EQ		15
-#define GX_TEV_COMP_A8_GT		GX_TEV_COMP_RGB8_GT	 // for alpha channel
+
+#define GX_TEV_COMP_A8_GT		GX_TEV_COMP_RGB8_GT  // for alpha channel
 #define GX_TEV_COMP_A8_EQ		GX_TEV_COMP_RGB8_EQ  // for alpha channel
 
 /*! @} */
@@ -696,20 +717,27 @@
 #define GX_KCOLOR1				1			/*!< Constant register 1 */
 #define GX_KCOLOR2				2			/*!< Constant register 2 */
 #define GX_KCOLOR3				3			/*!< Constant register 3 */
-#define GX_KCOLOR_MAX			4
+#define GX_MAX_KCOLOR			4
+#define GX_KCOLOR_MAX			GX_MAX_KCOLOR
 /*! @} */
 
 /*! \addtogroup tevkcolorsel TEV constant color selection
  * @{
  */
-#define GX_TEV_KCSEL_1					0x00			/*!< constant 1.0 */
+#define GX_TEV_KCSEL_8_8				0x00			/*!< constant 1.0 */
 #define GX_TEV_KCSEL_7_8				0x01			/*!< constant 7/8 */
-#define GX_TEV_KCSEL_3_4				0x02			/*!< constant 3/4 */
+#define GX_TEV_KCSEL_6_8				0x02			/*!< constant 3/4 */
 #define GX_TEV_KCSEL_5_8				0x03			/*!< constant 5/8 */
-#define GX_TEV_KCSEL_1_2				0x04			/*!< constant 1/2 */
+#define GX_TEV_KCSEL_4_8				0x04			/*!< constant 1/2 */
 #define GX_TEV_KCSEL_3_8				0x05			/*!< constant 3/8 */
-#define GX_TEV_KCSEL_1_4				0x06			/*!< constant 1/4 */
+#define GX_TEV_KCSEL_2_8				0x06			/*!< constant 1/4 */
 #define GX_TEV_KCSEL_1_8				0x07			/*!< constant 1/8 */
+
+#define GX_TEV_KCSEL_1					GX_TEV_KCSEL_8_8
+#define GX_TEV_KCSEL_3_4				GX_TEV_KCSEL_6_8
+#define GX_TEV_KCSEL_1_2				GX_TEV_KCSEL_4_8
+#define GX_TEV_KCSEL_1_4				GX_TEV_KCSEL_2_8
+
 #define GX_TEV_KCSEL_K0					0x0C			/*!< K0[RGB] register */
 #define GX_TEV_KCSEL_K1					0x0D			/*!< K1[RGB] register */
 #define GX_TEV_KCSEL_K2					0x0E			/*!< K2[RGB] register */
@@ -735,14 +763,20 @@
 /*! \addtogroup tevkalphasel TEV constant alpha selection
  * @{
  */
-#define GX_TEV_KASEL_1					0x00			/*!< constant 1.0 */
+#define GX_TEV_KASEL_8_8				0x00			/*!< constant 1.0 */
 #define GX_TEV_KASEL_7_8				0x01			/*!< constant 7/8 */
-#define GX_TEV_KASEL_3_4				0x02			/*!< constant 3/4 */
+#define GX_TEV_KASEL_6_8				0x02			/*!< constant 3/4 */
 #define GX_TEV_KASEL_5_8				0x03			/*!< constant 5/8 */
-#define GX_TEV_KASEL_1_2				0x04			/*!< constant 1/2 */
+#define GX_TEV_KASEL_4_8				0x04			/*!< constant 1/2 */
 #define GX_TEV_KASEL_3_8				0x05			/*!< constant 3/8 */
-#define GX_TEV_KASEL_1_4				0x06			/*!< constant 1/4 */
+#define GX_TEV_KASEL_2_8				0x06			/*!< constant 1/4 */
 #define GX_TEV_KASEL_1_8				0x07			/*!< constant 1/8 */
+
+#define GX_TEV_KASEL_1					GX_TEV_KASEL_8_8
+#define GX_TEV_KASEL_3_4				GX_TEV_KASEL_6_8
+#define GX_TEV_KASEL_1_2				GX_TEV_KASEL_4_8
+#define GX_TEV_KASEL_1_4				GX_TEV_KASEL_2_8
+
 #define GX_TEV_KASEL_K0_R				0x10			/*!< K0[R] register */
 #define GX_TEV_KASEL_K1_R				0x11			/*!< K1[R] register */
 #define GX_TEV_KASEL_K2_R				0x12			/*!< K2[R] register */
@@ -902,8 +936,8 @@
 #define GX_FOG_LIN						GX_FOG_PERSP_LIN
 #define GX_FOG_EXP						GX_FOG_PERSP_EXP
 #define GX_FOG_EXP2						GX_FOG_PERSP_EXP2
-#define GX_FOG_REVEXP  					GX_FOG_PERSP_REVEXP
-#define GX_FOG_REVEXP2 					GX_FOG_PERSP_REVEXP2
+#define GX_FOG_REVEXP					GX_FOG_PERSP_REVEXP
+#define GX_FOG_REVEXP2					GX_FOG_PERSP_REVEXP2
 /*! @} */
 
 
@@ -1158,11 +1192,11 @@
 #define GX_BIGTLUT3						19
 /*! @} */
 
-#define GX_MAX_VTXDESC					GX_VA_MAXATTR
-#define GX_MAX_VTXDESC_LISTSIZE			(GX_VA_MAXATTR+1)
+#define GX_MAX_VTXDESC					GX_VA_MAX_ATTR
+#define GX_MAX_VTXDESC_LISTSIZE			(GX_MAX_VTXDESC+1)
 
-#define GX_MAX_VTXATTRFMT				GX_VA_MAXATTR
-#define GX_MAX_VTXATTRFMT_LISTSIZE		(GX_VA_MAXATTR+1)
+#define GX_MAX_VTXATTRFMT				GX_VA_MAX_ATTR
+#define GX_MAX_VTXATTRFMT_LISTSIZE		(GX_MAX_VTXATTRFMT+1)
 
 #define GX_MAX_Z24						0x00ffffff
 
@@ -2537,7 +2571,7 @@ void GX_LoadTexMtxIdx(u16 mtxidx,u32 texidx,u8 type);
  * \brief Selects a specific matrix to use for transformations.
  *
  * \details The matrix \a mtx specified will be used to select the current modelview transform matrix and normal transform matrix,
- * as long as a matrix index is not present in the vertex data (see GX_SetVtxDesc()). If the current vertex descriptor enables <tt>GX_VA_PTNMTXIDX</tt>,
+ * as long as a matrix index is not present in the vertex data (see GX_SetVtxDesc()). If the current vertex descriptor enables <tt>GX_VA_PNMTXIDX</tt>,
  * the matrix \a mtx specified by this function will be overwritten when the vertices are drawn.
  *
  * \param[in] mtx \ref pnmtx
