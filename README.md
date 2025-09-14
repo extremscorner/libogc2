@@ -44,6 +44,8 @@ sudo (dkp-)pacman -S libogc2 libogc2-docs libogc2-examples
 When asked for a `libogc2-libfat` provider, `libogc2-libdvm` is generally preferred, but `libogc2-libfat` may be chosen if you have concerns regarding exFAT's legal status.
 If you have a need for `libogc2-libdvm` without exFAT support, please open an issue.
 
+No code changes should be necessary when migrating from libfat to libdvm.
+
 ## Migrating from libogc
 
 ### GNU Make
