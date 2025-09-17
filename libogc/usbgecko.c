@@ -87,7 +87,7 @@ static int __usb_recvbyte(s32 chn,char *ch)
 	return ret;
 }
 
-int __usb_checksend(s32 chn)
+static int __usb_checksend(s32 chn)
 {
 	s32 ret;
 	u16 val;
@@ -99,7 +99,7 @@ int __usb_checksend(s32 chn)
 	return ret;
 }
 
-int __usb_checkrecv(s32 chn)
+static int __usb_checkrecv(s32 chn)
 {
 	s32 ret;
 	u16 val;
@@ -144,6 +144,34 @@ int usb_isgeckoalive(s32 chn)
 	val = 0x9000;
 	ret = __send_command(chn,&val);
 	if(ret==1 && !(val&0x0470)) ret = 0;
+
+	EXI_Unlock(chn);
+
+	return ret;
+}
+
+int usb_checkrecv(s32 chn)
+{
+	s32 ret;
+
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
+		return 0;
+
+	ret = __usb_checkrecv(chn);
+
+	EXI_Unlock(chn);
+
+	return ret;
+}
+
+int usb_checksend(s32 chn)
+{
+	s32 ret;
+
+	if (!EXI_LockEx(chn, EXI_DEVICE_0))
+		return 0;
+
+	ret = __usb_checksend(chn);
 
 	EXI_Unlock(chn);
 
