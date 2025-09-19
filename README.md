@@ -26,8 +26,13 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 
 ### Unofficial ports
 
-- [Nicky Boom](https://github.com/emukidid/Nicky-Boum) - Side-scrolling platformer
-- [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/ppc-sys) - Vertically scrolling shooter
+- [ftpii](https://github.com/leo60228/ftpii) by **@leo60228**
+- [Genesis Plus GX](https://github.com/Extrems/Genesis-Plus-GX) by **@Extrems**
+- [MPlayer CE](https://github.com/SuperrSonic/mplayer-ce-libogc2) by **@SuperrSonic**
+- [Nicky Boom](https://github.com/emukidid/Nicky-Boum) by **@emukidid** - Side-scrolling platformer
+- [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/ppc-sys) by **@RetroGamer02** - Vertically scrolling shooter
+- [RetroArch](https://github.com/SuperrSonic/RA-GCN) by **@SuperrSonic**
+- [WiiMC](https://github.com/SuperrSonic/WiiMC-GCN) by **@SuperrSonic**
 
 ### Subprojects
 
