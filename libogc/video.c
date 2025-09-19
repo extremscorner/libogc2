@@ -2897,15 +2897,33 @@ u32 VIDEO_GetRetraceCount(void)
 	return retraceCount;
 }
 
+f32 VIDEO_GetRetraceRate(void)
+{
+	u32 level;
+	f32 rate;
+
+	_CPU_ISR_Disable(level);
+	rate = 13500000.0f;
+	if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) rate = 27000000.0f;
+
+	rate /= currTiming->hlw;
+	rate /= currTiming->nhlines;
+	if(HorVer.fbMode==VI_XFBMODE_PSF) rate /= 2.0f;
+	_CPU_ISR_Restore(level);
+
+	return rate;
+}
+
 u32 VIDEO_GetNextField(void)
 {
 	u32 level,field;
 
 	_CPU_ISR_Disable(level);
-	if(HorVer.fbMode<VI_XFBMODE_PSF) {
+	if(HorVer.fbMode==VI_XFBMODE_PSF) field = VI_FRAME;
+	else {
 		field = __getCurrentFieldEvenOdd();
 		field ^= (HorVer.adjustedDispPosY&1)^1;
-	} else field = VI_FRAME;
+	}
 	_CPU_ISR_Restore(level);
 
 	return field;

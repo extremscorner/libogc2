@@ -97,6 +97,7 @@ void VIDEO_Set3D(bool threeD);
  */
 u32 VIDEO_GetRetraceCount(void);
 
+f32 VIDEO_GetRetraceRate(void);
 
 /*! 
  * \fn u32 VIDEO_GetNextField(void)
