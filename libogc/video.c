@@ -3025,14 +3025,13 @@ GXRModeObj *rmode = NULL;
 	}
 #endif
 
-	if ( NULL != mode ) {
-		memcpy( mode, rmode, sizeof(GXRModeObj));
-	} else {
-		mode = rmode;
+	if (mode != NULL) {
+		rmode = memcpy(mode, rmode, sizeof(GXRModeObj));
+		rmode->viWidth = 704;
+		rmode->viXOrigin = 8;
 	}
 
-	return mode;
-
+	return rmode;
 
 }
 
