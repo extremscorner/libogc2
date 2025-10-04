@@ -41,6 +41,7 @@ distribution.
 #include "system.h"
 
 #include "gx.h"
+#include "si.h"
 #include "pad.h"
 #include "consol.h"
 #include "console.h"
@@ -212,6 +213,9 @@ static void waitForReload(void)
 {
 	PAD_Init();
 
+	while(!PAD_Sync())
+		SI_Sync();
+
 	PAD_ControlAllMotors(rumble_cmds);
 
 	kprintf("\n\n\tPress RESET, or Z on a GameCube Controller, to reload.\n\n");
@@ -241,6 +245,9 @@ static void waitForReload(void)
 			STM_RebootSystem();
 #endif
 		}
+
+		while(!PAD_Sync())
+			SI_Sync();
 
 		udelay(20000);
 		if(reload_timer > 0)
