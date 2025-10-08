@@ -4,12 +4,12 @@ endif
 
 include $(DEVKITPPC)/base_rules
 
-PORTLIBS	:=	$(PORTLIBS_PATH)/wii $(PORTLIBS_PATH)/ppc
+PORTLIBS	:=	$(DEVKITPRO)/libogc2/wii $(PORTLIBS_PATH)/wii $(PORTLIBS_PATH)/ppc
 
-export PATH     :=      $(PORTLIBS_PATH)/wii/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
+export PATH	:=	$(DEVKITPRO)/libogc2/wii/bin:$(PORTLIBS_PATH)/wii/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
 
-export	LIBOGC_INC	:=	$(DEVKITPRO)/libogc2/include
-export	LIBOGC_LIB	:=	$(DEVKITPRO)/libogc2/lib/wii
+export	LIBOGC_INC	:=	$(DEVKITPRO)/libogc2/wii/include
+export	LIBOGC_LIB	:=	$(DEVKITPRO)/libogc2/wii/lib
 
 MACHDEP =  -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
 

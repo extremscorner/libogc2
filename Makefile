@@ -18,8 +18,6 @@ export LIBOGC_PATCH	:= 0
 
 include	$(DEVKITPPC)/base_rules
 
-BUILD		:=	build
-
 DATESTRING	:=	$(shell date +%Y%m%d)
 VERSTRING	:=	$(shell printf "r%s.%s" "$$(git rev-list --count HEAD)" "$$(git rev-parse --short=7 HEAD)")
 
@@ -39,6 +37,7 @@ export LIBASNDDIR	:= $(BASEDIR)/libasnd
 export LIBAESNDDIR	:= $(BASEDIR)/libaesnd
 export LIBISODIR	:= $(BASEDIR)/libiso9660
 export LIBWIIKEYB	:= $(BASEDIR)/libwiikeyboard
+export BUILD		:=	$(BASEDIR)/build
 export DEPS			:=	$(BASEDIR)/deps
 export LIBS			:=	$(BASEDIR)/lib
 
@@ -48,7 +47,7 @@ export INCDIR		:=	$(BASEDIR)/include
 else
 #---------------------------------------------------------------------------------
 
-export LIBDIR		:= $(LIBS)/$(PLATFORM)
+export LIBDIR		:=	$(LIBS)/$(PLATFORM)
 export DEPSDIR		:=	$(DEPS)/$(PLATFORM)
 
 #---------------------------------------------------------------------------------
@@ -83,13 +82,13 @@ MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffun
 
 
 ifeq ($(PLATFORM),wii)
-INCLUDES	+=	-I$(BASEDIR)/wii \
+INCLUDES	+=	-I$(BUILD)/wii \
 				-I$(PORTLIBS_PATH)/wii/include
 MACHDEP		+=	-DHW_RVL -Wa,-mbroadway
 endif
 
 ifeq ($(PLATFORM),cube)
-INCLUDES	+=	-I$(BASEDIR)/cube \
+INCLUDES	+=	-I$(BUILD)/cube \
 				-I$(PORTLIBS_PATH)/gamecube/include
 MACHDEP		+=	-DHW_DOL -Wa,-mgekko
 endif
@@ -188,8 +187,8 @@ wii: gc/ogc/libversion.h
 	@[ -d $(INCDIR) ] || mkdir -p $(INCDIR)
 	@[ -d $(LIBS)/wii ] || mkdir -p $(LIBS)/wii
 	@[ -d $(DEPS)/wii ] || mkdir -p $(DEPS)/wii
-	@[ -d wii ] || mkdir -p wii
-	@$(MAKE) PLATFORM=wii libs -C wii -f $(CURDIR)/Makefile
+	@[ -d $(BUILD)/wii ] || mkdir -p $(BUILD)/wii
+	@$(MAKE) PLATFORM=wii libs -C $(BUILD)/wii -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 cube: gc/ogc/libversion.h
@@ -197,8 +196,8 @@ cube: gc/ogc/libversion.h
 	@[ -d $(INCDIR) ] || mkdir -p $(INCDIR)
 	@[ -d $(LIBS)/cube ] || mkdir -p $(LIBS)/cube
 	@[ -d $(DEPS)/cube ] || mkdir -p $(DEPS)/cube
-	@[ -d cube ] || mkdir -p cube
-	@$(MAKE) PLATFORM=cube libs -C cube -f $(CURDIR)/Makefile
+	@[ -d $(BUILD)/cube ] || mkdir -p $(BUILD)/cube
+	@$(MAKE) PLATFORM=cube libs -C $(BUILD)/cube -f $(CURDIR)/Makefile
 
 
 #---------------------------------------------------------------------------------
@@ -292,9 +291,12 @@ install-headers:
 #---------------------------------------------------------------------------------
 install: wii cube install-headers
 #---------------------------------------------------------------------------------
-	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
-	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc2
+	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2/gamecube/lib
+	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2/wii/lib
+	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2/gamecube
+	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2/wii
+	@cp -frv lib/cube/*.a $(DESTDIR)$(DEVKITPRO)/libogc2/gamecube/lib
+	@cp -frv lib/wii/*.a $(DESTDIR)$(DEVKITPRO)/libogc2/wii/lib
 	@cp -frv *_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
 	@cp -frv *_rules $(DESTDIR)$(DEVKITPRO)/libogc2
 
@@ -306,7 +308,7 @@ uninstall:
 #---------------------------------------------------------------------------------
 dist: wii cube install-headers
 #---------------------------------------------------------------------------------
-	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
+	@tar    --exclude=*CVS* --exclude=.svn --exclude=*build* --exclude=*deps* \
 		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
 		-cvjf libogc2-src-$(VERSTRING).tar.bz2 *
 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt *_rules
@@ -328,7 +330,7 @@ libs: $(LIBRARIES)
 #---------------------------------------------------------------------------------
 clean:
 #---------------------------------------------------------------------------------
-	rm -fr wii cube
+	rm -fr $(BUILD)
 	rm -fr $(DEPS)
 	rm -fr $(LIBS)
 	rm -fr $(INCDIR)
