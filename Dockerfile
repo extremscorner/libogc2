@@ -11,4 +11,4 @@ RUN rm /etc/apt/sources.list.d/devkitpro.list && \
     echo -e '[extremscorner-devkitpro]\nServer = https://packages.extremscorner.org/devkitpro/linux/$arch' >> /opt/devkitpro/pacman/etc/pacman.conf && \
     dkp-pacman -Syy && \
     dkp-pacman -S --noconfirm --ask 4 gamecube-dev gamecube-portlibs ppc-portlibs wii-dev wii-portlibs && \
-    dkp-pacman -Scc --noconfirm
+    yes | dkp-pacman -Scc
