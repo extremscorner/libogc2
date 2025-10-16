@@ -73,6 +73,13 @@ sudo (dkp-)pacman -S libogc2-cmake
 
 `DKP_OGC_PLATFORM_LIBRARY` may be set to `libogc` or `libogc2` to build projects using either thereafter.
 
+### GitHub Actions
+
+```diff
+-    container: devkitpro/devkitppc:latest
++    container: ghcr.io/extremscorner/libogc2:latest
+```
+
 ## Building
 
 1. Existing packages should first be uninstalled if already installed.

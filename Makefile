@@ -18,7 +18,7 @@ export LIBOGC_PATCH	:= 0
 
 include	$(DEVKITPPC)/base_rules
 
-DATESTRING	:=	$(shell date +%Y%m%d)
+DATESTRING	:=	$(shell date -u +%Y%m%d)
 VERSTRING	:=	$(shell printf "r%s.%s" "$$(git rev-list --count HEAD)" "$$(git rev-parse --short=7 HEAD)")
 
 #---------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ $(BTELIB).a: $(BTEOBJ)
 $(WIIUSELIB).a: $(WIIUSEOBJ)
 #---------------------------------------------------------------------------------
 
-.PHONY: libs wii cube install-headers install uninstall dist docs
+.PHONY: libs wii cube install-headers install uninstall dist docs docker
 
 #---------------------------------------------------------------------------------
 install-headers:
@@ -340,5 +340,10 @@ clean:
 docs: install-headers
 #---------------------------------------------------------------------------------
 	VERSTRING="$(VERSTRING)" doxygen Doxyfile
+
+#---------------------------------------------------------------------------------
+docker:
+#---------------------------------------------------------------------------------
+	docker build --no-cache -t ghcr.io/extremscorner/libogc2:$(DATESTRING) -t ghcr.io/extremscorner/libogc2:latest .
 
 -include $(DEPSDIR)/*.d
