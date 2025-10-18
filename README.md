@@ -15,6 +15,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [GCC Test Suite](https://github.com/greenwave-1/GTS) - Nintendo GameCube controller tester
 - [GCMM](https://github.com/suloku/gcmm) - Nintendo GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - Nintendo GameCube bootloader
+- [Scratch Everywhere!](https://github.com/ScratchEverywhere/ScratchEverywhere) - Scratch 3.0 runtime
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Snes9x GX](https://github.com/dborth/snes9xgx) - Super Nintendo Entertainment System emulator
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
