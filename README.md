@@ -15,6 +15,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [GCC Test Suite](https://github.com/greenwave-1/GTS) - Nintendo GameCube controller tester
 - [GCMM](https://github.com/suloku/gcmm) - Nintendo GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - Nintendo GameCube bootloader
+- [Genesis Plus GX](https://github.com/ekeeke/Genesis-Plus-GX) - Sega 8/16-bit emulator
 - [Scratch Everywhere!](https://github.com/ScratchEverywhere/ScratchEverywhere) - Scratch 3.0 runtime
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Snes9x GX](https://github.com/dborth/snes9xgx) - Super Nintendo Entertainment System emulator
@@ -28,7 +29,6 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 ### Unofficial ports
 
 - [ftpii](https://github.com/leo60228/ftpii) by **@leo60228**
-- [Genesis Plus GX](https://github.com/Extrems/Genesis-Plus-GX) by **@Extrems**
 - [MPlayer CE](https://github.com/SuperrSonic/mplayer-ce-libogc2) by **@SuperrSonic**
 - [Nicky Boom](https://github.com/emukidid/Nicky-Boum) by **@emukidid** - Side-scrolling platformer
 - [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/ppc-sys) by **@RetroGamer02** - Vertically scrolling shooter
