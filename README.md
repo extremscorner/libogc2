@@ -121,17 +121,17 @@ sudo (dkp-)pacman -Syu
 
 ```
 cd libogc2
-git pull
 sudo -E make uninstall
 sudo -E make clean
+git pull
 make
 sudo -E make install
 ```
 
 ```
 cd libfat
-git pull
 make ogc-clean
+git pull
 make ogc-release
 sudo -E make ogc-install
 ```

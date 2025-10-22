@@ -1,7 +1,6 @@
 build
 deps
-include
 lib
-gc/ogc/libversion.h
+include/ogc/libversion.h
 docs
 warn.log

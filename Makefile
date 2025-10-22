@@ -70,13 +70,12 @@ ISOLIB		:= $(LIBDIR)/libiso9660
 WIIKEYBLIB	:= $(LIBDIR)/libwiikeyboard
 
 #---------------------------------------------------------------------------------
-DEFINCS		:= -I$(BASEDIR) -I$(BASEDIR)/gc
-INCLUDES	:=	$(DEFINCS) -I$(BASEDIR)/gc/netif -I$(BASEDIR)/gc/ipv4 \
-				-I$(BASEDIR)/gc/ogc -I$(BASEDIR)/gc/ogc/machine \
-				-I$(BASEDIR)/gc/modplay \
-				-I$(BASEDIR)/gc/bte \
-				-I$(BASEDIR)/gc/sdcard -I$(BASEDIR)/gc/wiiuse \
-				-I$(BASEDIR)/gc/di
+DEFINCS		:= -I$(BASEDIR) -I$(INCDIR)
+INCLUDES	:=	$(DEFINCS) -I$(LWIPDIR)/include -I$(LWIPDIR)/include/ipv4 -I$(LWIPDIR)/include/netif \
+				-I$(INCDIR)/ogc -I$(INCDIR)/ogc/machine \
+				-I$(INCDIR)/modplay \
+				-I$(INCDIR)/bte \
+				-I$(INCDIR)/sdcard
 
 MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffunction-sections -fdata-sections
 
@@ -182,18 +181,16 @@ WIIKEYBLIBOBJ	:=	usbkeyboard.o keyboard.o ukbdmap.o wskbdutil.o
 all: wii cube
 
 #---------------------------------------------------------------------------------
-wii: gc/ogc/libversion.h
+wii: include/ogc/libversion.h
 #---------------------------------------------------------------------------------
-	@[ -d $(INCDIR) ] || mkdir -p $(INCDIR)
 	@[ -d $(LIBS)/wii ] || mkdir -p $(LIBS)/wii
 	@[ -d $(DEPS)/wii ] || mkdir -p $(DEPS)/wii
 	@[ -d $(BUILD)/wii ] || mkdir -p $(BUILD)/wii
 	@$(MAKE) PLATFORM=wii libs -C $(BUILD)/wii -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
-cube: gc/ogc/libversion.h
+cube: include/ogc/libversion.h
 #---------------------------------------------------------------------------------
-	@[ -d $(INCDIR) ] || mkdir -p $(INCDIR)
 	@[ -d $(LIBS)/cube ] || mkdir -p $(LIBS)/cube
 	@[ -d $(DEPS)/cube ] || mkdir -p $(DEPS)/cube
 	@[ -d $(BUILD)/cube ] || mkdir -p $(BUILD)/cube
@@ -201,7 +198,7 @@ cube: gc/ogc/libversion.h
 
 
 #---------------------------------------------------------------------------------
-gc/ogc/libversion.h: .git/HEAD .git/index Makefile
+include/ogc/libversion.h: .git/HEAD .git/index Makefile
 #---------------------------------------------------------------------------------
 	@echo "#ifndef __OGC_LIBVERSION_H__" > $@
 	@echo "#define __OGC_LIBVERSION_H__" >> $@
@@ -263,33 +260,10 @@ $(BTELIB).a: $(BTEOBJ)
 $(WIIUSELIB).a: $(WIIUSEOBJ)
 #---------------------------------------------------------------------------------
 
-.PHONY: libs wii cube install-headers install uninstall docs docker
+.PHONY: libs wii cube install uninstall docs docker
 
 #---------------------------------------------------------------------------------
-install-headers:
-#---------------------------------------------------------------------------------
-	@mkdir -p $(INCDIR)
-	@mkdir -p $(INCDIR)/ogc/machine
-	@mkdir -p $(INCDIR)/sys
-	@mkdir -p $(INCDIR)/bte
-	@mkdir -p $(INCDIR)/wiiuse
-	@mkdir -p $(INCDIR)/modplay
-	@mkdir -p $(INCDIR)/sdcard
-	@mkdir -p $(INCDIR)/di
-	@mkdir -p $(INCDIR)/wiikeyboard
-	@cp ./gc/*.h $(INCDIR)
-	@cp ./gc/ogc/*.h $(INCDIR)/ogc
-	@cp ./gc/ogc/machine/*.h $(INCDIR)/ogc/machine
-	@cp ./gc/sys/*.h $(INCDIR)/sys
-	@cp ./gc/bte/*.h $(INCDIR)/bte
-	@cp ./gc/wiiuse/*.h $(INCDIR)/wiiuse
-	@cp ./gc/modplay/*.h $(INCDIR)/modplay
-	@cp ./gc/sdcard/*.h $(INCDIR)/sdcard
-	@cp ./gc/di/*.h $(INCDIR)/di
-	@cp ./gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
-
-#---------------------------------------------------------------------------------
-install: wii cube install-headers
+install: wii cube
 #---------------------------------------------------------------------------------
 	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2/gamecube/lib
 	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2/wii/lib
@@ -325,11 +299,9 @@ clean:
 	rm -fr $(BUILD)
 	rm -fr $(DEPS)
 	rm -fr $(LIBS)
-	rm -fr $(INCDIR)
-	rm -f *.map
 
 #---------------------------------------------------------------------------------
-docs: install-headers
+docs:
 #---------------------------------------------------------------------------------
 	VERSTRING="$(VERSTRING)" doxygen Doxyfile
 

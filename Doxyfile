@@ -965,30 +965,30 @@ WARN_LOGFILE           = warn.log
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = gc/ogc/card.h \
-                         gc/ogc/exi.h \
-                         gc/ogc/audio.h \
-                         gc/ogc/lwp.h \
-                         gc/ogc/cache.h \
-                         gc/ogc/irq.h \
-                         gc/ogc/dsp.h \
-                         gc/ogc/message.h \
-                         gc/ogc/mutex.h \
-                         gc/ogc/semaphore.h \
-                         gc/ogc/video.h \
-                         gc/ogc/system.h \
-                         gc/ogc/aram.h \
-                         gc/ogc/cond.h \
-                         gc/gccore.h \
-                         gc/ogc/gx_struct.h \
-                         gc/ogc/video_types.h \
-                         gc/ogc/dvd.h \
-                         gc/ogc/gx.h \
-                         gc/gctypes.h \
-                         gc/ogc/gu.h \
-                         gc/asndlib.h \
-                         gc/ogc/arqmgr.h \
-                         gc/ogc/consol.h
+INPUT                  = include/ogc/card.h \
+                         include/ogc/exi.h \
+                         include/ogc/audio.h \
+                         include/ogc/lwp.h \
+                         include/ogc/cache.h \
+                         include/ogc/irq.h \
+                         include/ogc/dsp.h \
+                         include/ogc/message.h \
+                         include/ogc/mutex.h \
+                         include/ogc/semaphore.h \
+                         include/ogc/video.h \
+                         include/ogc/system.h \
+                         include/ogc/aram.h \
+                         include/ogc/cond.h \
+                         include/gccore.h \
+                         include/ogc/gx_struct.h \
+                         include/ogc/video_types.h \
+                         include/ogc/dvd.h \
+                         include/ogc/gx.h \
+                         include/gctypes.h \
+                         include/ogc/gu.h \
+                         include/asndlib.h \
+                         include/ogc/arqmgr.h \
+                         include/ogc/consol.h
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
