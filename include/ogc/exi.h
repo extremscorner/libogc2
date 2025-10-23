@@ -133,6 +133,7 @@ distribution.
 #define EXI_MEMCARD507				0x00000020	/*!< Nintendo memory card:  512/ 32/ 4.0 (blocks/Mbits/MB). 3rd party vendors do have the same identification */
 #define EXI_MEMCARD1019				0x00000040	/*!< Nintendo memory card: 1024/ 64/ 8.0 (blocks/Mbits/MB). 3rd party vendors do have the same identification */
 #define EXI_MEMCARD2043				0x00000080	/*!< Nintendo memory card: 2048/128/16.0 (blocks/Mbits/MB). 3rd party vendors do have the same identification */
+#define EXI_MEMCARDPRO				0x38420000
 
 /*!
  * @}

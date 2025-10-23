@@ -1,5 +1,7 @@
 /*-------------------------------------------------------------
 
+mic.c -- Microphone subsystem
+
 Copyright (C) 2011 - 2025
 shuffle2
 Extrems' Corner.org

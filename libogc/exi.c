@@ -784,6 +784,7 @@ s32 EXI_GetType(s32 nChn,s32 nDev,u32 *nType)
 			}
 			break;
 		case 0x05070000:
+		case EXI_MEMCARDPRO:
 			*nType = nId&~0xffff;
 			return ret;
 	}
@@ -839,6 +840,8 @@ char *EXI_GetTypeString(u32 nType)
 			return "Stream Hanger";
 		case 0x05070000:
 			return "IS-DOL-VIEWER";
+		case EXI_MEMCARDPRO:
+			return "MemCard PRO GC";
 		case 0x49444500:
 			return "IDE-EXI";
 		case 0xfa050000:
