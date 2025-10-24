@@ -335,7 +335,7 @@ static s32 TxHandler(s32 chan, s32 dev)
 		MMCEControlBlock *cb = &__MMCE[chan];
 		cb->buf += cb->bufLen;
 
-		if (!--cb->repeat) {
+		if (!--cb->repeat && cb->mode == EXI_READ) {
 			cb->result = MMCE_RESULT_READY;
 			LWP_ThreadBroadcast(cb->syncQueue);
 
