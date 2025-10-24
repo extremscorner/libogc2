@@ -513,7 +513,7 @@ static bool __mmce_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSect
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
 	if (!(disc->features & FEATURE_MEDIUM_CANREAD)) return false;
 	if ((u32)sector != sector) return false;
-	if ((u32)numSectors != numSectors) return false;
+	if ((u16)numSectors != numSectors) return false;
 	if (disc->bytesPerSector != 512) return false;
 	if (!SYS_IsDMAAddress(buffer, 32)) return false;
 	if (!__MMCE[chan].attached) return false;
@@ -529,7 +529,7 @@ static bool __mmce_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSec
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
 	if (!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if ((u32)sector != sector) return false;
-	if ((u32)numSectors != numSectors) return false;
+	if ((u16)numSectors != numSectors) return false;
 	if (disc->bytesPerSector != 512) return false;
 	if (!SYS_IsDMAAddress(buffer, 32)) return false;
 	if (!__MMCE[chan].attached) return false;
