@@ -94,7 +94,23 @@ static bool IsValidType(u32 type)
 
 s32 MMCE_ProbeEx(s32 chan)
 {
-	return CARD_ProbeEx(chan, NULL, NULL);
+	u32 type;
+	s32 probe = EXI_ProbeEx(chan);
+
+	if (probe < 0)
+		return MMCE_RESULT_NOCARD;
+	else if (probe == 0)
+		return MMCE_RESULT_BUSY;
+	else if (__MMCE[chan].attached)
+		return MMCE_RESULT_READY;
+	else if (EXI_GetState(chan) & EXI_FLAG_ATTACH)
+		return CARD_ProbeEx(chan, NULL, NULL);
+	else if (!EXI_GetType(chan, EXI_DEVICE_0, &type))
+		return MMCE_RESULT_BUSY;
+	else if (!IsValidType(type))
+		return MMCE_RESULT_WRONGDEVICE;
+	else
+		return MMCE_RESULT_READY;
 }
 
 s32 MMCE_GetDeviceID(s32 chan, u32 *id)
