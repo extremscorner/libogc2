@@ -40,6 +40,7 @@ distribution.
 typedef struct {
 	s32 result;
 	bool attached;
+	bool reattach;
 	u8 cmd[3];
 	u32 cmdLen;
 	u32 mode;
@@ -184,6 +185,7 @@ s32 MMCE_SetAccessMode(s32 chan, u8 mode)
 	if (!err) {
 		MMCEControlBlock *cb = &__MMCE[chan];
 		cb->result = MMCE_RESULT_BUSY;
+		cb->reattach = true;
 		cb->repeat = 0;
 
 		if (chan < EXI_CHANNEL_2)
@@ -320,9 +322,10 @@ s32 MMCE_SetGameID(s32 chan, const char gameID[10])
 static s32 ExiHandler(s32 chan, s32 dev)
 {
 	MMCEControlBlock *cb = &__MMCE[chan];
+	cb->reattach = false;
 
 	if (!cb->repeat) {
-		cb->result = MMCE_RESULT_READY;
+		cb->result = !EXI_Probe(chan) ? MMCE_RESULT_NOCARD : MMCE_RESULT_READY;
 		LWP_ThreadBroadcast(cb->syncQueue);
 
 		if (chan < EXI_CHANNEL_2)
@@ -455,11 +458,16 @@ s32 MMCE_WriteSectors(s32 chan, u32 sector, u16 numSectors, const void *buffer)
 static s32 ExtHandler(s32 chan, s32 dev)
 {
 	MMCEControlBlock *cb = &__MMCE[chan];
-
-	EXI_RegisterEXICallback(chan, NULL);
 	cb->attached = false;
-	cb->result = MMCE_RESULT_NOCARD;
-	LWP_ThreadBroadcast(cb->syncQueue);
+
+	if (cb->reattach) {
+		cb->exiCallback = NULL;
+		EXI_RegisterEXICallback(chan, ExiHandler);
+	} else {
+		EXI_RegisterEXICallback(chan, NULL);
+		cb->result = MMCE_RESULT_NOCARD;
+		LWP_ThreadBroadcast(cb->syncQueue);
+	}
 
 	return TRUE;
 }
@@ -574,6 +582,7 @@ static bool __mmce_shutdown(DISC_INTERFACE *disc)
 	}
 
 	__MMCE[chan].attached = false;
+	__MMCE[chan].reattach = false;
 	EXI_Detach(chan);
 	return true;
 }
