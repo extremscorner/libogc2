@@ -197,6 +197,52 @@ s32 MMCE_SetAccessMode(s32 chan, u8 mode)
 	return err ? MMCE_RESULT_NOCARD : MMCE_Sync(chan);
 }
 
+static u8 DigitToNibble(char digit)
+{
+	switch (digit) {
+		case '0' ... '9':
+			return digit - '0';
+		case 'A' ... 'F':
+			return digit - 'A' + 10;
+		case 'a' ... 'f':
+			return digit - 'a' + 10;
+		default:
+			return 0;
+	}
+}
+
+s32 MMCE_GetDiskID(s32 chan, dvddiskid *diskID)
+{
+	bool err = false;
+	u8 cmd[3], resp[10];
+
+	if (!EXI_LockEx(chan, EXI_DEVICE_0)) return MMCE_RESULT_BUSY;
+	if (!EXI_Select(chan, EXI_DEVICE_0, EXI_SPEED16MHZ)) {
+		EXI_Unlock(chan);
+		return MMCE_RESULT_NOCARD;
+	}
+
+	cmd[0] = 0x8B;
+	cmd[1] = 0x10;
+	cmd[2] = 0x00;
+
+	err |= !EXI_ImmEx(chan, cmd, sizeof(cmd), EXI_WRITE);
+	err |= !EXI_ImmEx(chan, resp, sizeof(resp), EXI_READ);
+	err |= !EXI_Deselect(chan);
+
+	if (!err) {
+		memset(diskID, 0, sizeof(*diskID));
+		memcpy(diskID->gamename, &resp[0], 4);
+		memcpy(diskID->company,  &resp[4], 2);
+		diskID->disknum = DigitToNibble(resp[6]) << 4 | DigitToNibble(resp[7]);
+		diskID->gamever = DigitToNibble(resp[8]) << 4 | DigitToNibble(resp[9]);
+	}
+
+	EXI_Unlock(chan);
+
+	return err ? MMCE_RESULT_NOCARD : MMCE_RESULT_READY;
+}
+
 s32 MMCE_SetDiskID(s32 chan, const dvddiskid *diskID)
 {
 	static const char digits[16] = "0123456789ABCDEF";
@@ -480,7 +526,7 @@ static void DbgHandler(u32 irq, frame_context *ctx)
 
 static bool __mmce_startup(DISC_INTERFACE *disc)
 {
-	s32 chan = (disc->ioType & 0xFF) - '0';
+	s32 chan = (char)disc->ioType - '0';
 	u32 type, id;
 	u8 mode;
 
@@ -521,7 +567,7 @@ static bool __mmce_startup(DISC_INTERFACE *disc)
 
 static bool __mmce_isInserted(DISC_INTERFACE *disc)
 {
-	s32 chan = (disc->ioType & 0xFF) - '0';
+	s32 chan = (char)disc->ioType - '0';
 
 	if (disc->ioType < DEVICE_TYPE_GAMECUBE_MMCE(0)) return false;
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
@@ -531,7 +577,7 @@ static bool __mmce_isInserted(DISC_INTERFACE *disc)
 
 static bool __mmce_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
-	s32 chan = (disc->ioType & 0xFF) - '0';
+	s32 chan = (char)disc->ioType - '0';
 
 	if (disc->ioType < DEVICE_TYPE_GAMECUBE_MMCE(0)) return false;
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
@@ -547,7 +593,7 @@ static bool __mmce_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSect
 
 static bool __mmce_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
-	s32 chan = (disc->ioType & 0xFF) - '0';
+	s32 chan = (char)disc->ioType - '0';
 
 	if (disc->ioType < DEVICE_TYPE_GAMECUBE_MMCE(0)) return false;
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
@@ -568,7 +614,7 @@ static bool __mmce_clearStatus(DISC_INTERFACE *disc)
 
 static bool __mmce_shutdown(DISC_INTERFACE *disc)
 {
-	s32 chan = (disc->ioType & 0xFF) - '0';
+	s32 chan = (char)disc->ioType - '0';
 
 	if (disc->ioType < DEVICE_TYPE_GAMECUBE_MMCE(0)) return false;
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;

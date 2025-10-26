@@ -51,6 +51,7 @@ s32 MMCE_ProbeEx(s32 chan);
 s32 MMCE_GetDeviceID(s32 chan, u32 *id);
 s32 MMCE_GetAccessMode(s32 chan, u8 *mode);
 s32 MMCE_SetAccessMode(s32 chan, u8 mode);
+s32 MMCE_GetDiskID(s32 chan, dvddiskid *diskID);
 s32 MMCE_SetDiskID(s32 chan, const dvddiskid *diskID);
 s32 MMCE_GetDiskInfo(s32 chan, char diskInfo[64]);
 s32 MMCE_SetDiskInfo(s32 chan, const char diskInfo[64]);
