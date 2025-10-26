@@ -31,6 +31,7 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <ogc/mmce.h>
 #include <sdcard/gcsd.h>
 #include <sdcard/card_cmn.h>
 #include <sdcard/card_io.h>
@@ -45,6 +46,7 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
 	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
+	if(sdgecko_isInitialized(chan)) return true;
 
 	if(!__gcsd_init) {
 		sdgecko_initBufferPool();
@@ -173,6 +175,7 @@ static bool __gcsd_shutdown(DISC_INTERFACE *disc)
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
 	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
+	if(!sdgecko_isInitialized(chan)) return true;
 
 	sdgecko_doUnmount(chan);
 	return true;
@@ -216,3 +219,42 @@ DISC_INTERFACE __io_gcsd2 = {
 	0,
 	PAGE_SIZE512
 };
+
+DISC_INTERFACE *get_io_gcsda(void)
+{
+	static DISC_INTERFACE *disc = NULL;
+
+	if(!disc) {
+		disc = &__io_mmcea;
+		if(disc->startup(disc)) return disc;
+		disc = &__io_gcsda;
+	}
+
+	return disc;
+}
+
+DISC_INTERFACE *get_io_gcsdb(void)
+{
+	static DISC_INTERFACE *disc = NULL;
+
+	if(!disc) {
+		disc = &__io_mmceb;
+		if(disc->startup(disc)) return disc;
+		disc = &__io_gcsdb;
+	}
+
+	return disc;
+}
+
+DISC_INTERFACE *get_io_gcsd2(void)
+{
+	static DISC_INTERFACE *disc = NULL;
+
+	if(!disc) {
+		disc = &__io_mmce2;
+		if(disc->startup(disc)) return disc;
+		disc = &__io_gcsd2;
+	}
+
+	return disc;
+}

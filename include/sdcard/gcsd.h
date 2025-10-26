@@ -43,4 +43,8 @@ extern DISC_INTERFACE __io_gcsda;
 extern DISC_INTERFACE __io_gcsdb;
 extern DISC_INTERFACE __io_gcsd2;
 
+extern DISC_INTERFACE* get_io_gcsda (void);
+extern DISC_INTERFACE* get_io_gcsdb (void);
+extern DISC_INTERFACE* get_io_gcsd2 (void);
+
 #endif

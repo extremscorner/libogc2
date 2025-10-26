@@ -572,7 +572,7 @@ static bool __mmce_shutdown(DISC_INTERFACE *disc)
 
 	if (disc->ioType < DEVICE_TYPE_GAMECUBE_MMCE(0)) return false;
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
-	if (!__MMCE[chan].attached) return false;
+	if (!__MMCE[chan].attached) return true;
 
 	MMCE_SetAccessMode(chan, MMCE_MODE_READONLY);
 
