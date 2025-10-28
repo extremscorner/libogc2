@@ -80,6 +80,17 @@ void __attribute__((weak)) SYS_Reportv(const char *msg, va_list list)
 	vfprintf(fp, msg, list);
 }
 
+void SYS_STDIO_Report(bool use_stdout)
+{
+	fflush(stderr);
+	stderr = fp;
+
+	if (use_stdout) {
+		fflush(stdout);
+		stdout = fp;
+	}
+}
+
 void SYS_EnableGecko(s32 chan, bool safe)
 {
 	flockfile(fp);

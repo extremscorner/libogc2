@@ -437,6 +437,7 @@ powercallback SYS_SetPowerCallback(powercallback cb);
 
 void SYS_Report(const char *msg,...) __attribute__((format(printf,1,2)));
 void SYS_Reportv(const char *msg,va_list list) __attribute__((format(printf,1,0)));
+void SYS_STDIO_Report(bool use_stdout);
 void SYS_EnableGecko(s32 chan,bool safe);
 
 void kprintf(const char *fmt,...) __attribute__((format(printf,1,2)));
