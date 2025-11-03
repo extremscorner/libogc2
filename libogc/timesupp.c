@@ -175,8 +175,9 @@ int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *
 		tp->tv_usec = tick_microsecs(now);
 	}
 	if (tz != NULL) {
-		tz->tz_minuteswest = 0;
-		tz->tz_dsttime = 0;
+		_tzset_r(ptr);
+		tz->tz_minuteswest = _timezone / TB_SECSPERMIN;
+		tz->tz_dsttime = _daylight;
 	}
 	return 0;
 }
