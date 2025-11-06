@@ -542,7 +542,7 @@ static bool __mmce_startup(DISC_INTERFACE *disc)
 		if (!EXI_Attach(chan, ExtHandler))
 			return false;
 
-	if (MMCE_GetDeviceID(chan, &id) < 0 || (u16)id < 0x0101 || (u16)id == 0xFFFF) {
+	if (MMCE_GetDeviceID(chan, &id) < 0 || (id << 16) == EXI_MEMCARDPRO || (u16)id < 0x0101 || (u16)id == 0xFFFF) {
 		if (chan < EXI_CHANNEL_2)
 			EXI_Detach(chan);
 		return false;
