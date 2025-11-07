@@ -36,6 +36,7 @@ distribution.
 #define MMCE_RESULT_BUSY        -1
 #define MMCE_RESULT_WRONGDEVICE -2
 #define MMCE_RESULT_NOCARD      -3
+#define MMCE_RESULT_VERSION     -4
 #define MMCE_RESULT_FATAL_ERROR -128
 
 #ifdef __cplusplus
