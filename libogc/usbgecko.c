@@ -132,10 +132,7 @@ int usb_isgeckoalive(s32 chn)
 
 	while (EXI_ProbeEx(chn) == 0);
 
-	if (!EXI_GetID(chn, EXI_DEVICE_0, &id))
-		return 0;
-
-	if (id != 0)
+	if (!EXI_GetID(chn, EXI_DEVICE_0, &id) || id != 0)
 		return 0;
 
 	if (!EXI_LockEx(chn, EXI_DEVICE_0))
@@ -143,7 +140,7 @@ int usb_isgeckoalive(s32 chn)
 
 	val = 0x9000;
 	ret = __send_command(chn,&val);
-	if(ret==1 && !(val&0x0470)) ret = 0;
+	if(ret==1 && val!=0x0470) ret = 0;
 
 	EXI_Unlock(chn);
 

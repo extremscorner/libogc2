@@ -1166,7 +1166,7 @@ static bool __card_check(s32 drv_no)
 #endif
 	if(drv_no==0 && _ioCardSelect[drv_no]!=EXI_DEVICE_0) {
 		if(EXI_GetID(drv_no,_ioCardSelect[drv_no],&id)==0) return FALSE;
-		if(id!=0xffffffff) return FALSE;
+		if(id!=0 && id!=0xffffffff) return FALSE;
 		return TRUE;
 	}
 	while((ret=EXI_ProbeEx(drv_no))==0);
@@ -1174,10 +1174,10 @@ static bool __card_check(s32 drv_no)
 
 	if(EXI_GetID(drv_no,EXI_DEVICE_0,&id)==0) return FALSE;
 	if(_ioCardSelect[drv_no]!=EXI_DEVICE_0) {
-		if(id==0xffffffff) return FALSE;
+		if(id==0 || id==0xffffffff) return FALSE;
 		if(EXI_GetID(drv_no,_ioCardSelect[drv_no],&id)==0) return FALSE;
 	}
-	if(id!=0xffffffff) return FALSE;
+	if(id!=0 && id!=0xffffffff) return FALSE;
 
 	if(drv_no!=2 && _ioCardSelect[drv_no]==EXI_DEVICE_0) {
 		if(!(EXI_GetState(drv_no)&EXI_FLAG_ATTACH)) {
