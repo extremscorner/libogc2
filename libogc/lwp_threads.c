@@ -583,6 +583,7 @@ void __lwp_thread_loadenv(lwp_cntrl *thethread)
 	sp &= ~(CPU_STACK_ALIGNMENT-1);
 	*((u32*)sp) = 0;
 	
+	thethread->context.dabr = (stackbase&~0x7)|0x6;
 	thethread->context.gpr[1] = sp;
 	
 	msr_value = (MSR_ME|MSR_IR|MSR_DR|MSR_RI);

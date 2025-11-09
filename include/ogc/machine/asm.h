@@ -196,7 +196,7 @@
 #define CTR_OFFSET	 188
 #define XER_OFFSET	 192
 #define MSR_OFFSET	 196
-#define DAR_OFFSET	 200
+#define DABR_OFFSET	 200
 
 #define	STATE_OFFSET 204
 #define MODE_OFFSET	 206

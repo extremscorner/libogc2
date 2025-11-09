@@ -32,7 +32,7 @@ typedef struct _exception_frame {
 	u32 srr0, srr1;
 	u32 gpr[32];
 	u32 gqr[8];
-	u32 cr, lr, ctr, xer, msr, dar;
+	u32 cr, lr, ctr, xer, msr, dabr;
 
 	u16 state;		//used to determine whether to restore the fpu context or not
 	u16 mode;		//unused

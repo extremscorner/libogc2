@@ -110,8 +110,6 @@ exceptionhandler_start:
 	stw			r3,XER_OFFSET(r4)
 	mfmsr		r3
 	stw			r3,MSR_OFFSET(r4)
-	mfdar		r3
-	stw			r3,DAR_OFFSET(r4)
 	mfsrr0		r3
 	stw			r3,SRR0_OFFSET(r4)
 	mfsrr1		r3

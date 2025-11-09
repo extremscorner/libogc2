@@ -90,9 +90,9 @@ distribution.
 	.set	GP_CTR, (GP_LR + 4)
 	.set	GP_XER, (GP_CTR + 4)
 	.set	GP_MSR, (GP_XER + 4)
-	.set	GP_DAR, (GP_MSR + 4)
+	.set	GP_DABR, (GP_MSR + 4)
 
-	.set	STATE, (GP_DAR + 4)
+	.set	STATE, (GP_DABR + 4)
 	.set	MODE, (STATE + 2)
 
 	.set	FP_0, (FPR0_OFFSET - 8)
@@ -376,6 +376,10 @@ _cpu_context_switch:
 	lwz		r6, GP_MSR(r4)
 	rlwinm	r6, r6, 0, 19, 17
 	mtmsr	r6
+	mfdabr	r5
+	stw		r5, GP_DABR(r3)
+	lwz		r6, GP_DABR(r4)
+	mtdabr	r6
 
 	blr
 
@@ -543,8 +547,6 @@ _cpu_context_save_ex:
 	stw		r8, XER_OFFSET-8(r3)
 	mfmsr	r8
 	stw		r8, MSR_OFFSET-8(r3)
-	mfdar	r8
-	stw		r8, DAR_OFFSET-8(r3)
 	mfsrr0	r8
 	stw		r8, SRR0_OFFSET-8(r3)
 	mfsrr1	r8

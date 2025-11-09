@@ -156,6 +156,9 @@ void __exception_closeall(void)
 	mtmsr(mfmsr()&~MSR_EE);
 	mtmsr(mfmsr()|(MSR_FP|MSR_RI));
 
+	mtspr(IABR,0);
+	mtspr(DABR,0);
+
 	for(i=0;i<NUM_EXCEPTIONS;i++) {
 		__exception_close(i);
 	}
