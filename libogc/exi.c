@@ -470,7 +470,7 @@ s32 EXI_Sync(s32 nChn)
 #ifdef _EXI_DEBUG
 	printf("EXI_Sync(%d)\n",nChn);
 #endif
-	while(_exiReg[nChn][3]&0x0001);
+	while(_exiReg[32+nChn][3]&0x0001);
 
 	_CPU_ISR_Disable(level);
 
