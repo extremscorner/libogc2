@@ -27,19 +27,19 @@
    extern "C" {
 #endif /* __cplusplus */
 
-typedef struct _excption_frame {
-	u32 EXCPT_Number;
-	u32 SRR0,SRR1;
-	u32 GPR[32];
-	u32 GQR[8];
-	u32 CR, LR, CTR, XER, MSR, DAR;
+typedef struct _exception_frame {
+	u32 nExcept;
+	u32 srr0, srr1;
+	u32 gpr[32];
+	u32 gqr[8];
+	u32 cr, lr, ctr, xer, msr, dar;
 
-	u16	state;		//used to determine whether to restore the fpu context or not
+	u16 state;		//used to determine whether to restore the fpu context or not
 	u16 mode;		//unused
 
-	f64 FPR[32];
-	u64	FPSCR;
-	f64 PSFPR[32];
+	f64 fpr[32];
+	u64 fpscr;
+	f64 psfpr[32];
 } frame_context;
 
 #ifdef __cplusplus

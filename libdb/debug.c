@@ -138,11 +138,11 @@ static s32 hexToInt(char **ptr, s32 *ival)
 	return cnt;
 }
 
-static s32 computeSignal(s32 excpt)
+static s32 computeSignal(s32 tt)
 {
 	struct hard_trap_info *ht;
 	for(ht = hard_trap_info;ht->tt && ht->signo;ht++) {
-		if(ht->tt==excpt) return ht->signo;
+		if(ht->tt==tt) return ht->signo;
 	}
 	return SIGHUP;
 }
@@ -407,15 +407,15 @@ static s32 gdbstub_getthreadregs(s32 thread,frame_context *frame)
 
 	th = gdbstub_indextoid(thread);
 	if(th) {
-		memcpy(frame->GPR,th->context.GPR,(32*4));
-		memcpy(frame->FPR,th->context.FPR,(32*8));
-		frame->SRR0 = th->context.LR;
-		frame->SRR1 = th->context.MSR;
-		frame->CR = th->context.CR;
-		frame->LR = th->context.LR;
-		frame->CTR = th->context.CTR;
-		frame->XER = th->context.XER;
-		frame->FPSCR = th->context.FPSCR;
+		memcpy(frame->gpr,th->context.gpr,(32*4));
+		memcpy(frame->fpr,th->context.fpr,(32*8));
+		frame->srr0 = th->context.lr;
+		frame->srr1 = th->context.msr;
+		frame->cr = th->context.cr;
+		frame->lr = th->context.lr;
+		frame->ctr = th->context.ctr;
+		frame->xer = th->context.xer;
+		frame->fpscr = th->context.fpscr;
 		return 1;
 	}
 	return 0;
@@ -427,19 +427,19 @@ static void gdbstub_report_exception(frame_context *frame,s32 thread)
 	char *ptr;
 
 	ptr = remcomOutBuffer;
-	sigval = computeSignal(frame->EXCPT_Number);
+	sigval = computeSignal(frame->nExcept);
 	*ptr++ = 'T';
 	*ptr++ = highhex(sigval);
 	*ptr++ = lowhex(sigval);
 	*ptr++ = highhex(SP_REGNUM);
 	*ptr++ = lowhex(SP_REGNUM);
 	*ptr++ = ':';
-	ptr = mem2hstr(ptr,(char*)&frame->GPR[1],4);
+	ptr = mem2hstr(ptr,(char*)&frame->gpr[1],4);
 	*ptr++ = ';';
 	*ptr++ = highhex(PC_REGNUM);
 	*ptr++ = lowhex(PC_REGNUM);
 	*ptr++ = ':';
-	ptr = mem2hstr(ptr,(char*)&frame->SRR0,4);
+	ptr = mem2hstr(ptr,(char*)&frame->srr0,4);
 	*ptr++ = ';';
 
 	*ptr++ = 't';
@@ -475,7 +475,7 @@ void c_debug_handler(frame_context *frame)
 		putpacket(remcomOutBuffer);
 	}
 
-	if(frame->SRR0==(u32)__breakinst) frame->SRR0 += 4;
+	if(frame->srr0==(u32)__breakinst) frame->srr0 += 4;
 
 	host_has_detached = 0;
 	while(!host_has_detached) {
@@ -488,15 +488,15 @@ void c_debug_handler(frame_context *frame)
 			case 'D':
 				dbg_instep = 0;
 				dbg_active = 0;
-				frame->SRR1 &= ~MSR_SE;
+				frame->srr1 &= ~MSR_SE;
 				strcpy(remcomOutBuffer,"OK");
 				host_has_detached = 1;
 				break;
 			case 'k':
 				dbg_instep = 0;
 				dbg_active = 0;
-				frame->SRR1 &= ~MSR_SE;
-				frame->SRR0 = 0x80001800;
+				frame->srr1 &= ~MSR_SE;
+				frame->srr0 = 0x80001800;
 				host_has_detached = 1;
 				goto exit;
 			case 'g':
@@ -504,15 +504,15 @@ void c_debug_handler(frame_context *frame)
 				ptr = remcomOutBuffer;
 				if(current_thread!=thread) regptr = &current_thread_registers;
 
-				ptr = mem2hstr(ptr,(char*)regptr->GPR,32*4);
-				ptr = mem2hstr(ptr,(char*)regptr->FPR,32*8);
-				ptr = mem2hstr(ptr,(char*)&regptr->SRR0,4);
-				ptr = mem2hstr(ptr,(char*)&regptr->SRR1,4);
-				ptr = mem2hstr(ptr,(char*)&regptr->CR,4);
-				ptr = mem2hstr(ptr,(char*)&regptr->LR,4);
-				ptr = mem2hstr(ptr,(char*)&regptr->CTR,4);
-				ptr = mem2hstr(ptr,(char*)&regptr->XER,4);
-				ptr = mem2hstr(ptr,(char*)&regptr->FPSCR,4);
+				ptr = mem2hstr(ptr,(char*)regptr->gpr,32*4);
+				ptr = mem2hstr(ptr,(char*)regptr->fpr,32*8);
+				ptr = mem2hstr(ptr,(char*)&regptr->srr0,4);
+				ptr = mem2hstr(ptr,(char*)&regptr->srr1,4);
+				ptr = mem2hstr(ptr,(char*)&regptr->cr,4);
+				ptr = mem2hstr(ptr,(char*)&regptr->lr,4);
+				ptr = mem2hstr(ptr,(char*)&regptr->ctr,4);
+				ptr = mem2hstr(ptr,(char*)&regptr->xer,4);
+				ptr = mem2hstr(ptr,(char*)&regptr->fpscr,4);
 				break;
 			case 'm':
 				ptr = &remcomInBuffer[1];
@@ -529,13 +529,13 @@ void c_debug_handler(frame_context *frame)
 			case 'c':
 				dbg_instep = 0;
 				dbg_active = 1;
-				frame->SRR1 &= ~MSR_SE;
+				frame->srr1 &= ~MSR_SE;
 				current_device->wait(current_device);
 				goto exit;
 			case 's':
 				dbg_instep = 1;
 				dbg_active = 1;
-				frame->SRR1 |= MSR_SE; 
+				frame->srr1 |= MSR_SE;
 				current_device->wait(current_device);
 				goto exit;
 			case 'z':

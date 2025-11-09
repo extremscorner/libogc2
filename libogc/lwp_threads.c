@@ -101,15 +101,15 @@ extern void kprintf(const char *fmt,...);
 #ifdef _LWPTHREADS_DEBUG
 static void __lwp_dumpcontext(frame_context *ctx)
 {
-	kprintf("GPR00 %08x GPR08 %08x GPR16 %08x GPR24 %08x\n",ctx->GPR[0], ctx->GPR[8], ctx->GPR[16], ctx->GPR[24]);
-	kprintf("GPR01 %08x GPR09 %08x GPR17 %08x GPR25 %08x\n",ctx->GPR[1], ctx->GPR[9], ctx->GPR[17], ctx->GPR[25]);
-	kprintf("GPR02 %08x GPR10 %08x GPR18 %08x GPR26 %08x\n",ctx->GPR[2], ctx->GPR[10], ctx->GPR[18], ctx->GPR[26]);
-	kprintf("GPR03 %08x GPR11 %08x GPR19 %08x GPR27 %08x\n",ctx->GPR[3], ctx->GPR[11], ctx->GPR[19], ctx->GPR[27]);
-	kprintf("GPR04 %08x GPR12 %08x GPR20 %08x GPR28 %08x\n",ctx->GPR[4], ctx->GPR[12], ctx->GPR[20], ctx->GPR[28]);
-	kprintf("GPR05 %08x GPR13 %08x GPR21 %08x GPR29 %08x\n",ctx->GPR[5], ctx->GPR[13], ctx->GPR[21], ctx->GPR[29]);
-	kprintf("GPR06 %08x GPR14 %08x GPR22 %08x GPR30 %08x\n",ctx->GPR[6], ctx->GPR[14], ctx->GPR[22], ctx->GPR[30]);
-	kprintf("GPR07 %08x GPR15 %08x GPR23 %08x GPR31 %08x\n",ctx->GPR[7], ctx->GPR[15], ctx->GPR[23], ctx->GPR[31]);
-	kprintf("LR %08x SRR0 %08x SRR1 %08x MSR %08x\n\n", ctx->LR, ctx->SRR0, ctx->SRR1,ctx->MSR);
+	kprintf("GPR00 %08x GPR08 %08x GPR16 %08x GPR24 %08x\n", ctx->gpr[0], ctx->gpr[8], ctx->gpr[16], ctx->gpr[24]);
+	kprintf("GPR01 %08x GPR09 %08x GPR17 %08x GPR25 %08x\n", ctx->gpr[1], ctx->gpr[9], ctx->gpr[17], ctx->gpr[25]);
+	kprintf("GPR02 %08x GPR10 %08x GPR18 %08x GPR26 %08x\n", ctx->gpr[2], ctx->gpr[10], ctx->gpr[18], ctx->gpr[26]);
+	kprintf("GPR03 %08x GPR11 %08x GPR19 %08x GPR27 %08x\n", ctx->gpr[3], ctx->gpr[11], ctx->gpr[19], ctx->gpr[27]);
+	kprintf("GPR04 %08x GPR12 %08x GPR20 %08x GPR28 %08x\n", ctx->gpr[4], ctx->gpr[12], ctx->gpr[20], ctx->gpr[28]);
+	kprintf("GPR05 %08x GPR13 %08x GPR21 %08x GPR29 %08x\n", ctx->gpr[5], ctx->gpr[13], ctx->gpr[21], ctx->gpr[29]);
+	kprintf("GPR06 %08x GPR14 %08x GPR22 %08x GPR30 %08x\n", ctx->gpr[6], ctx->gpr[14], ctx->gpr[22], ctx->gpr[30]);
+	kprintf("GPR07 %08x GPR15 %08x GPR23 %08x GPR31 %08x\n", ctx->gpr[7], ctx->gpr[15], ctx->gpr[23], ctx->gpr[31]);
+	kprintf("LR %08x SRR0 %08x SRR1 %08x MSR %08x\n\n", ctx->lr, ctx->srr0, ctx->srr1, ctx->msr);
 }
 
 void __lwp_showmsr(void)
@@ -572,7 +572,7 @@ void __lwp_thread_loadenv(lwp_cntrl *thethread)
 	u32 stackbase,sp,size;
 	u32 r2,r13,msr_value;
 	
-	thethread->context.FPSCR = 0x000000f8;
+	thethread->context.fpscr = 0x000000f8;
 
 	stackbase = (u32)thethread->stack;
 	size = thethread->stack_size;
@@ -583,18 +583,18 @@ void __lwp_thread_loadenv(lwp_cntrl *thethread)
 	sp &= ~(CPU_STACK_ALIGNMENT-1);
 	*((u32*)sp) = 0;
 	
-	thethread->context.GPR[1] = sp;
+	thethread->context.gpr[1] = sp;
 	
 	msr_value = (MSR_ME|MSR_IR|MSR_DR|MSR_RI);
 	if(!(thethread->isr_level&CPU_MODES_INTERRUPT_MASK))
 		msr_value |= MSR_EE;
 	
-	thethread->context.MSR = msr_value;
-	thethread->context.LR = (u32)__lwp_thread_handler;
+	thethread->context.msr = msr_value;
+	thethread->context.lr = (u32)__lwp_thread_handler;
 
 	__asm__ __volatile__ ("mr %0,2; mr %1,13" : "=r" ((r2)), "=r" ((r13)));
-	thethread->context.GPR[2] = r2;
-	thethread->context.GPR[13] = r13;
+	thethread->context.gpr[2] = r2;
+	thethread->context.gpr[13] = r13;
 
 #ifdef _LWPTHREADS_DEBUG
 	kprintf("__lwp_thread_loadenv(%p,%p,%d,%p)\n",thethread,(void*)stackbase,size,(void*)sp);
