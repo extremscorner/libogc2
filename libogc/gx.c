@@ -833,6 +833,7 @@ static void __GX_SetVAT(void)
 			GX_LOAD_CP_REG((0x90+(i&7)),__gx->VAT2reg[i]);
 		}
 	}
+	wgPipe->U8 = 0;
 	__gx->VATTable = 0;
 }
 
