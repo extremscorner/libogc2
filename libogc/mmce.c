@@ -503,6 +503,14 @@ s32 MMCE_WriteSectors(s32 chan, u32 sector, u16 numSectors, const void *buffer)
 	return err ? MMCE_RESULT_NOCARD : MMCE_Sync(chan);
 }
 
+bool MMCE_IsAttached(s32 chan)
+{
+	if (chan < EXI_CHANNEL_0 || chan >= EXI_CHANNEL_MAX)
+		return false;
+
+	return __MMCE[chan].attached;
+}
+
 static s32 ExtHandler(s32 chan, s32 dev)
 {
 	MMCEControlBlock *cb = &__MMCE[chan];
@@ -622,7 +630,8 @@ static bool __mmce_shutdown(DISC_INTERFACE *disc)
 	if (disc->ioType > DEVICE_TYPE_GAMECUBE_MMCE(2)) return false;
 	if (!__MMCE[chan].attached) return true;
 
-	MMCE_SetAccessMode(chan, MMCE_MODE_READONLY);
+	if (disc->features & FEATURE_MEDIUM_CANWRITE)
+		MMCE_SetAccessMode(chan, MMCE_MODE_READONLY);
 
 	if (chan == EXI_CHANNEL_2) {
 		__MaskIrq(IM_PI_DEBUG);

@@ -60,6 +60,7 @@ s32 MMCE_GetGameID(s32 chan, char gameID[10]);
 s32 MMCE_SetGameID(s32 chan, const char gameID[10]);
 s32 MMCE_ReadSectors(s32 chan, u32 sector, u16 numSectors, void *buffer);
 s32 MMCE_WriteSectors(s32 chan, u32 sector, u16 numSectors, const void *buffer);
+bool MMCE_IsAttached(s32 chan);
 
 #define DEVICE_TYPE_GAMECUBE_MMCE(x) (('G'<<24)|('M'<<16)|('C'<<8)|('0'+(x)))
 
