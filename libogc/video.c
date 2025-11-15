@@ -2794,6 +2794,16 @@ void VIDEO_WaitVSync(void)
 	_CPU_ISR_Restore(level);
 }
 
+void VIDEO_WaitForFlush(void)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	while(flushFlag)
+		LWP_ThreadSleep(video_queue);
+	_CPU_ISR_Restore(level);
+}
+
 void VIDEO_SetFramebuffer(void *fb)
 {
 	u32 level;

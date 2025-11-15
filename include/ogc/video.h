@@ -172,6 +172,7 @@ void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color);
  */
 void VIDEO_WaitVSync(void);
 
+void VIDEO_WaitForFlush(void);
 
 /*! 
  * \fn void VIDEO_SetNextFramebuffer(void *fb)
