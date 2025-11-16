@@ -47,11 +47,11 @@ distribution.
 
 
 /*! 
- * \typedef void (*VIRetraceCallback)(u32 retraceCnt)
+ * \typedef void (*VIRetraceCallback)(u32 retraceCount)
  * \brief function pointer typedef for the user's retrace callback
- * \param[in] retraceCnt current retrace count
+ * \param[in] retraceCount current retrace count
  */
-typedef void (*VIRetraceCallback)(u32 retraceCnt);
+typedef void (*VIRetraceCallback)(u32 retraceCount);
 
 typedef void (*VIPositionCallback)(u32 posX,u32 posY);
 
@@ -166,11 +166,20 @@ void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color);
 
 /*! 
  * \fn void VIDEO_WaitVSync(void)
- * \brief Wait on the next vertical retrace
+ * \brief Wait until the next vertical retrace
  *
  * \return none
  */
 void VIDEO_WaitVSync(void);
+
+
+/*! 
+ * \fn u32 VIDEO_WaitForRetrace(u32 count)
+ * \brief Wait until the specified retrace count
+ *
+ * \return retracecount
+ */
+u32 VIDEO_WaitForRetrace(u32 count);
 
 void VIDEO_WaitForFlush(void);
 

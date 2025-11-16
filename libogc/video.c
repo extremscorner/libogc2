@@ -2783,15 +2783,27 @@ void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height)
 
 void VIDEO_WaitVSync(void)
 {
-	u32 level;
-	u32 retcnt;
+	u32 level,count;
 
 	_CPU_ISR_Disable(level);
-	retcnt = retraceCount;
+	count = retraceCount;
 	do {
 		LWP_ThreadSleep(video_queue);
-	} while(retraceCount==retcnt);
+	} while(retraceCount==count);
 	_CPU_ISR_Restore(level);
+}
+
+u32 VIDEO_WaitForRetrace(u32 count)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	while((s32)(retraceCount-count)<0)
+		LWP_ThreadSleep(video_queue);
+	count = retraceCount;
+	_CPU_ISR_Restore(level);
+
+	return count;
 }
 
 void VIDEO_WaitForFlush(void)
