@@ -34,13 +34,11 @@ distribution.
 #include "cache.h"
 #include "context.h"
 #include "processor.h"
+#include "lwp_stack.h"
 #include "lwp_threads.h"
 #include "irq.h"
 
 //#define _IRQ_DEBUG
-
-#define CPU_STACK_ALIGNMENT				8
-#define CPU_MINIMUM_STACK_FRAME_SIZE	16
 
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))

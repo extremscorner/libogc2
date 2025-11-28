@@ -77,7 +77,7 @@ INCLUDES	:=	$(DEFINCS) -I$(LWIPDIR)/include -I$(LWIPDIR)/include/ipv4 -I$(LWIPDI
 				-I$(INCDIR)/bte \
 				-I$(INCDIR)/sdcard
 
-MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffunction-sections -fdata-sections
+MACHDEP		:= -DGEKKO -mcpu=750 -meabi -msdata=sysv -mhard-float -ffunction-sections -fdata-sections
 
 
 ifeq ($(PLATFORM),wii)

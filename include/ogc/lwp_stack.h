@@ -59,7 +59,7 @@ distribution.
 
 #define CPU_STACK_ALIGNMENT				8
 #define CPU_MINIMUM_STACK_SIZE			1024*8
-#define CPU_MINIMUM_STACK_FRAME_SIZE	16
+#define CPU_MINIMUM_STACK_FRAME_SIZE	8
 #define CPU_MODES_INTERRUPT_MASK		0x00000001 /* interrupt level in mode */
 
 #ifdef __cplusplus
