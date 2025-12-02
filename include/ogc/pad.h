@@ -13,6 +13,7 @@
 #define PAD_CHAN1_BIT				0x40000000
 #define PAD_CHAN2_BIT				0x20000000
 #define PAD_CHAN3_BIT				0x10000000
+#define PAD_CHAN_BIT(chan)			(PAD_CHAN0_BIT>>(chan))
 
 #define PAD_MOTOR_STOP				0
 #define PAD_MOTOR_RUMBLE			1

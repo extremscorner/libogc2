@@ -19,8 +19,6 @@
 #define _SHIFTR(v, s, w)	\
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
-#define PAD_ENABLEDMASK(chan)		(0x80000000>>chan)
-
 typedef struct _keyinput {
 	s8 stickX;
 	s8 stickY;
@@ -236,13 +234,13 @@ static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 
 	type = __pad_type[chan]&~0xffff;
 	if(type==SI_GC_CONTROLLER && !(status->button&0x80)) {
-		__pad_barrelbits |= PAD_ENABLEDMASK(chan);
+		__pad_barrelbits |= PAD_CHAN_BIT(chan);
 		status->stickX = 0;
 		status->stickY = 0;
 		status->substickX = 0;
 		status->substickY = 0;
 	} else {
-		__pad_barrelbits &= ~PAD_ENABLEDMASK(chan);
+		__pad_barrelbits &= ~PAD_CHAN_BIT(chan);
 		status->stickX = __pad_clampS8(status->stickX,__pad_origin[chan].stickX);
 		status->stickY = __pad_clampS8(status->stickY,__pad_origin[chan].stickY);
 		status->substickX = __pad_clampS8(status->substickX,__pad_origin[chan].substickX);
@@ -310,7 +308,7 @@ static void __pad_updateorigin(s32 chan)
 {
 	u32 mode,mask,type;
 
-	mask = PAD_ENABLEDMASK(chan);
+	mask = PAD_CHAN_BIT(chan);
 	mode = __pad_analogmode&0x0700;
 	if(mode==0x100) {
 		__pad_origin[chan].substickX &= ~0x0f;
@@ -344,7 +342,7 @@ static void __pad_probecallback(s32 chan,u32 type)
 {
 	if(!(type&0x0f)) {
 		__pad_enable(__pad_resettingchan);
-		__pad_waitingbits |= PAD_ENABLEDMASK(__pad_resettingchan);
+		__pad_waitingbits |= PAD_CHAN_BIT(__pad_resettingchan);
 	}
 	__pad_doreset();
 }
@@ -363,7 +361,7 @@ static void __pad_origincallback(s32 chan,u32 type)
 
 static void __pad_originupdatecallback(s32 chan,u32 type)
 {
-	u32 en_bits = __pad_enabledbits&PAD_ENABLEDMASK(chan);
+	u32 en_bits = __pad_enabledbits&PAD_CHAN_BIT(chan);
 
 	if(en_bits) {
 		if(!(type&0x0f)) __pad_updateorigin(chan);
@@ -377,7 +375,7 @@ static void __pad_typeandstatuscallback(s32 chan,u32 type)
 #ifdef _PAD_DEBUG
 	printf("__pad_typeandstatuscallback(%d,%08x)\n",chan,type);
 #endif
-	mask = PAD_ENABLEDMASK(__pad_resettingchan);
+	mask = PAD_CHAN_BIT(__pad_resettingchan);
 	recal_bits = __pad_recalibratebits&mask;
 	__pad_recalibratebits &= ~mask;
 
@@ -418,7 +416,7 @@ static void __pad_receivecheckcallback(s32 chan,u32 type)
 #ifdef _PAD_DEBUG
 	printf("__pad_receivecheckcallback(%d,%08x)\n",chan,type);
 #endif
-	mask = PAD_ENABLEDMASK(chan);
+	mask = PAD_CHAN_BIT(chan);
 	if(__pad_enabledbits&mask) {
 		tmp = type&0xff;
 		type &= ~0xff;
@@ -437,7 +435,7 @@ static void __pad_enable(u32 chan)
 #ifdef _PAD_DEBUG
 	printf("__pad_enable(%d)\n",chan);
 #endif
-	__pad_enabledbits |= PAD_ENABLEDMASK(chan);
+	__pad_enabledbits |= PAD_CHAN_BIT(chan);
 	SI_GetResponse(chan,(void*)buf);
 	SI_SetCommand(chan,(__pad_analogmode|0x00400000));
 	SI_EnablePolling(__pad_enabledbits);
@@ -450,7 +448,7 @@ static void __pad_disable(u32 chan)
 	printf("__pad_disable(%d)\n",chan);
 #endif
 	_CPU_ISR_Disable(level);
-	mask = PAD_ENABLEDMASK(chan);
+	mask = PAD_CHAN_BIT(chan);
 	SI_DisablePolling(mask);
 	__pad_enabledbits &= ~mask;
 	__pad_waitingbits &= ~mask;
@@ -468,7 +466,7 @@ static void __pad_doreset(void)
 #ifdef _PAD_DEBUG
 	printf("__pad_doreset(%d)\n",__pad_resettingchan);
 #endif
-	__pad_resettingbits &= ~PAD_ENABLEDMASK(__pad_resettingchan);
+	__pad_resettingbits &= ~PAD_CHAN_BIT(__pad_resettingchan);
 
 	memset(&__pad_origin[__pad_resettingchan],0,sizeof(PADStatus));
 	SI_GetTypeAsync(__pad_resettingchan,__pad_typeandstatuscallback);
@@ -562,7 +560,7 @@ u32 PAD_Read(PADStatus *status)
 	chan = 0;
 	ret = 0;
 	while(chan<4) {
-		mask = PAD_ENABLEDMASK(chan);
+		mask = PAD_CHAN_BIT(chan);
 #ifdef _PAD_DEBUG
 		printf("PAD_Read(%d,%d,%08x,%08x,%08x)\n",chan,__pad_resettingchan,(__pad_pendingbits&mask),(__pad_resettingbits&mask),(__pad_enabledbits&mask));
 #endif
@@ -651,7 +649,7 @@ void PAD_GetOrigin(PADStatus *origin)
 	_CPU_ISR_Disable(level);
 	chan = 0;
 	while(chan<4) {
-		mask = PAD_ENABLEDMASK(chan);
+		mask = PAD_CHAN_BIT(chan);
 		if(__pad_pendingbits&mask) {
 			PAD_Reset(0);
 			memset(&origin[chan],0,sizeof(PADStatus));
@@ -770,7 +768,7 @@ u32 PAD_GetType(s32 chan,u32 *type)
 	u32 mask;
 
 	*type = SI_GetType(chan);
-	mask = PAD_ENABLEDMASK(chan);
+	mask = PAD_CHAN_BIT(chan);
 
 	if(__pad_resettingbits&mask || __pad_resettingchan==chan) {
 		return 0;
@@ -781,7 +779,7 @@ u32 PAD_GetType(s32 chan,u32 *type)
 u32 PAD_IsBarrel(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3) return 0;
-	return !!(__pad_barrelbits&PAD_ENABLEDMASK(chan));
+	return !!(__pad_barrelbits&PAD_CHAN_BIT(chan));
 }
 
 void PAD_ControlAllMotors(const u32 *cmds)
@@ -795,7 +793,7 @@ void PAD_ControlAllMotors(const u32 *cmds)
 	chan = 0;
 	ret = 0;
 	while(chan<4) {
-		mask = PAD_ENABLEDMASK(chan);
+		mask = PAD_CHAN_BIT(chan);
 		if(__pad_enabledbits&mask) {
 			type = SI_GetType(chan);
 			if(!(type&SI_GC_NOMOTOR)) {
@@ -821,7 +819,7 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 
 	_CPU_ISR_Disable(level);
 
-	mask = PAD_ENABLEDMASK(chan);
+	mask = PAD_CHAN_BIT(chan);
 	if(__pad_enabledbits&mask) {
 		type = SI_GetType(chan);
 		if(!(type&SI_GC_NOMOTOR)) {
@@ -883,7 +881,7 @@ u32 PAD_ScanPads(void)
 	PAD_Read(padstatus);
 	//PAD_Clamp(padstatus);
 	for(i=0;i<PAD_CHANMAX;i++) {
-		padBit = (PAD_CHAN0_BIT>>i);
+		padBit = PAD_CHAN_BIT(i);
 
 		switch(padstatus[i].err) {
 		case PAD_ERR_NONE:

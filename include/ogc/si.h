@@ -7,13 +7,13 @@
 #define SI_CHAN1				1
 #define SI_CHAN2				2
 #define SI_CHAN3				3
-#define SI_MAX_CHAN             4
+#define SI_MAX_CHAN				4
 
 #define SI_CHAN0_BIT			0x80000000
 #define SI_CHAN1_BIT			0x40000000
 #define SI_CHAN2_BIT			0x20000000
 #define SI_CHAN3_BIT			0x10000000
-#define SI_CHAN_BIT(chn)		(SI_CHAN0_BIT>>(chn))
+#define SI_CHAN_BIT(chan)		(SI_CHAN0_BIT>>(chan))
 
 #define SI_ERROR_UNDER_RUN      0x0001
 #define SI_ERROR_OVER_RUN       0x0002
