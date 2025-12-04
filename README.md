@@ -37,7 +37,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 
 ### Subprojects
 
-[cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [opengx](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
+[cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [GRRLIB](https://github.com/extremscorner/GRRLIB), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [opengx](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
 
 ## Installing
 
@@ -83,6 +83,22 @@ sudo (dkp-)pacman -S libogc2-cmake
 
 ## Building
 
+### Pacman
+
+```
+git clone https://github.com/extremscorner/libogc2.git
+cd libogc2
+makepkg -si
+```
+
+```
+git clone --recurse-submodules https://github.com/extremscorner/libdvm.git
+cd libdvm
+makepkg -si
+```
+
+### GNU Make
+
 1. Existing packages should first be uninstalled if already installed.
 
    ```
@@ -115,23 +131,43 @@ Using `sudo` is not necessary with MSYS2.
 
 ## Upgrading
 
-```
-sudo (dkp-)pacman -Syu
-```
+### Pacman
 
 ```
 cd libogc2
-sudo -E make uninstall
-sudo -E make clean
 git pull
-make
-sudo -E make install
+makepkg -si
 ```
 
 ```
-cd libfat
-make ogc-clean
-git pull
-make ogc-release
-sudo -E make ogc-install
+cd libdvm
+git pull --recurse-submodules
+makepkg -si
 ```
+
+### GNU Make
+
+1. Supporting packages should first be upgraded.
+
+   ```
+   sudo (dkp-)pacman -Syu
+   ```
+
+2. Clean, pull and rebuild source repositories.
+
+   ```
+   cd libogc2
+   sudo -E make uninstall
+   sudo -E make clean
+   git pull
+   make
+   sudo -E make install
+   ```
+
+   ```
+   cd libfat
+   make ogc-clean
+   git pull
+   make ogc-release
+   sudo -E make ogc-install
+   ```
