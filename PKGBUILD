@@ -2,7 +2,7 @@
 
 _pkgname=libogc2
 pkgname=(${_pkgname}{,-docs}-git)
-pkgver=r2328.0676569
+pkgver=r2330.1d75bd5
 pkgrel=1
 pkgdesc='C library for GameCube and Wii targeting devkitPPC.'
 arch=('any')
@@ -12,6 +12,11 @@ groups=('gamecube-dev' 'wii-dev')
 depends=('devkitPPC>=r42' 'gamecube-tools' 'ppc-libmad')
 makedepends=('doxygen' 'git')
 options=(!strip libtool staticlibs)
+
+prepare() {
+	cd "${startdir}"
+	git update-index --assume-unchanged PKGBUILD
+}
 
 pkgver() {
 	cd "${startdir}"
