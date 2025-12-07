@@ -201,6 +201,7 @@ s32 EXI_Unlock(s32 nChn);
 */
 s32 EXI_Select(s32 nChn,s32 nDev,s32 nFrq);
 
+s32 EXI_SelectEx(s32 nChn,s32 nDev,s32 nFrq);
 
 /*! \fn s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 \brief Performs a special select, for SD cards or adapters respectively, on the given device with the given frequence
@@ -221,6 +222,7 @@ s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq);
 */
 s32 EXI_Deselect(s32 nChn);
 
+s32 EXI_DeselectEx(s32 nChn);
 
 /*! \fn s32 EXI_Sync(s32 nChn)
 \brief Synchronize or finish respectively the last EXI transfer.

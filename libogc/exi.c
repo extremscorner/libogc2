@@ -343,7 +343,7 @@ s32 EXI_Select(s32 nChn,s32 nDev,s32 nFrq)
 
 	if(exi->flags&EXI_FLAG_SELECT) {
 #ifdef _EXI_DEBUG
-		printf("EXI_Select(): allready selected.\n");
+		printf("EXI_Select(): already selected.\n");
 #endif
 		_CPU_ISR_Restore(level);
 		return 0;
@@ -379,6 +379,25 @@ s32 EXI_Select(s32 nChn,s32 nDev,s32 nFrq)
 	return 1;
 }
 
+s32 EXI_SelectEx(s32 nChn,s32 nDev,s32 nFrq)
+{
+	u32 val;
+	u32 level;
+	exibus_priv *exi = &eximap[nChn];
+#ifdef _EXI_DEBUG
+	printf("EXI_SelectEx(%d,%d,%d)\n",nChn,nDev,nFrq);
+#endif
+	_CPU_ISR_Disable(level);
+
+	exi->flags |= EXI_FLAG_SELECT;
+	val = _exiReg[nChn][0];
+	val = (val&0x405)|(0x80<<nDev)|(nFrq<<4);
+	_exiReg[nChn][0] = val;
+
+	_CPU_ISR_Restore(level);
+	return 1;
+}
+
 s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 {
 	u32 val;
@@ -391,7 +410,7 @@ s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 
 	if(exi->flags&EXI_FLAG_SELECT) {
 #ifdef _EXI_DEBUG
-		printf("EXI_SelectSD(): allready selected.\n");
+		printf("EXI_SelectSD(): already selected.\n");
 #endif
 		_CPU_ISR_Restore(level);
 		return 0;
@@ -457,6 +476,24 @@ s32 EXI_Deselect(s32 nChn)
 			return 0;
 		}
 	}
+	_CPU_ISR_Restore(level);
+	return 1;
+}
+
+s32 EXI_DeselectEx(s32 nChn)
+{
+	u32 val;
+	u32 level;
+	exibus_priv *exi = &eximap[nChn];
+#ifdef _EXI_DEBUG
+	printf("EXI_DeselectEx(%d)\n",nChn);
+#endif
+	_CPU_ISR_Disable(level);
+
+	exi->flags &= ~EXI_FLAG_SELECT;
+	val = _exiReg[nChn][0];
+	_exiReg[nChn][0] = (val&0x405);
+
 	_CPU_ISR_Restore(level);
 	return 1;
 }
