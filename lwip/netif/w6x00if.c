@@ -698,6 +698,7 @@ struct w6x00if {
 
 static struct netif *w6x00_netif;
 static u8 Dev[EXI_CHANNEL_MAX];
+static u8 Freq[EXI_CHANNEL_MAX];
 
 static bool (*W6X00_ReadCmd)(s32 chan, u32 cmd, void *buf, u32 len);
 static bool (*W6X00_WriteCmd)(s32 chan, u32 cmd, const void *buf, u32 len);
@@ -709,7 +710,7 @@ static bool W6100_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 	cmd &= ~W6100_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
-	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
+	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 3, EXI_WRITE);
@@ -725,7 +726,7 @@ static bool W6100_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 	cmd |=  W6100_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
-	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
+	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 3, EXI_WRITE);
@@ -742,7 +743,7 @@ static bool W6300_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 	cmd &= ~W6300_RWB;
 	cmd <<= 8;
 
-	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
+	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 4, EXI_WRITE);
@@ -759,7 +760,7 @@ static bool W6300_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 	cmd |=  W6300_RWB;
 	cmd <<= 8;
 
-	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
+	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 4, EXI_WRITE);
@@ -960,6 +961,7 @@ static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 
 	EXI_LockEx(chan, dev);
 	Dev[chan] = dev;
+	Freq[chan] = dev == EXI_DEVICE_0 ? EXI_SPEED32MHZ : EXI_SPEED16MHZ;
 
 	switch (id) {
 		case W6100_CID:
