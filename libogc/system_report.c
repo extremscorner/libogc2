@@ -30,6 +30,7 @@ distribution.
 #include <ogc/usbgecko.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static FILE *fp = NULL;
 static s32 Chan = -1;
@@ -57,6 +58,13 @@ static int WriteReport(void *c, const char *buf, int n)
 
 static void __attribute__((constructor)) __SYS_InitReport(void)
 {
+	const char *env;
+
+	if ((env = getenv("USBGECKO_CHANNEL")) != NULL)
+		Chan = atoi(env);
+	if ((env = getenv("USBGECKO_SAFE")) != NULL)
+		Safe = !!atoi(env);
+
 	fp = fwopen(NULL, WriteReport);
 	setlinebuf(fp);
 }
