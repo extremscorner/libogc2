@@ -143,6 +143,15 @@ BOOL LWP_ThreadIsSuspended(lwp_t thethread);
 lwp_t LWP_GetSelf(void);
 
 
+/*! \fn s32 LWP_GetThreadStackSize(lwp_t thethread)
+\brief Get the stack size of the given thread.
+\param[in] thethread handle to the thread context whose stack size should be returned. If NULL, the current thread will be taken.
+
+\return thread stack size
+*/
+s32 LWP_GetThreadStackSize(lwp_t thethread);
+
+
 /*! \fn s32 LWP_GetThreadPriority(lwp_t thethread)
 \brief Get the priority of the given thread.
 \param[in] thethread handle to the thread context whose priority should be returned. If NULL, the current thread will be taken.

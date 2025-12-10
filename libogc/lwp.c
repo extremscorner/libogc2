@@ -298,6 +298,22 @@ lwp_t LWP_GetSelf(void)
 	return ret;
 }
 
+s32 LWP_GetThreadStackSize(lwp_t thethread)
+{
+	u32 stack_size;
+	lwp_cntrl *lwp_thread;
+
+	if(thethread==LWP_THREAD_NULL) thethread = LWP_GetSelf();
+
+	lwp_thread = __lwp_cntrl_open(thethread);
+	if(!lwp_thread) return LWP_CLOSED;
+
+	stack_size = lwp_thread->stack_size;
+	__lwp_thread_dispatchenable();
+
+	return stack_size;
+}
+
 s32 LWP_GetThreadPriority(lwp_t thethread)
 {
 	u32 cur_prio;
