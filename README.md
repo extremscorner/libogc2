@@ -9,6 +9,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 ## Projects using libogc2
 
 - [240p Test Suite](https://github.com/ArtemioUrbina/240pTestSuite) - Video suite for game consoles
+- [ClassiCube](https://github.com/ClassiCube/ClassiCube) - Minecraft Classic client
 - [CleanRip](https://github.com/emukidid/cleanrip) - Nintendo GameCube/Wii disc image creation tool
 - [FCE Ultra GX](https://github.com/dborth/fceugx) - Nintendo Entertainment System emulator
 - [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - Nintendo GameCube optical drive emulator
