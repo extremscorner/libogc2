@@ -85,7 +85,7 @@ static s32 __readbulkdataCB(s32 result,void *usrdata)
 				len -= q->len;
 			}
 
-			SYS_SwitchFiber((u32)p,0,0,0,(u32)hci_acldata_handler,(u32)(&__ppc_btstack2[STACKSIZE]));
+			SYS_SwitchFiberEx((u32)p,0,0,0,(u32)hci_acldata_handler,(u32)(&__ppc_btstack2[STACKSIZE]));
 			btpbuf_free(p);
 		} else
 			ERROR("__readbulkdataCB: Could not allocate memory for pbuf.\n");
@@ -115,7 +115,7 @@ static s32 __readintrdataCB(s32 result,void *usrdata)
 				len -= q->len;
 			}
 
-			SYS_SwitchFiber((u32)p,0,0,0,(u32)hci_event_handler,(u32)(&__ppc_btstack1[STACKSIZE]));
+			SYS_SwitchFiberEx((u32)p,0,0,0,(u32)hci_event_handler,(u32)(&__ppc_btstack1[STACKSIZE]));
 			btpbuf_free(p);
 		} else
 			ERROR("__readintrdataCB: Could not allocate memory for pbuf.\n");
