@@ -33,6 +33,7 @@ distribution.
 #include "processor.h"
 #include "irq.h"
 #include "audio.h"
+#include "system.h"
 #include "timesupp.h"
 
 // DSPCR bits
@@ -79,8 +80,7 @@ static vu16* const _dspReg = (u16*)0xCC005000;
 
 static u32 __AIInitFlag = 0;
 static u32 __AIActive = 0;
-static u8 *__CallbackStack __attribute__((used)) = NULL;
-static u8 *__OldStack __attribute__((used)) = NULL;
+static u8 *__CallbackStack = NULL;
 
 static u64 bound_32KHz,bound_48KHz,min_wait,max_wait,buffer;
 
@@ -88,32 +88,6 @@ static u64 bound_32KHz,bound_48KHz,min_wait,max_wait,buffer;
 static AISCallback __AIS_Callback;
 #endif
 static AIDCallback __AID_Callback;
-
-static void __AICallbackStackSwitch(AIDCallback handler)
-{
-	__asm__ __volatile__("mflr	%r0\n\t\
-						  stw	%r0,4(%r1)\n\t\
-						  stwu  %r1,-24(%r1)\n\t\
-						  stw	%r31,20(%r1)\n\t\
-						  mr	%r31,%r3\n\t\
-						  lis	%r5,__OldStack@ha\n\t\
-						  addi	%r5,%r5,__OldStack@l\n\t\
-						  stw	%r1,0(%r5)\n\t\
-						  lis	%r5,__CallbackStack@ha\n\t\
-						  addi	%r5,%r5,__CallbackStack@l\n\t\
-						  lwz	%r1,0(%r5)\n\t\
-						  subi	%r1,%r1,8\n\t\
-						  mtlr	%r31\n\t\
-						  blrl\n\t\
-						  lis	%r5,__OldStack@ha\n\t\
-						  addi	%r5,%r5,__OldStack@l\n\t\
-						  lwz	%r1,0(%r5)\n\t\
-						  lwz	%r0,28(%r1)\n\t\
-						  lwz	%r31,20(%r1)\n\t\
-						  addi	%r1,%r1,24\n\t\
-						  mtlr	%r0\n"
-						 );
-}
 
 #if defined(HW_DOL)
 static void __AISHandler(u32 nIrq,frame_context *pCtx)
@@ -131,7 +105,7 @@ static void __AIDHandler(u32 nIrq,frame_context *pCtx)
 		if(!__AIActive) {
 			__AIActive = 1;
 			if(__CallbackStack)
-				__AICallbackStackSwitch(__AID_Callback);
+				SYS_SwitchFiber((u32)__AID_Callback,(u32)__CallbackStack);
 			else
 				__AID_Callback();
 			__AIActive = 0;
@@ -234,9 +208,6 @@ void AUDIO_Init(u8 *stack)
 		AUDIO_SetDSPSampleRate(AI_SAMPLERATE_32KHZ);
 
 		__AID_Callback = NULL;
-
-		__OldStack = NULL;	// davem - use it or lose it
-							// looks like 3.4 isn't picking up the use from the asm below
 		__CallbackStack = stack;
 
 		IRQ_Request(IRQ_DSP_AI,__AIDHandler);
