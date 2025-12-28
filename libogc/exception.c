@@ -44,7 +44,6 @@ distribution.
 #include "si.h"
 #include "pad.h"
 #include "consol.h"
-#include "console.h"
 #include "lwp_threads.h"
 #include "ios.h"
 #include "stm.h"
@@ -267,7 +266,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	__dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
-	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
+	CON_Init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	VIDEO_SetFramebuffer(exception_xfb);
 
 	kprintf("\n\n\n\tException (%s) occurred!", exception_name[pCtx->nExcept]);

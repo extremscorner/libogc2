@@ -3121,8 +3121,8 @@ void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)
 	u32 size;
 
 	size = VIDEO_GetFrameBufferSize(rmode);
-	fb = (void*)MEM_VIRTUAL_TO_PHYSICAL(fb);
-	__VIClearFramebuffer(MEM_PHYSICAL_TO_K1(fb),size,color);
+	fb = SYS_VirtualToUncached(fb);
+	__VIClearFramebuffer(fb,size,color);
 }
 
 u32 VIDEO_HaveComponentCable(void)

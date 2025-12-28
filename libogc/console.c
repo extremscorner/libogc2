@@ -94,7 +94,8 @@ void __console_vipostcb(u32 retraceCnt)
 	do_xfb_copy = TRUE;
 
 	ptr = curr_con->destbuffer;
-	fb = VIDEO_GetCurrentFramebuffer()+(curr_con->target_y*curr_con->tgt_stride) + curr_con->target_x*VI_DISPLAY_PIX_SZ;
+	fb = VIDEO_GetCurrentFramebuffer();
+	fb = SYS_VirtualToUncached(fb) + (curr_con->target_y*curr_con->tgt_stride) + curr_con->target_x*VI_DISPLAY_PIX_SZ;
 	fb_stride = curr_con->tgt_stride/4 - (curr_con->con_xres/VI_DISPLAY_PIX_SZ);
 
 	for(ycnt=curr_con->con_yres;ycnt>0;ycnt--)
@@ -614,6 +615,7 @@ static int __console_fstat_r(struct _reent *r,void *fd,struct stat *st)
 
 void CON_Init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride)
 {
+	framebuffer = SYS_VirtualToUncached(framebuffer);
 	__console_init(framebuffer,xstart,ystart,xres,yres,stride);
 }
 

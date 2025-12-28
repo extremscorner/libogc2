@@ -177,7 +177,7 @@ static void __aesndfillbuffer(AESNDPB *pb,u32 buffer)
 	if(copy_len<DSP_STREAMBUFFER_SIZE) memset(stream_buffer + copy_len,0,DSP_STREAMBUFFER_SIZE - copy_len);
 
 	DCFlushRange(stream_buffer,DSP_STREAMBUFFER_SIZE);
-	ARQ_PostRequestAsync(&arq_request[pb->voiceno],pb->voiceno,ARQ_MRAMTOARAM,ARQ_PRIO_HI,buf_addr,(u32)MEM_VIRTUAL_TO_PHYSICAL(stream_buffer),DSP_STREAMBUFFER_SIZE,NULL);
+	ARQ_PostRequestAsync(&arq_request[pb->voiceno],pb->voiceno,ARQ_MRAMTOARAM,ARQ_PRIO_HI,buf_addr,MEM_VIRTUAL_TO_PHYSICAL(stream_buffer),DSP_STREAMBUFFER_SIZE,NULL);
 
 	pb->mram_curr += copy_len;
 }
@@ -220,7 +220,7 @@ static __inline__ void __aesndhandlerequest(AESNDPB *pb)
 	if(copy_len<(DSP_STREAMBUFFER_SIZE*2)) memset(stream_buffer + copy_len,0,(DSP_STREAMBUFFER_SIZE*2) - copy_len);
 
 	DCFlushRange(stream_buffer,(DSP_STREAMBUFFER_SIZE*2));
-	ARQ_PostRequestAsync(&arq_request[pb->voiceno],pb->voiceno,ARQ_MRAMTOARAM,ARQ_PRIO_HI,buf_addr,(u32)MEM_VIRTUAL_TO_PHYSICAL(stream_buffer),(DSP_STREAMBUFFER_SIZE*2),__aesndarqcallback);
+	ARQ_PostRequestAsync(&arq_request[pb->voiceno],pb->voiceno,ARQ_MRAMTOARAM,ARQ_PRIO_HI,buf_addr,MEM_VIRTUAL_TO_PHYSICAL(stream_buffer),(DSP_STREAMBUFFER_SIZE*2),__aesndarqcallback);
 
 	pb->mram_curr += copy_len;
 }
@@ -273,7 +273,7 @@ static __inline__ void __aesndhandlerequest(AESNDPB *pb)
 		return;
 	}
 
-	buf_addr = (u32)MEM_VIRTUAL_TO_PHYSICAL(stream_buffer[pb->voiceno]);
+	buf_addr = MEM_VIRTUAL_TO_PHYSICAL(stream_buffer[pb->voiceno]);
 	pb->buf_start = buf_addr>>pb->shift;
 	pb->buf_end = (buf_addr + (DSP_STREAMBUFFER_SIZE*2) - (1<<pb->shift))>>pb->shift;
 	pb->buf_curr = pb->buf_start;
@@ -382,7 +382,7 @@ static void __audio_dma_callback(void)
 
 	if(__aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_RUNNING);
 
-	__aesndcommand.out_buf = (u32)MEM_VIRTUAL_TO_PHYSICAL(audio_buffer[__aesndcurrab]);
+	__aesndcommand.out_buf = MEM_VIRTUAL_TO_PHYSICAL(audio_buffer[__aesndcurrab]);
 	DCFlushRange(&__aesndcommand,PB_STRUCT_SIZE);
 
 	__aesnddspstarttime = gettime();

@@ -579,7 +579,7 @@ s32 ASND_TestVoiceBufferReady(s32 voice)
 s32 ASND_TestPointer(s32 voice, void *pointer)
 {
 	u32 level;
-	u32 addr2=(u32) MEM_VIRTUAL_TO_PHYSICAL(pointer);
+	u32 addr2=MEM_VIRTUAL_TO_PHYSICAL(pointer);
 	int ret=SND_OK;
 
 	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice

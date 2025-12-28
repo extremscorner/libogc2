@@ -45,6 +45,7 @@ distribution.
 
 #define SYS_BASE_CACHED					(0x80000000)
 #define SYS_BASE_UNCACHED				(0xC0000000)
+#define SYS_PHYSICAL_MASK				(0x3FFFFFFF)
 
 #define SYS_WD_NULL						0xffffffff
 
@@ -161,13 +162,13 @@ distribution.
  * @{
  */
 
-#define MEM_VIRTUAL_TO_PHYSICAL(x)		(((u32)(x)) & ~SYS_BASE_UNCACHED)									/*!< Cast virtual address to physical address, e.g. 0x8xxxxxxx -> 0x0xxxxxxx */
-#define MEM_PHYSICAL_TO_K0(x)			(void*)((u32)(x) + SYS_BASE_CACHED)									/*!< Cast physical address to cached virtual address, e.g. 0x0xxxxxxx -> 0x8xxxxxxx */
-#define MEM_PHYSICAL_TO_K1(x)			(void*)((u32)(x) + SYS_BASE_UNCACHED)								/*!< Cast physical address to uncached virtual address, e.g. 0x0xxxxxxx -> 0xCxxxxxxx */
-#define MEM_K0_TO_PHYSICAL(x)			(void*)((u32)(x) - SYS_BASE_CACHED)									/*!< Cast physical address to cached virtual address, e.g. 0x0xxxxxxx -> 0x8xxxxxxx */
-#define MEM_K1_TO_PHYSICAL(x)			(void*)((u32)(x) - SYS_BASE_UNCACHED)								/*!< Cast physical address to uncached virtual address, e.g. 0x0xxxxxxx -> 0xCxxxxxxx */
-#define MEM_K0_TO_K1(x)					(void*)((u32)(x) + (SYS_BASE_UNCACHED - SYS_BASE_CACHED))			/*!< Cast cached virtual address to uncached virtual address, e.g. 0x8xxxxxxx -> 0xCxxxxxxx */
-#define MEM_K1_TO_K0(x)					(void*)((u32)(x) - (SYS_BASE_UNCACHED - SYS_BASE_CACHED))			/*!< Cast uncached virtual address to cached virtual address, e.g. 0xCxxxxxxx -> 0x8xxxxxxx */
+#define MEM_VIRTUAL_TO_PHYSICAL(x)		((u32)(x) & SYS_PHYSICAL_MASK)										/*!< Cast virtual address to physical address, e.g. 0x8xxxxxxx -> 0x0xxxxxxx */
+#define MEM_PHYSICAL_TO_K0(x)			((void*)((u32)(x) + SYS_BASE_CACHED))								/*!< Cast physical address to cached virtual address, e.g. 0x0xxxxxxx -> 0x8xxxxxxx */
+#define MEM_PHYSICAL_TO_K1(x)			((void*)((u32)(x) + SYS_BASE_UNCACHED))								/*!< Cast physical address to uncached virtual address, e.g. 0x0xxxxxxx -> 0xCxxxxxxx */
+#define MEM_K0_TO_PHYSICAL(x)			((u32)(x) - SYS_BASE_CACHED)										/*!< Cast cached virtual address to physical address, e.g. 0x8xxxxxxx -> 0x0xxxxxxx */
+#define MEM_K1_TO_PHYSICAL(x)			((u32)(x) - SYS_BASE_UNCACHED)										/*!< Cast uncached virtual address to physical address, e.g. 0xCxxxxxxx -> 0x0xxxxxxx */
+#define MEM_K0_TO_K1(x)					((void*)((u32)(x) + (SYS_BASE_UNCACHED - SYS_BASE_CACHED)))			/*!< Cast cached virtual address to uncached virtual address, e.g. 0x8xxxxxxx -> 0xCxxxxxxx */
+#define MEM_K1_TO_K0(x)					((void*)((u32)(x) - (SYS_BASE_UNCACHED - SYS_BASE_CACHED)))			/*!< Cast uncached virtual address to cached virtual address, e.g. 0xCxxxxxxx -> 0x8xxxxxxx */
 
 /*!
  *@}
@@ -307,6 +308,8 @@ void SYS_Init(void);
 void* SYS_AllocateFramebuffer(const GXRModeObj *rmode) __attribute__((assume_aligned(32)));
 
 
+void* SYS_VirtualToCached(const void *addr);
+void* SYS_VirtualToUncached(const void *addr);
 bool SYS_IsDMAAddress(const void *addr,u32 align);
 void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl);
 void SYS_StartPMC(u32 mcr0val,u32 mcr1val);

@@ -1495,6 +1495,28 @@ bool SYS_IsDMAAddress(const void *addr,u32 align)
 	return false;
 }
 
+void* SYS_VirtualToCached(const void *addr)
+{
+#if defined(HW_RVL)
+	if((u32)addr>=0xD0000000 && (u32)addr<0xE0000000) return MEM_K1_TO_K0(addr);
+	if((u32)addr>=0x90000000 && (u32)addr<0xA0000000) return (void*)addr;
+#endif
+	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) return MEM_K1_TO_K0(addr);
+	if((u32)addr>=0x80000000 && (u32)addr<0x84000000) return (void*)addr;
+	return NULL;
+}
+
+void* SYS_VirtualToUncached(const void *addr)
+{
+#if defined(HW_RVL)
+	if((u32)addr>=0xD0000000 && (u32)addr<0xE0000000) return (void*)addr;
+	if((u32)addr>=0x90000000 && (u32)addr<0xA0000000) return MEM_K0_TO_K1(addr);
+#endif
+	if((u32)addr>=0xC0000000 && (u32)addr<0xC4000000) return (void*)addr;
+	if((u32)addr>=0x80000000 && (u32)addr<0x84000000) return MEM_K0_TO_K1(addr);
+	return NULL;
+}
+
 void* SYS_AllocateFramebuffer(const GXRModeObj *rmode)
 {
 	void *fb;
