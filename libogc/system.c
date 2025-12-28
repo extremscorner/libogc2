@@ -907,9 +907,7 @@ void __SYS_SetTime(s64 time)
 
 	_CPU_ISR_Disable(level);
 	now = gettime();
-	now -= time;
-	now += *pBootTime;
-	*pBootTime = now;
+	*pBootTime += (now-time);
 	settime(time);
 	_CPU_ISR_Restore(level);
 }
