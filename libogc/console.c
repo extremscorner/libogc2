@@ -86,7 +86,7 @@ static FILE *stdcon = NULL;
 
 extern u8 console_font_8x16[];
 
-void __console_vipostcb(u32 retraceCnt)
+void __console_vipostcb(u32 retraceCount)
 {
 	u32 ycnt,xcnt, fb_stride;
 	u32 *fb,*ptr;
@@ -613,10 +613,14 @@ static int __console_fstat_r(struct _reent *r,void *fd,struct stat *st)
 	return 0;
 }
 
-void CON_Init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride)
+s32 CON_Init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride)
 {
 	framebuffer = SYS_VirtualToUncached(framebuffer);
+	if(!framebuffer) return -1;
+
 	__console_init(framebuffer,xstart,ystart,xres,yres,stride);
+
+	return 0;
 }
 
 s32 CON_InitEx(GXRModeObj *rmode, s32 conXOrigin,s32 conYOrigin,s32 conWidth,s32 conHeight)

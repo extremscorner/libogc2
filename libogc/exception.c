@@ -60,7 +60,6 @@ typedef struct _framerec {
 	void *lr;
 } frame_rec, *frame_rec_t;
 
-static void *exception_xfb = (void*)0xC1700000;			//we use a static address above ArenaHi.
 static int reload_timer = -1;
 static u32 rumble_cmds[PAD_CHANMAX] = {
 	PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP
@@ -72,7 +71,6 @@ extern void fpu_exceptionhandler(frame_context*);
 extern void irq_exceptionhandler(frame_context*);
 extern void dec_exceptionhandler(frame_context*);
 extern void default_exceptionhandler(frame_context*);
-extern void VIDEO_SetFramebuffer(void *);
 extern void __dsp_shutdown(void);
 extern void __reload(void);
 #if defined(HW_DOL)
@@ -260,14 +258,15 @@ static void waitForReload(void)
 //just implement core for unrecoverable exceptions.
 void c_default_exceptionhandler(frame_context *pCtx)
 {
+	void *framebuffer;
 	u16 xstart,ystart;
 	u16 xres,yres,stride;
 
 	__dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
-	CON_Init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
-	VIDEO_SetFramebuffer(exception_xfb);
+	framebuffer = VIDEO_GetCurrentFramebuffer();
+	CON_Init(framebuffer,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 
 	kprintf("\n\n\n\tException (%s) occurred!", exception_name[pCtx->nExcept]);
 

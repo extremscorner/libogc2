@@ -26,9 +26,9 @@
  * \param[in] xres,yres size of the console in pixel
  * \param[in] stride size of one line of the framebuffer in bytes
  *
- * \return none
+ * \return 0 on success, <0 on error
  */
-void CON_Init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride);
+s32 CON_Init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride);
 
 /*!
  * \fn s32 CON_InitEx(GXRModeObj *rmode, s32 conXOrigin,s32 conYOrigin,s32 conWidth,s32 conHeight)
