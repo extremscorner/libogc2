@@ -1622,8 +1622,10 @@ static void __dvd_statebusy(dvdcmdblk *block)
 			return;
 		case 24:
 			_diReg[1] = _diReg[1];
-			block->currtxsize = block->len;
-			DVD_LowGcodeRead(block->buf,block->len,block->offset,__dvd_statebusycb);
+			len = block->len-block->txdsize;
+			if(len<0x500000) block->currtxsize = len;
+			else block->currtxsize = 0x500000;
+			DVD_LowGcodeRead(block->buf+block->txdsize,block->currtxsize,block->offset+(block->txdsize/DVD_GCODE_BLKSIZE),__dvd_statebusycb);
 			return;
 		case 25:
 			_diReg[1] = _diReg[1];
