@@ -2,7 +2,7 @@
 
 dvd.h -- DVD subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -277,6 +277,7 @@ u32 DVD_ResetRequired(void);
  * \return none
  */
 s32 DVD_Mount(void);
+s32 DVD_CheckDisk(void);
 s32 DVD_GetDriveStatus(void);
 
 

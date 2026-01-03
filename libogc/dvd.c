@@ -2,7 +2,7 @@
 
 dvd.c -- DVD subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -1670,40 +1670,37 @@ static void __dvd_stateready(void)
 	__dvd_currcmd = __dvd_executing->cmd;
 
 	if(__dvd_resumefromhere) {
-		if(__dvd_resumefromhere<=7) {
-			switch(__dvd_resumefromhere) {
-				case 1:
-					__dvd_executing->state = DVD_STATE_WRONG_DISK;
-					__dvd_statemotorstopped();
-					break;
-				case 2:
-					__dvd_executing->state = DVD_STATE_RETRY;
-					__dvd_statemotorstopped();
-					break;
-				case 3:
-					__dvd_executing->state = DVD_STATE_NO_DISK;
-					__dvd_statemotorstopped();
-					break;
-				case 4:
-					__dvd_executing->state = DVD_STATE_COVER_OPEN;
-					__dvd_statemotorstopped();
-					break;
-				case 5:
-					__dvd_executing->state = DVD_STATE_FATAL_ERROR;
-					__dvd_stateerror(__dvd_cancellasterror);
-					break;
-				case 6:
-					__dvd_executing->state = DVD_STATE_COVER_CLOSED;
-					__dvd_statecoverclosed();
-					break;
-				case 7:
-					__dvd_executing->state = DVD_STATE_MOTOR_STOPPED;
-					__dvd_statemotorstopped();
-					break;
-				default:
-					break;
-
-			}
+		switch(__dvd_resumefromhere) {
+			case 1:
+				__dvd_executing->state = DVD_STATE_WRONG_DISK;
+				__dvd_statemotorstopped();
+				break;
+			case 2:
+				__dvd_executing->state = DVD_STATE_RETRY;
+				__dvd_statemotorstopped();
+				break;
+			case 3:
+				__dvd_executing->state = DVD_STATE_NO_DISK;
+				__dvd_statemotorstopped();
+				break;
+			case 4:
+				__dvd_executing->state = DVD_STATE_COVER_OPEN;
+				__dvd_statemotorstopped();
+				break;
+			case 5:
+				__dvd_executing->state = DVD_STATE_FATAL_ERROR;
+				__dvd_stateerror(__dvd_cancellasterror);
+				break;
+			case 6:
+				__dvd_executing->state = DVD_STATE_COVER_CLOSED;
+				__dvd_statecoverclosed();
+				break;
+			case 7:
+				__dvd_executing->state = DVD_STATE_MOTOR_STOPPED;
+				__dvd_statemotorstopped();
+				break;
+			default:
+				break;
 		}
 		__dvd_resumefromhere = 0;
 		return;
@@ -3380,12 +3377,47 @@ s32 DVD_GetDriveStatus(void)
 
 	_CPU_ISR_Disable(level);
 	if(__dvd_fatalerror) ret = DVD_STATE_FATAL_ERROR;
-	else {
-		if(__dvd_pausingflag) ret = DVD_STATE_PAUSING;
-		else {
-			if(!__dvd_executing || __dvd_executing==&__dvd_dummycmdblk) ret = DVD_STATE_END;
-			else ret = DVD_GetCmdBlockStatus(__dvd_executing);
-		}
+	else if(__dvd_pausingflag) ret = DVD_STATE_PAUSING;
+	else if(!__dvd_executing || __dvd_executing==&__dvd_dummycmdblk) ret = DVD_STATE_END;
+	else ret = DVD_GetCmdBlockStatus(__dvd_executing);
+	_CPU_ISR_Restore(level);
+	return ret;
+}
+
+s32 DVD_CheckDisk(void)
+{
+	s32 ret,state;
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	if(__dvd_fatalerror) state = DVD_STATE_FATAL_ERROR;
+	else if(__dvd_pausingflag) state = DVD_STATE_PAUSING;
+	else if(!__dvd_executing || __dvd_executing==&__dvd_dummycmdblk) state = DVD_STATE_END;
+	else state = __dvd_executing->state;
+
+	switch(state) {
+		case DVD_STATE_BUSY:
+		case DVD_STATE_WAITING:
+		case DVD_STATE_IGNORED:
+		case DVD_STATE_CANCELED:
+			ret = 1;
+			break;
+		case DVD_STATE_FATAL_ERROR:
+		case DVD_STATE_COVER_CLOSED:
+		case DVD_STATE_NO_DISK:
+		case DVD_STATE_COVER_OPEN:
+		case DVD_STATE_WRONG_DISK:
+		case DVD_STATE_MOTOR_STOPPED:
+		case DVD_STATE_RETRY:
+			ret = 0;
+			break;
+		case DVD_STATE_END:
+		case DVD_STATE_PAUSING:
+		default:
+			if(_diReg[1]&(DVD_CVR_STATE|DVD_CVR_INT)) ret = 0;
+			else if(__dvd_resumefromhere) ret = 0;
+			else ret = 1;
+			break;
 	}
 	_CPU_ISR_Restore(level);
 	return ret;
@@ -3432,7 +3464,7 @@ void DVD_Reset(u32 reset_mode)
 		__MaskIrq(IRQMASK(IRQ_PI_DI));
 
 	__dvd_resetrequired = 0;
-	__dvd_internalretries = 0;
+	__dvd_resumefromhere = 0;
 	__dvd_fatalerror = 0;
 	_CPU_ISR_Restore(level);
 }
@@ -3551,13 +3583,10 @@ static bool __gcdvd_Startup(DISC_INTERFACE *disc)
 
 static bool __gcdvd_IsInserted(DISC_INTERFACE *disc)
 {
-	u32 status = 0;
-	DVD_LowGetStatus(&status, NULL);
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_DVD) return false;
+	if(!__dvd_initflag) return false;
 
-	if(DVD_STATUS(status) == DVD_STATUS_READY) 
-		return true;
-
-	return false;
+	return DVD_CheckDisk();
 }
 
 static bool __gcdvd_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,void *buffer)
