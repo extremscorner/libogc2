@@ -3,13 +3,6 @@
 
 #include <gctypes.h>
 
-#define	GQR2			914
-#define	GQR3			915
-#define	GQR4			916
-#define	GQR5			917
-#define	GQR6			918
-#define	GQR7			919
-
 #define GQR_TYPE_F32	0
 #define GQR_TYPE_U8		4
 #define GQR_TYPE_U16	5
@@ -27,66 +20,52 @@ extern "C" {
 
 #ifdef GEKKO
 
-#define __set_gqr(_reg,_val)	__asm__ __volatile__("mtspr %0,%1" : : "i"(_reg), "b"(_val))
+#define __set_gqr(_reg,_val) __asm__ __volatile__("mtgqr %0,%1" : : "i"(_reg), "r"(_val))
+
+static inline void CAST_SetGQR2(u8 type,u8 scale)
+{
+	u32 val = (((((scale)<<8)|(type))<<16)|(((scale)<<8)|(type)));
+	__set_gqr(2,val);
+}
+
+static inline void CAST_SetGQR3(u8 type,u8 scale)
+{
+	u32 val = (((((scale)<<8)|(type))<<16)|(((scale)<<8)|(type)));
+	__set_gqr(3,val);
+}
+
+static inline void CAST_SetGQR4(u8 type,u8 scale)
+{
+	u32 val = (((((scale)<<8)|(type))<<16)|(((scale)<<8)|(type)));
+	__set_gqr(4,val);
+}
+
+static inline void CAST_SetGQR5(u8 type,u8 scale)
+{
+	u32 val = (((((scale)<<8)|(type))<<16)|(((scale)<<8)|(type)));
+	__set_gqr(5,val);
+}
+
+static inline void CAST_SetGQR6(u8 type,u8 scale)
+{
+	u32 val = (((((scale)<<8)|(type))<<16)|(((scale)<<8)|(type)));
+	__set_gqr(6,val);
+}
+
+static inline void CAST_SetGQR7(u8 type,u8 scale)
+{
+	u32 val = (((((scale)<<8)|(type))<<16)|(((scale)<<8)|(type)));
+	__set_gqr(7,val);
+}
 
 // does a default init
 static inline void CAST_Init(void)
 {
-	__asm__ __volatile__ (
-		"li		3,0x0004\n\
-		 oris	3,3,0x0004\n\
-		 mtgqr	2,3\n\
-		 li		3,0x0005\n\
-		 oris	3,3,0x0005\n\
-		 mtgqr	3,3\n\
-		 li		3,0x0006\n\
-		 oris	3,3,0x0006\n\
-		 mtgqr	4,3\n\
-		 li		3,0x0007\n\
-		 oris	3,3,0x0007\n\
-		 mtgqr	5,3\n"
-		 : : : "r3"
-	);
+	CAST_SetGQR2(GQR_TYPE_U8,0);
+	CAST_SetGQR3(GQR_TYPE_U16,0);
+	CAST_SetGQR4(GQR_TYPE_S8,0);
+	CAST_SetGQR5(GQR_TYPE_S16,0);
 }
-
-#define GQR_SCALE_MASK (0x3f << 8)
-
-static inline void CAST_SetGQR2(u32 type,s32 scale)
-{
-	register u32 val = ((((((scale)<<8)&GQR_SCALE_MASK)|(type))<<16)|((((scale)<<8)&GQR_SCALE_MASK)|(type)));
-	__set_gqr(GQR2,val);
-}
-
-static inline void CAST_SetGQR3(u32 type,s32 scale)
-{
-	register u32 val = ((((((scale)<<8)&GQR_SCALE_MASK)|(type))<<16)|((((scale)<<8)&GQR_SCALE_MASK)|(type)));
-	__set_gqr(GQR3,val);
-}
-
-static inline void CAST_SetGQR4(u32 type,s32 scale)
-{
-	register u32 val = ((((((scale)<<8)&GQR_SCALE_MASK)|(type))<<16)|((((scale)<<8)&GQR_SCALE_MASK)|(type)));
-	__set_gqr(GQR4,val);
-}
-
-static inline void CAST_SetGQR5(u32 type,s32 scale)
-{
-	register u32 val = ((((((scale)<<8)&GQR_SCALE_MASK)|(type))<<16)|((((scale)<<8)&GQR_SCALE_MASK)|(type)));
-	__set_gqr(GQR5,val);
-}
-
-static inline void CAST_SetGQR6(u32 type,s32 scale)
-{
-	register u32 val = ((((((scale)<<8)&GQR_SCALE_MASK)|(type))<<16)|((((scale)<<8)&GQR_SCALE_MASK)|(type)));
-	__set_gqr(GQR6,val);
-}
-
-static inline void CAST_SetGQR7(u32 type,s32 scale)
-{
-	register u32 val = ((((((scale)<<8)&GQR_SCALE_MASK)|(type))<<16)|((((scale)<<8)&GQR_SCALE_MASK)|(type)));
-	__set_gqr(GQR7,val);
-}
-
 
 /******************************************************************/
 /*																  */
@@ -94,60 +73,24 @@ static inline void CAST_SetGQR7(u32 type,s32 scale)
 /*																  */
 /******************************************************************/
 
-static inline f32 __castu8f32(register u8 *in)
+static inline void castu8f32(const u8 *in,f32 *out)
 {
-	register f32 rval;
-	__asm__ __volatile__ (
-		"psq_l	%[rval],0(%[in]),1,2" : [rval]"=f"(rval) : [in]"r"(in)
-	);
-	return rval;
+	__asm__ __volatile__("psq_lx %0,%y1,1,%2" : "=f"(*out) : "Z"(*in), "i"(GQR_CAST_U8));
 }
 
-static inline f32 __castu16f32(register u16 *in)
+static inline void castu16f32(const u16 *in,f32 *out)
 {
-	register f32 rval;
-	__asm__ __volatile__ (
-		"psq_l	%[rval],0(%[in]),1,3" : [rval]"=f"(rval) : [in]"r"(in)
-	);
-	return rval;
+	__asm__ __volatile__("psq_lx %0,%y1,1,%2" : "=f"(*out) : "Z"(*in), "i"(GQR_CAST_U16));
 }
 
-static inline f32 __casts8f32(register s8 *in)
+static inline void casts8f32(const s8 *in,f32 *out)
 {
-	register f32 rval;
-	__asm__ __volatile__ (
-		"psq_l	%[rval],0(%[in]),1,4" : [rval]"=f"(rval) : [in]"r"(in)
-	);
-	return rval;
+	__asm__ __volatile__("psq_lx %0,%y1,1,%2" : "=f"(*out) : "Z"(*in), "i"(GQR_CAST_S8));
 }
 
-static inline f32 __casts16f32(register s16 *in)
+static inline void casts16f32(const s16 *in,f32 *out)
 {
-	register f32 rval;
-	__asm__ __volatile__ (
-		"psq_l	%[rval],0(%[in]),1,5" : [rval]"=f"(rval) : [in]"r"(in)
-	);
-	return rval;
-}
-
-static inline void castu8f32(register u8 *in,register volatile f32 *out)
-{
-	*out = __castu8f32(in);
-}
-
-static inline void castu16f32(register u16 *in,register volatile f32 *out)
-{
-	*out = __castu16f32(in);
-}
-
-static inline void casts8f32(register s8 *in,register volatile f32 *out)
-{
-	*out = __casts8f32(in);
-}
-
-static inline void casts16f32(register s16 *in,register volatile f32 *out)
-{
-	*out = __casts16f32(in);
+	__asm__ __volatile__("psq_lx %0,%y1,1,%2" : "=f"(*out) : "Z"(*in), "i"(GQR_CAST_S16));
 }
 
 /******************************************************************/
@@ -156,80 +99,24 @@ static inline void casts16f32(register s16 *in,register volatile f32 *out)
 /*																  */
 /******************************************************************/
 
-static inline u8 __castf32u8(register f32 in)
+static inline void castf32u8(const f32 *in,u8 *out)
 {
-	f32 a;
-	register u8 rval;
-	register f32 *ptr = &a;
-
-	__asm__ __volatile__ (
-		"psq_st	%[in],0(%[ptr]),1,2\n"
-		"lbz	%[out],0(%[ptr])\n"
-		: [out]"=r"(rval), [ptr]"+r"(ptr) : [in]"f"(in)
-	);
-	return rval;
+	__asm__ __volatile__("psq_stx %1,%y0,1,%2" : "=Z"(*out) : "f"(*in), "i"(GQR_CAST_U8));
 }
 
-static inline u16 __castf32u16(register f32 in)
+static inline void castf32u16(const f32 *in,u16 *out)
 {
-	f32 a;
-	register u16 rval;
-	register f32 *ptr = &a;
-
-	__asm__ __volatile__ (
-		"psq_st	%[in],0(%[ptr]),1,3\n"
-		"lhz	%[out],0(%[ptr])\n"
-		: [out]"=r"(rval), [ptr]"+r"(ptr) : [in]"f"(in)
-	);
-	return rval;
+	__asm__ __volatile__("psq_stx %1,%y0,1,%2" : "=Z"(*out) : "f"(*in), "i"(GQR_CAST_U16));
 }
 
-static inline s8 __castf32s8(register f32 in)
+static inline void castf32s8(const f32 *in,s8 *out)
 {
-	f32 a;
-	register s8 rval;
-	register f32 *ptr = &a;
-
-	__asm__ __volatile__ (
-		"psq_st	%[in],0(%[ptr]),1,4\n"
-		"lbz	%[out],0(%[ptr])\n"
-		: [out]"=r"(rval), [ptr]"+r"(ptr) : [in]"f"(in)
-	);
-	return rval;
+	__asm__ __volatile__("psq_stx %1,%y0,1,%2" : "=Z"(*out) : "f"(*in), "i"(GQR_CAST_S8));
 }
 
-static inline s16 __castf32s16(register f32 in)
+static inline void castf32s16(const f32 *in,s16 *out)
 {
-	f32 a;
-	register s16 rval;
-	register f32 *ptr = &a;
-
-	__asm__ __volatile__ (
-		"psq_st	%[in],0(%[ptr]),1,5\n"
-		"lha	%[out],0(%[ptr])\n"
-		: [out]"=r"(rval), [ptr]"+r"(ptr) : [in]"f"(in)
-	);
-	return rval;
-}
-
-static inline void castf32u8(register f32 *in,register vu8 *out)
-{
-	*out = __castf32u8(*in);
-}
-
-static inline void castf32u16(register f32 *in,register vu16 *out)
-{
-	*out = __castf32u16(*in);
-}
-
-static inline void castf32s8(register f32 *in,register vs8 *out)
-{
-	*out = __castf32s8(*in);
-}
-
-static inline void castf32s16(register f32 *in,register vs16 *out)
-{
-	*out = __castf32s16(*in);
+	__asm__ __volatile__("psq_stx %1,%y0,1,%2" : "=Z"(*out) : "f"(*in), "i"(GQR_CAST_S16));
 }
 
 #endif //GEKKO
