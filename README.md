@@ -13,6 +13,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [CleanRip](https://github.com/emukidid/cleanrip) - Nintendo GameCube/Wii disc image creation tool
 - [FCE Ultra GX](https://github.com/dborth/fceugx) - Nintendo Entertainment System emulator
 - [FlippyDrive](https://www.crowdsupply.com/team-offbroadway/flippydrive) - Nintendo GameCube optical drive emulator
+- [GC HTTP Server](https://github.com/emukidid/gchttpserver)
 - [GCC Test Suite](https://github.com/greenwave-1/GTS) - Nintendo GameCube controller tester
 - [GCMM](https://github.com/suloku/gcmm) - Nintendo GameCube memory card manager
 - [gekkoboot](https://github.com/redolution/gekkoboot) - Nintendo GameCube bootloader
@@ -29,12 +30,12 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 
 ### Unofficial ports
 
-- [ftpii](https://github.com/leo60228/ftpii) by **@leo60228**
-- [MPlayer CE](https://github.com/SuperrSonic/mplayer-ce-libogc2) by **@SuperrSonic**
+- [ftpii](https://github.com/leo60228/ftpii) by **@leo60228** - FTP server
+- [MPlayer CE](https://github.com/SuperrSonic/mplayer-ce-libogc2) by **@SuperrSonic** - Media player
 - [Nicky Boom](https://github.com/emukidid/Nicky-Boum) by **@emukidid** - Side-scrolling platformer
 - [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/ppc-sys) by **@RetroGamer02** - Vertically scrolling shooter
-- [RetroArch](https://github.com/SuperrSonic/RA-GCN) by **@SuperrSonic**
-- [WiiMC](https://github.com/SuperrSonic/WiiMC-GCN) by **@SuperrSonic**
+- [RetroArch](https://github.com/SuperrSonic/RA-GCN) by **@SuperrSonic** - Multi-system emulator
+- [WiiMC](https://github.com/SuperrSonic/WiiMC-GCN) by **@SuperrSonic** - Media player
 
 ### Subprojects
 
