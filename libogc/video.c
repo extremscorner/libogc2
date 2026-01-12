@@ -2,7 +2,7 @@
 
  video.c -- VIDEO subsystem
 
- Copyright (C) 2004 - 2025
+ Copyright (C) 2004 - 2026
    Michael Wiedenbauer (shagkur)
    Dave Murphy (WinterMute)
    Extrems' Corner.org
@@ -2951,6 +2951,18 @@ u32 VIDEO_GetNextField(void)
 	return field;
 }
 
+u32 VIDEO_GetCurrentLine(void)
+{
+	u32 level,hline;
+
+	_CPU_ISR_Disable(level);
+	hline = __getCurrentHalfLine();
+	if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
+	_CPU_ISR_Restore(level);
+
+	return hline>>1;
+}
+
 u32 VIDEO_GetCurrentTvMode(void)
 {
 	u32 level,tv;
@@ -2978,6 +2990,37 @@ u32 VIDEO_GetScanMode(void)
 	_CPU_ISR_Restore(level);
 
 	return nonint;
+}
+
+f32 VIDEO_GetAspectRatio(void)
+{
+	u16 width,height;
+	u32 level;
+	f32 ratio;
+
+	ratio = 4.0f/3.0f;
+#if defined(HW_RVL)
+	if(CONF_GetAspectRatio()==CONF_ASPECT_16_9) ratio = 16.0f/9.0f;
+#endif
+	_CPU_ISR_Disable(level);
+	width = HorVer.dispSizeX;
+	height = HorVer.dispSizeY;
+
+	switch(VIDEO_GetCurrentTvMode()) {
+		case VI_NTSC:
+		case VI_MPAL:
+		case VI_EURGB60:
+			if(width<704) ratio *= (f32)width / 704.0f;
+			if(height<480) ratio *= 480.0f / (f32)height;
+			break;
+		case VI_PAL:
+			if(width<704) ratio *= (f32)width / 704.0f;
+			if(height<576) ratio *= 576.0f / (f32)height;
+			break;
+	}
+	_CPU_ISR_Restore(level);
+
+	return ratio;
 }
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode)
@@ -3057,18 +3100,6 @@ GXRModeObj *rmode = NULL;
 
 }
 
-u32 VIDEO_GetCurrentLine(void)
-{
-	u32 level,hline;
-
-	_CPU_ISR_Disable(level);
-	hline = __getCurrentHalfLine();
-	if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
-	_CPU_ISR_Restore(level);
-
-	return hline>>1;
-}
-
 VIRetraceCallback VIDEO_SetPreRetraceCallback(VIRetraceCallback callback)
 {
 	u32 level;
@@ -3108,12 +3139,12 @@ void VIDEO_GetFrameBufferPan(u16 *xOrg,u16 *yOrg,u16 *width,u16 *height,u16 *str
 
 u32 VIDEO_GetFrameBufferSize(const GXRModeObj *rmode)
 {
-	u16 w, h;
+	u16 width,height;
 
-	w = VIDEO_PadFramebufferWidth(rmode->fbWidth);
-	h = rmode->xfbHeight;
+	width = VIDEO_PadFramebufferWidth(rmode->fbWidth);
+	height = rmode->xfbHeight;
 
-	return w * h * VI_DISPLAY_PIX_SZ;
+	return width * height * VI_DISPLAY_PIX_SZ;
 }
 
 void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)

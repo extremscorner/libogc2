@@ -2,7 +2,7 @@
 
 video.h -- VIDEO subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -93,7 +93,7 @@ void VIDEO_Set3D(bool threeD);
  * \fn u32 VIDEO_GetRetraceCount(void)
  * \brief Get current retrace count
  *
- * \return retracecount
+ * \return retrace count
  */
 u32 VIDEO_GetRetraceCount(void);
 
@@ -112,7 +112,7 @@ u32 VIDEO_GetNextField(void);
  * \fn u32 VIDEO_GetCurrentLine(void)
  * \brief Get current video line
  *
- * \return linenumber
+ * \return line number
  */
 u32 VIDEO_GetCurrentLine(void);
 
@@ -133,6 +133,15 @@ u32 VIDEO_GetCurrentTvMode(void);
  * \return \ref vi_modetypedef "scanmode"
  */
 u32 VIDEO_GetScanMode(void);
+
+
+/*! 
+ * \fn f32 VIDEO_GetAspectRatio(void)
+ * \brief Calculate aspect ratio using the current configuration
+ *
+ * \return aspect ratio
+ */
+f32 VIDEO_GetAspectRatio(void);
 
 
 /*! 
@@ -177,7 +186,7 @@ void VIDEO_WaitVSync(void);
  * \fn u32 VIDEO_WaitForRetrace(u32 count)
  * \brief Wait until the specified retrace count
  *
- * \return retracecount
+ * \return retrace count
  */
 u32 VIDEO_WaitForRetrace(u32 count);
 
