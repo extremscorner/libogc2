@@ -2,7 +2,7 @@
 
 mmce.c -- MMCE support
 
-Copyright (C) 2022 - 2025 Extrems' Corner.org
+Copyright (C) 2022 - 2026 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -565,14 +565,17 @@ static bool __mmce_startup(DISC_INTERFACE *disc)
 		__UnmaskIrq(IM_PI_DEBUG);
 	}
 
-	MMCE_SetAccessMode(chan, MMCE_MODE_READWRITE);
+	if (MMCE_SetAccessMode(chan, MMCE_MODE_READWRITE) == MMCE_RESULT_NOCARD)
+		return __mmce_startup(disc);
 
-	if (MMCE_GetAccessMode(chan, &mode) == MMCE_RESULT_READY && mode == MMCE_MODE_READWRITE)
-		disc->features |= FEATURE_MEDIUM_CANWRITE;
-	else
-		disc->features &= ~FEATURE_MEDIUM_CANWRITE;
+	if (MMCE_GetAccessMode(chan, &mode) == MMCE_RESULT_READY) {
+		if (mode == MMCE_MODE_READWRITE)
+			disc->features |= FEATURE_MEDIUM_CANWRITE;
+		else
+			disc->features &= ~FEATURE_MEDIUM_CANWRITE;
+	}
 
-	return true;
+	return __MMCE[chan].attached;
 }
 
 static bool __mmce_isInserted(DISC_INTERFACE *disc)
