@@ -3724,7 +3724,7 @@ DISC_INTERFACE __io_gcdvd = {
 	__gcdvd_WriteSectors,
 	__gcdvd_ClearStatus,
 	__gcdvd_Shutdown,
-	0x800000,
+	~0,
 	2048
 };
 
@@ -3737,6 +3737,6 @@ DISC_INTERFACE __io_gcode = {
 	__gcode_WriteSectors,
 	__gcode_ClearStatus,
 	__gcode_Shutdown,
-	0x100000000,
+	~0,
 	512
 };

@@ -656,7 +656,7 @@ DISC_INTERFACE __io_mmcea = {
 	__mmce_writeSectors,
 	__mmce_clearStatus,
 	__mmce_shutdown,
-	0x100000000,
+	~0,
 	512
 };
 
@@ -669,7 +669,7 @@ DISC_INTERFACE __io_mmceb = {
 	__mmce_writeSectors,
 	__mmce_clearStatus,
 	__mmce_shutdown,
-	0x100000000,
+	~0,
 	512
 };
 
@@ -682,6 +682,6 @@ DISC_INTERFACE __io_mmce2 = {
 	__mmce_writeSectors,
 	__mmce_clearStatus,
 	__mmce_shutdown,
-	0x100000000,
+	~0,
 	512
 };

@@ -2,7 +2,7 @@
 
 aram.h -- ARAM subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -38,7 +38,7 @@ distribution.
  */ 
 
 #include <gctypes.h>
-
+#include <ogc/disc_io.h>
 
 /*! 
  * \addtogroup dmamode ARAM DMA transfer direction
@@ -265,6 +265,10 @@ u32 AR_GetInternalSize(void);
  */
 #define AR_StartDMAWrite(maddr,araddr,tlen)	\
 	AR_StartDMA(AR_MRAMTOARAM,maddr,araddr,tlen);
+
+#define DEVICE_TYPE_GAMECUBE_ARAM (('G'<<24)|('C'<<16)|('A'<<8)|'R')
+
+extern DISC_INTERFACE __io_aram;
 
 #ifdef __cplusplus
    }

@@ -41,7 +41,7 @@ static bool __gcsd_init = false;
 
 static bool __gcsd_startup(DISC_INTERFACE *disc)
 {
-	s32 ret,chan = (disc->ioType&0xff)-'0';
+	s32 ret,chan = (char)disc->ioType - '0';
 	u32 dev;
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
@@ -108,7 +108,7 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 
 static bool __gcsd_isInserted(DISC_INTERFACE *disc)
 {
-	s32 chan = (disc->ioType&0xff)-'0';
+	s32 chan = (char)disc->ioType - '0';
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
 	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
@@ -118,7 +118,7 @@ static bool __gcsd_isInserted(DISC_INTERFACE *disc)
 
 static bool __gcsd_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
-	s32 ret,chan = (disc->ioType&0xff)-'0';
+	s32 ret,chan = (char)disc->ioType - '0';
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
 	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
@@ -142,7 +142,7 @@ static bool __gcsd_readSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSect
 
 static bool __gcsd_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
-	s32 ret,chan = (disc->ioType&0xff)-'0';
+	s32 ret,chan = (char)disc->ioType - '0';
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
 	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;
@@ -171,7 +171,7 @@ static bool __gcsd_clearStatus(DISC_INTERFACE *disc)
 
 static bool __gcsd_shutdown(DISC_INTERFACE *disc)
 {
-	s32 chan = (disc->ioType&0xff)-'0';
+	s32 chan = (char)disc->ioType - '0';
 
 	if(disc->ioType < DEVICE_TYPE_GAMECUBE_SD(0)) return false;
 	if(disc->ioType > DEVICE_TYPE_GAMECUBE_SD(2)) return false;

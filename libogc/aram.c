@@ -2,7 +2,7 @@
 
 aram.c -- ARAM subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -34,8 +34,10 @@ distribution.
 #include "asm.h"
 #include "processor.h"
 #include "aram.h"
+#include "arqueue.h"
 #include "irq.h"
 #include "cache.h"
+#include "system.h"
 
 //#define _AR_DEBUG
 
@@ -558,3 +560,85 @@ static void __ARHandler(u32 irq,frame_context *ctx)
 	if(__ARDmaCallback)
 		__ARDmaCallback();
 }
+
+static bool __aram_startup(DISC_INTERFACE *disc)
+{
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_ARAM) return false;
+	if(ARQ_CheckInit()) return true;
+
+	AR_Init(NULL, 0);
+	ARQ_Init();
+	return true;
+}
+
+static bool __aram_isInserted(DISC_INTERFACE *disc)
+{
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_ARAM) return false;
+	if(!__ARSize) return false;
+
+	*(u32*)0x800000d0 = __ARInternalSize;
+	disc->numberOfSectors = __ARExpansionSize / disc->bytesPerSector;
+
+	return !!disc->numberOfSectors;
+}
+
+static bool __aram_readSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,void *buffer)
+{
+	ARQRequest req;
+
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_ARAM) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANREAD)) return false;
+	if((sector + numSectors) < sector) return false;
+	if((sector + numSectors) > disc->numberOfSectors) return false;
+	if(disc->bytesPerSector != 512) return false;
+	if(!SYS_IsDMAAddress(buffer, 32)) return false;
+	if(!ARQ_CheckInit()) return false;
+
+	DCInvalidateRange(buffer, numSectors << 9);
+	ARQ_PostRequest(&req, disc->ioType, ARQ_ARAMTOMRAM, ARQ_PRIO_LO, __ARInternalSize + (sector << 9), (u32)buffer, numSectors << 9);
+	return true;
+}
+
+static bool __aram_writeSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors,const void *buffer)
+{
+	ARQRequest req;
+
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_ARAM) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
+	if((sector + numSectors) < sector) return false;
+	if((sector + numSectors) > disc->numberOfSectors) return false;
+	if(disc->bytesPerSector != 512) return false;
+	if(!SYS_IsDMAAddress(buffer, 32)) return false;
+	if(!ARQ_CheckInit()) return false;
+
+	DCStoreRange((void*)buffer, numSectors << 9);
+	ARQ_PostRequest(&req, disc->ioType, ARQ_MRAMTOARAM, ARQ_PRIO_LO, __ARInternalSize + (sector << 9), (u32)buffer, numSectors << 9);
+	return true;
+}
+
+static bool __aram_clearStatus(DISC_INTERFACE *disc)
+{
+	return true;
+}
+
+static bool __aram_shutdown(DISC_INTERFACE *disc)
+{
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_ARAM) return false;
+	if(!__ARSize) return true;
+
+	*(u32*)0x800000d0 = __ARSize;
+	return true;
+}
+
+DISC_INTERFACE __io_aram = {
+	DEVICE_TYPE_GAMECUBE_ARAM,
+	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE,
+	__aram_startup,
+	__aram_isInserted,
+	__aram_readSectors,
+	__aram_writeSectors,
+	__aram_clearStatus,
+	__aram_shutdown,
+	0,
+	512
+};
