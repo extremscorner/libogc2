@@ -266,6 +266,8 @@ u32 AR_GetInternalSize(void);
 #define AR_StartDMAWrite(maddr,araddr,tlen)	\
 	AR_StartDMA(AR_MRAMTOARAM,maddr,araddr,tlen);
 
+void AR_FormatDisk(BOOL enable);
+
 #define DEVICE_TYPE_GAMECUBE_ARAM (('G'<<24)|('C'<<16)|('A'<<8)|'R')
 
 extern DISC_INTERFACE __io_aram;

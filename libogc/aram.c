@@ -561,6 +561,14 @@ static void __ARHandler(u32 irq,frame_context *ctx)
 		__ARDmaCallback();
 }
 
+void AR_FormatDisk(BOOL enable)
+{
+	DISC_INTERFACE *disc = &__io_aram;
+
+	if(enable) disc->features |= FEATURE_MEDIUM_CANFORMAT;
+	else disc->features &= ~FEATURE_MEDIUM_CANFORMAT;
+}
+
 static bool __aram_startup(DISC_INTERFACE *disc)
 {
 	if(disc->ioType != DEVICE_TYPE_GAMECUBE_ARAM) return false;
