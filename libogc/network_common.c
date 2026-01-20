@@ -133,6 +133,15 @@ char *
 inet_ntoa(struct in_addr addr)
 {
   static char str[16];
+  return inet_ntoa_r(addr, str, 16);
+}
+
+/*
+ * Same as inet_ntoa, but reentrant since a user-supplied buffer is used.
+ */
+char *
+inet_ntoa_r(struct in_addr addr, char *buf, int buflen)
+{
   u32_t s_addr = addr.s_addr;
   char inv[3];
   char *rp;
@@ -140,8 +149,9 @@ inet_ntoa(struct in_addr addr)
   u8_t rem;
   u8_t n;
   u8_t i;
+  int len = 0;
 
-  rp = str;
+  rp = buf;
   ap = (u8_t *)&s_addr;
   for(n = 0; n < 4; n++) {
     i = 0;
@@ -150,13 +160,20 @@ inet_ntoa(struct in_addr addr)
       *ap /= (u8_t)10;
       inv[i++] = '0' + rem;
     } while(*ap);
-    while(i--)
+    while(i--) {
+      if (len++ >= buflen) {
+        return NULL;
+      }
       *rp++ = inv[i];
+    }
+    if (len++ >= buflen) {
+      return NULL;
+    }
     *rp++ = '.';
     ap++;
   }
   *--rp = 0;
-  return str;
+  return buf;
 }
 
 /*

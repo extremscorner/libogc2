@@ -50,6 +50,7 @@ u16_t inet_chksum_pseudo(struct pbuf *p,
 u32_t inet_addr(const char *cp);
 int inet_aton(const char *cp, struct in_addr *addr);
 char *inet_ntoa(struct in_addr addr); /* returns ptr to static buffer; not reentrant! */
+char *inet_ntoa_r(struct in_addr addr, char *buf, int buflen);
 
 #ifdef htons
 #undef htons
