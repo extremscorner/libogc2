@@ -27,7 +27,7 @@
 
 lwp.h -- Thread subsystem I
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -124,6 +124,15 @@ s32 LWP_SuspendThread(lwp_t thethread);
 \return 0 on success, non-zero on error
 */
 s32 LWP_ResumeThread(lwp_t thethread);
+
+
+/*! \fn s32 LWP_ContinueThread(lwp_t thethread)
+\brief Forcibly resume the given thread.
+\param[in] thethread handle to the thread context which should be forcibly resumed.
+
+\return 0 on success, non-zero on error
+*/
+s32 LWP_ContinueThread(lwp_t thethread);
 
 
 /*! \fn BOOL LWP_ThreadIsSuspended(lwp_t thethread)

@@ -27,7 +27,7 @@
 
 lwp.c -- Thread subsystem I
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -262,13 +262,20 @@ s32 LWP_SuspendThread(lwp_t thethread)
 	lwp_thread = __lwp_cntrl_open(thethread);
 	if(!lwp_thread) return LWP_CLOSED;
 
-	if(!__lwp_statesuspended(lwp_thread->cur_state)) {
+	if(lwp_thread->suspendcnt==UINT32_MAX) {
+		__lwp_thread_dispatchenable();
+		return LWP_NOT_SUSPENDED;
+	}
+
+	if(__lwp_statesuspended(lwp_thread->cur_state)) {
 		__lwp_thread_suspend(lwp_thread);
 		__lwp_thread_dispatchenable();
-		return LWP_SUCCESSFUL;
+		return LWP_ALREADY_SUSPENDED;
 	}
+
+	__lwp_thread_suspend(lwp_thread);
 	__lwp_thread_dispatchenable();
-	return LWP_ALREADY_SUSPENDED;
+	return LWP_SUCCESSFUL;
 }
 
 s32 LWP_ResumeThread(lwp_t thethread)
@@ -278,13 +285,31 @@ s32 LWP_ResumeThread(lwp_t thethread)
 	lwp_thread = __lwp_cntrl_open(thethread);
 	if(!lwp_thread) return LWP_CLOSED;
 
-	if(__lwp_statesuspended(lwp_thread->cur_state)) {
-		__lwp_thread_resume(lwp_thread,TRUE);
+	if(!__lwp_statesuspended(lwp_thread->cur_state)) {
 		__lwp_thread_dispatchenable();
-		return LWP_SUCCESSFUL;
+		return LWP_NOT_SUSPENDED;
 	}
+
+	__lwp_thread_resume(lwp_thread,FALSE);
 	__lwp_thread_dispatchenable();
-	return LWP_NOT_SUSPENDED;
+	return LWP_SUCCESSFUL;
+}
+
+s32 LWP_ContinueThread(lwp_t thethread)
+{
+	lwp_cntrl *lwp_thread;
+
+	lwp_thread = __lwp_cntrl_open(thethread);
+	if(!lwp_thread) return LWP_CLOSED;
+
+	if(!__lwp_statesuspended(lwp_thread->cur_state)) {
+		__lwp_thread_dispatchenable();
+		return LWP_NOT_SUSPENDED;
+	}
+
+	__lwp_thread_resume(lwp_thread,TRUE);
+	__lwp_thread_dispatchenable();
+	return LWP_SUCCESSFUL;
 }
 
 lwp_t LWP_GetSelf(void)
