@@ -107,7 +107,7 @@ static sys_sem sockselect_sem;
 static sys_mbox netthread_mbox;
 
 static sys_thread hnet_thread;
-static u8 netthread_stack[STACKSIZE];
+static u8 netthread_stack[STACKSIZE] ATTRIBUTE_ALIGN(8);
 
 static u32 tcp_timer_active = 0;
 

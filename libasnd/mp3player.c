@@ -76,7 +76,7 @@ static BOOL MP3Playing = FALSE;
 static void *mp3cb_data = NULL;
 
 static void* StreamPlay(void *);
-static u8 StreamPlay_Stack[STACKSIZE];
+static u8 StreamPlay_Stack[STACKSIZE] ATTRIBUTE_ALIGN(8);
 static lwp_t hStreamPlay;
 static lwpq_t thQueue;
 
