@@ -1,4 +1,4 @@
-FROM devkitpro/devkitppc:20260117
+FROM devkitpro/devkitppc:latest
 
 LABEL maintainer="Extrems <extrems@extremscorner.org>" \
       org.opencontainers.image.source="https://github.com/extremscorner/libogc2"
