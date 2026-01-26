@@ -120,9 +120,9 @@ static const u32 _gxtexregionaddrtable[48] =
 	0x00080000,0x00050000,0x000A0000,0x00070000
 };
 
-static u8 __gxregs[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
-static struct __gx_regdef* const __gx = (struct __gx_regdef*)__gxregs;
-static u8 _gx_saved_data[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
+static struct __gx_regdef __gxregs __attribute__((section(".sbss")));
+static struct __gx_regdef* __gx = &__gxregs;
+static struct __gx_regdef _gx_saved_data;
 
 static s32 __gx_onreset(s32 final);
 
@@ -1077,7 +1077,7 @@ GXFifoObj* GX_Init(void *base,u32 size)
 	LWP_InitQueue(&_gxwaitfinish);
 	SYS_RegisterResetFunc(&__gx_resetinfo);
 
-	memset(__gxregs,0,STRUCT_REGDEF_SIZE);
+	memset(&__gxregs,0,sizeof(struct __gx_regdef));
 
 	__GX_FifoInit();
 	GX_InitFifoBase(&_gxfifoobj,base,size);
@@ -2091,7 +2091,7 @@ void GX_BeginDispList(void *list,u32 size)
 		__GX_SetDirtyState();
 
 	if(__gx->saveDLctx)
-		memcpy(_gx_saved_data,__gxregs,STRUCT_REGDEF_SIZE);
+		memcpy(&_gx_saved_data,&__gxregs,sizeof(struct __gx_regdef));
 
 	fifo = (struct __gxfifo*)&_gx_dl_fifoobj;
 	fifo->buf_start = (u32)list;
@@ -2119,7 +2119,7 @@ u32 GX_EndDispList(void)
 
 	if(__gx->saveDLctx) {
 		_CPU_ISR_Disable(level);
-		memcpy(__gxregs,_gx_saved_data,STRUCT_REGDEF_SIZE);
+		memcpy(&__gxregs,&_gx_saved_data,sizeof(struct __gx_regdef));
 		_CPU_ISR_Restore(level);
 	}
 

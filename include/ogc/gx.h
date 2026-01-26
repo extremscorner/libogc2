@@ -3739,7 +3739,7 @@ void GX_SetCopyFilter(u8 aa,const u8 sample_pattern[12][2],u8 vf,const u8 vfilte
  * \fn void GX_SetDispCopyFrame2Field(u8 mode)
  * \brief Determines which lines are read from the Embedded Frame Buffer (EFB) when using GX_CopyDisp().
  *
- * \details Specifically, it determines whether all lines, only even lines, or only odd lines are read.
+ * \details Specifically, it determines whether all lines, no lines, only even lines, or only odd lines are read.
  *
  * \note The opposite function, which determines whether all lines, only even lines or only odd lines are <i>written</i> to the EFB, is GX_SetFieldMask().<br><br>
  *
