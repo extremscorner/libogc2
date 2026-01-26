@@ -2,7 +2,7 @@
 
 system_report.c -- Formatted output to serial port
 
-Copyright (C) 2025 Extrems' Corner.org
+Copyright (C) 2025 - 2026 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -39,7 +39,7 @@ static bool Safe = true;
 extern s32 InitializeUART(void);
 extern s32 WriteUARTN(void *buf, u32 len);
 
-static int WriteReport(void *c, const char *buf, int n)
+static int WriteReport(void *c, const char *buf, size_t n)
 {
 	if (usb_isgeckoalive(Chan)) {
 		if (Safe)

@@ -1,8 +1,5 @@
 #include <asm.h>
 
-	.text
-	.section .init
-
 	# crt0.s file for the GameCube V1.1 by Costis (costis@gbaemu.com)!
 	#
 	# Updates: Added support for clearing the BSS section so that global
@@ -23,8 +20,9 @@
 	.extern __InitCache
 	.extern __InitSystem
 	.extern __CheckARGV
-	.globl _start
-_start:
+	.globl __app_start
+	.section	.crt0,"ax",@progbits
+__app_start:
 	b		1f
 	.ascii	"_arg"
 __argv:

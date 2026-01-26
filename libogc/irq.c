@@ -2,7 +2,7 @@
 
 irq.c -- Interrupt subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -72,10 +72,7 @@ static u32 const _irqPrio[] = {IM_PI_ERROR,IM_PI_DEBUG,IM_MEM,IM_PI_RSW,
 #endif
 							   0xffffffff};
 
-extern void __exception_load(u32,void *,u32,void *);
-
-extern s8 irqhandler_start[],irqhandler_end[];
-extern u8 __intrstack_addr[],__intrstack_end[];
+static u8 __intrstack[0x4000] __attribute__((aligned(8)));
 
 #ifdef _IRQ_DEBUG
 #include <lwp_threads.h>
@@ -389,8 +386,8 @@ void __MaskIrq(u32 nMask)
 
 void __irq_init(void)
 {
-	register u32 intrStack = (u32)__intrstack_addr;
-	register u32 intrStack_end = (u32)__intrstack_end;
+	register u32 intrStack = (u32)(&__intrstack[sizeof(__intrstack)]);
+	register u32 intrStack_end = (u32)__intrstack;
 	register u32 irqNestingLevel = 0;
 
 	memset(g_IRQHandler,0,32*sizeof(irq_handler_t));

@@ -1,81 +1,56 @@
-#include <_ansi.h>
-#include <_syslist.h>
+#include <gctypes.h>
+#include <ogc/mutex.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifndef REENTRANT_SYSCALLS_PROVIDED
-#include <reent.h>
-#endif
-#include <errno.h>
+#include <sys/iosupport.h>
+#include <sys/lock.h>
 
-#include "asm.h"
-#include "processor.h"
-#include "mutex.h"
-
-void __syscall_lock_init(_LOCK_T *lock)
+static mutex_t GetMutex(_LOCK_T *lock, bool recursive)
 {
-	s32 ret;
-	mutex_t retlck = LWP_MUTEX_NULL;
-
-	if(!lock) return;
-
-	*lock = 0;
-	ret = LWP_MutexInit(&retlck,false);
-	if(ret==0) *lock = (_LOCK_T)retlck;
+	if (*lock == __LOCK_INITIALIZER)
+		LWP_MutexInit(lock, recursive);
+	return *lock;
 }
 
-void __syscall_lock_init_recursive(_LOCK_RECURSIVE_T *lock)
+void __SYSCALL(lock_acquire)(_LOCK_T *lock)
 {
-	s32 ret;
-	mutex_t retlck = LWP_MUTEX_NULL;
-
-	if(!lock) return;
-
-	*lock = 0;
-	ret = LWP_MutexInit(&retlck,true);
-	if(ret==0) *lock = (_LOCK_RECURSIVE_T)retlck;
+	LWP_MutexLock(GetMutex(lock, false));
 }
 
-void __syscall_lock_close(_LOCK_T *lock)
+int __SYSCALL(lock_try_acquire)(_LOCK_T *lock)
 {
-	s32 ret;
-	mutex_t plock;
-
-	if(!lock || *lock==0) return;
-
-	plock = (mutex_t)*lock;
-	ret = LWP_MutexDestroy(plock);
-	if(ret==0) *lock = 0;
+	return LWP_MutexTryLock(GetMutex(lock, false));
 }
 
-void __syscall_lock_acquire(_LOCK_T *lock)
+void __SYSCALL(lock_release)(_LOCK_T *lock)
 {
-	mutex_t plock;
-
-	if(!lock || *lock==0) return;
-
-	plock = (mutex_t)*lock;
-	LWP_MutexLock(plock);
+	LWP_MutexUnlock(GetMutex(lock, false));
 }
 
-int __syscall_lock_try_acquire(_LOCK_T *lock)
+void __SYSCALL(lock_close)(_LOCK_T *lock)
 {
-	mutex_t plock;
-
-	if(!lock || *lock==0) return EINVAL;
-
-	plock = (mutex_t)*lock;
-	return LWP_MutexTryLock(plock);
+	mutex_t mutex = *lock;
+	*lock = __LOCK_INITIALIZER;
+	LWP_MutexDestroy(mutex);
 }
 
-void __syscall_lock_release(_LOCK_T *lock)
+void __SYSCALL(lock_acquire_recursive)(_LOCK_RECURSIVE_T *lock)
 {
-	mutex_t plock;
+	LWP_MutexLock(GetMutex(&lock->lock, true));
+}
 
-	if(!lock || *lock==0) return;
+int __SYSCALL(lock_try_acquire_recursive)(_LOCK_RECURSIVE_T *lock)
+{
+	return LWP_MutexTryLock(GetMutex(&lock->lock, true));
+}
 
-	plock = (mutex_t)*lock;
-	LWP_MutexUnlock(plock);
+void __SYSCALL(lock_release_recursive)(_LOCK_RECURSIVE_T *lock)
+{
+	LWP_MutexUnlock(GetMutex(&lock->lock, true));
+}
+
+void __SYSCALL(lock_close_recursive)(_LOCK_RECURSIVE_T *lock)
+{
+	__SYSCALL(lock_close)(&lock->lock);
 }
 
 void flockfile(FILE *fp)
@@ -85,7 +60,7 @@ void flockfile(FILE *fp)
 
 int ftrylockfile(FILE *fp)
 {
-	return ({ __lock_try_acquire_recursive(fp->_lock); });
+	return __lock_try_acquire_recursive(fp->_lock);
 }
 
 void funlockfile(FILE *fp)

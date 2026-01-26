@@ -2,7 +2,7 @@
 
 system.c -- OS functions and initialization
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -177,12 +177,14 @@ extern u32 __PADDisableRecalibration(s32 disable);
 extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride);
 
 
-const void *__libogc_lock_init = __syscall_lock_init;
-const void *__libogc_lock_init_recursive = __syscall_lock_init_recursive;
-const void *__libogc_lock_close = __syscall_lock_close;
 const void *__libogc_lock_acquire = __syscall_lock_acquire;
 const void *__libogc_lock_try_acquire = __syscall_lock_try_acquire;
 const void *__libogc_lock_release = __syscall_lock_release;
+const void *__libogc_lock_close = __syscall_lock_close;
+const void *__libogc_lock_acquire_recursive = __syscall_lock_acquire_recursive;
+const void *__libogc_lock_try_acquire_recursive = __syscall_lock_try_acquire_recursive;
+const void *__libogc_lock_release_recursive = __syscall_lock_release_recursive;
+const void *__libogc_lock_close_recursive = __syscall_lock_close_recursive;
 const void *__libogc_exit = __syscall_exit;
 extern void *_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
 const void *__libogc_sbrk_r = _sbrk_r;

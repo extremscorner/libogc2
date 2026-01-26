@@ -87,9 +87,9 @@ typedef struct _tqueue_st {
 lwp_objinfo _lwp_thr_objects;
 lwp_objinfo _lwp_tqueue_objects;
 
-extern int __crtmain(void);
+extern void __crtmain(void);
 
-extern u8 __stack_addr[],__stack_end[];
+static u8 __stack[0x20000] __attribute__((aligned(8)));
 
 static __inline__ u32 __lwp_priotocore(u32 prio)
 {
@@ -181,7 +181,7 @@ void __lwp_sysinit(void)
 	// create main thread, as this is our entry point
 	// for every GC application.
 	_thr_main = (lwp_cntrl*)__lwp_objmgr_allocate(&_lwp_thr_objects);
-	__lwp_thread_init(_thr_main,__stack_end,((u32)__stack_addr-(u32)__stack_end),__lwp_priotocore(LWP_PRIO_NORMAL),TRUE,LWP_CPU_BUDGET_ALGO_TIMESLICE,0);
+	__lwp_thread_init(_thr_main,__stack,sizeof(__stack),__lwp_priotocore(LWP_PRIO_NORMAL),TRUE,LWP_CPU_BUDGET_ALGO_TIMESLICE,0);
 	__lwp_thread_start(_thr_main,(void*)__crtmain,NULL);
 	__lwp_objmgr_open(&_lwp_thr_objects,&_thr_main->object);
 }

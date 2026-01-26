@@ -655,7 +655,7 @@ void CON_GetPosition(int *col, int *row)
 
 static s32 __gecko_chan = -1;
 
-static int __gecko_write(void *c,const char *buf,int n)
+static int __gecko_write(void *c,const char *buf,size_t n)
 {
 	s32 chan = *(s32*)c;
 
@@ -666,7 +666,7 @@ static int __gecko_write(void *c,const char *buf,int n)
 	return usb_sendbuffer(chan,buf,n);
 }
 
-static int __gecko_write_safe(void *c,const char *buf,int n)
+static int __gecko_write_safe(void *c,const char *buf,size_t n)
 {
 	s32 chan = *(s32*)c;
 
@@ -712,7 +712,7 @@ extern void __SYS_EnableBarnacle(s32 chn,u32 dev);
 extern s32 InitializeUART(void);
 extern s32 WriteUARTN(void *buf,u32 len);
 
-static int __uart_write(void *c,const char *buf,int n)
+static int __uart_write(void *c,const char *buf,size_t n)
 {
 	if(InitializeUART()!=0)
 		return -1;
