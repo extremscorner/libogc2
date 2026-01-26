@@ -155,9 +155,6 @@ extern void __irq_init(void);
 extern void __memlock_init(void);
 extern void __libc_init(int);
 
-const void *__libogc_malloc_lock = __syscall_malloc_lock;
-const void *__libogc_malloc_unlock = __syscall_malloc_unlock;
-
 extern void __realmode(void(*)(void));
 extern void __configMEM1_16MB(void);
 extern void __configMEM1_24MB(void);
@@ -177,6 +174,10 @@ extern u32 __PADDisableRecalibration(s32 disable);
 extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride);
 
 
+const void *__libogc_exit = __syscall_exit;
+extern void *_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
+const void *__libogc_sbrk_r = _sbrk_r;
+const void *__libogc_gettod_r = __syscall_gettod_r;
 const void *__libogc_lock_acquire = __syscall_lock_acquire;
 const void *__libogc_lock_try_acquire = __syscall_lock_try_acquire;
 const void *__libogc_lock_release = __syscall_lock_release;
@@ -185,14 +186,17 @@ const void *__libogc_lock_acquire_recursive = __syscall_lock_acquire_recursive;
 const void *__libogc_lock_try_acquire_recursive = __syscall_lock_try_acquire_recursive;
 const void *__libogc_lock_release_recursive = __syscall_lock_release_recursive;
 const void *__libogc_lock_close_recursive = __syscall_lock_close_recursive;
-const void *__libogc_exit = __syscall_exit;
-extern void *_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
-const void *__libogc_sbrk_r = _sbrk_r;
-const void *__libogc_gettod_r = __syscall_gettod_r;
+const void *__libogc_cond_signal = __syscall_cond_signal;
+const void *__libogc_cond_broadcast = __syscall_cond_broadcast;
+const void *__libogc_cond_wait = __syscall_cond_wait;
+const void *__libogc_cond_close = __syscall_cond_close;
+const void *__libogc_cond_wait_recursive = __syscall_cond_wait_recursive;
 const void *__libogc_clock_gettime = __syscall_clock_gettime;
 const void *__libogc_clock_settime = __syscall_clock_settime;
 const void *__libogc_clock_getres = __syscall_clock_getres;
 const void *__libogc_nanosleep = __syscall_nanosleep;
+const void *__libogc_malloc_lock = __syscall_malloc_lock;
+const void *__libogc_malloc_unlock = __syscall_malloc_unlock;
 
 extern u8 __isIPL[];
 extern u8 __Arena1Lo[], __Arena1Hi[];
