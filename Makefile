@@ -142,7 +142,7 @@ OGCOBJ		:=	\
 			console_font_8x16.o timesupp.o lock_supp.o newlibc.o usbgecko.o usbmouse.o \
 			sbrk.o malloc_lock.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
 			sdgecko_io.o sdgecko_buf.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
-			texconv.o wiilaunch.o mic.o system_report.o mmce.o
+			texconv.o wiilaunch.o mic.o system_report.o mmce.o threads_supp.o
 
 #---------------------------------------------------------------------------------
 MODOBJ		:=	freqtab.o mixer.o modplay.o semitonetab.o gcmodplay.o
