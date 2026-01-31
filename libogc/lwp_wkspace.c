@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -63,6 +63,8 @@ heap_cntrl __wkspace_heap;
 static heap_iblock __wkspace_iblock;
 static u32 __wkspace_heap_size = 0;
 
+extern u32 __sys_inIPL;
+
 u32 __lwp_wkspace_heapsize(void)
 {
 	return __wkspace_heap_size;
@@ -84,7 +86,10 @@ void __lwp_wkspace_init(u32 size)
 {
 	void *heap_addr = NULL;
 
-	heap_addr = SYS_AllocArenaMem1Hi(size,PPC_CACHE_ALIGNMENT);
+	if(__sys_inIPL)
+		heap_addr = SYS_AllocArenaMem1Lo(size,PPC_CACHE_ALIGNMENT);
+	else
+		heap_addr = SYS_AllocArenaMem1Hi(size,PPC_CACHE_ALIGNMENT);
 #if defined(HW_RVL)
 	if(!heap_addr)
 		heap_addr = SYS_AllocArenaMem2Hi(size,PPC_CACHE_ALIGNMENT);

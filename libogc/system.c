@@ -107,7 +107,6 @@ static u32 system_initialized = 0;
 
 static void *__sysarena1lo = NULL;
 static void *__sysarena1hi = NULL;
-
 #if defined(HW_RVL)
 static void *__sysarena2lo = NULL;
 static void *__sysarena2hi = NULL;
@@ -210,9 +209,7 @@ extern u8 __Arena2Lo[], __Arena2Hi[];
 extern u8 __ipcbufferLo[], __ipcbufferHi[];
 #endif
 
-void *__argvArena1Lo = (void*)0xdeadbeef;
-
-static u32 __sys_inIPL = (u32)__isIPL;
+u32 __sys_inIPL = (u32)__isIPL;
 
 static const u32 _dsp_initcode[] =
 {
@@ -392,6 +389,8 @@ static void __STMEventHandler(u32 event)
 }
 #endif
 
+void *__argvArena1Lo = NULL;
+
 void *__attribute__((weak)) __myArena1Lo = NULL;
 void *__attribute__((weak)) __myArena1Hi = NULL;
 #if defined(HW_RVL)
@@ -401,8 +400,8 @@ void *__attribute__((weak)) __myArena2Hi = NULL;
 
 static void __sysarena_init(void)
 {
-	if (__myArena1Lo == NULL && __argvArena1Lo != (void*)0xdeadbeef)
-		__myArena1Lo = __argvArena1Lo;
+	if (__myArena1Lo == NULL) __myArena1Lo = __argvArena1Lo;
+
 #if defined(HW_DOL)
 	if (__myArena1Lo == NULL && *(void**)0x800000F4 != NULL)
 		__myArena1Lo = *(void**)0x80000030;
@@ -979,7 +978,6 @@ void* __SYS_GetIPCBufferHi(void)
 {
 	return __ipcbufferhi;
 }
-
 #endif
 
 void _V_EXPORTNAME(void)
@@ -1234,44 +1232,22 @@ void SYS_UnregisterResetFunc(sys_resetinfo *info) {
 
 void SYS_SetArena1Lo(void *newLo)
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
 	__sysarena1lo = newLo;
-	_CPU_ISR_Restore(level);
 }
 
 void* SYS_GetArena1Lo(void)
 {
-	u32 level;
-	void *arenalo;
-
-	_CPU_ISR_Disable(level);
-	arenalo = __sysarena1lo;
-	_CPU_ISR_Restore(level);
-
-	return arenalo;
+	return __sysarena1lo;
 }
 
 void SYS_SetArena1Hi(void *newHi)
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
 	__sysarena1hi = newHi;
-	_CPU_ISR_Restore(level);
 }
 
 void* SYS_GetArena1Hi(void)
 {
-	u32 level;
-	void *arenahi;
-
-	_CPU_ISR_Disable(level);
-	arenahi = __sysarena1hi;
-	_CPU_ISR_Restore(level);
-
-	return arenahi;
+	return __sysarena1hi;
 }
 
 u32 SYS_GetArena1Size(void)
@@ -1358,44 +1334,22 @@ u32 SYS_GetSimulatedMem1Size(void)
 
 void SYS_SetArena2Lo(void *newLo)
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
 	__sysarena2lo = newLo;
-	_CPU_ISR_Restore(level);
 }
 
 void* SYS_GetArena2Lo(void)
 {
-	u32 level;
-	void *arenalo;
-
-	_CPU_ISR_Disable(level);
-	arenalo = __sysarena2lo;
-	_CPU_ISR_Restore(level);
-
-	return arenalo;
+	return __sysarena2lo;
 }
 
 void SYS_SetArena2Hi(void *newHi)
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
 	__sysarena2hi = newHi;
-	_CPU_ISR_Restore(level);
 }
 
 void* SYS_GetArena2Hi(void)
 {
-	u32 level;
-	void *arenahi;
-
-	_CPU_ISR_Disable(level);
-	arenahi = __sysarena2hi;
-	_CPU_ISR_Restore(level);
-
-	return arenahi;
+	return __sysarena2hi;
 }
 
 u32 SYS_GetArena2Size(void)
