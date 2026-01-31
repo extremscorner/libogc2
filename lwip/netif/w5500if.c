@@ -331,7 +331,6 @@ struct w5500if {
 
 static struct netif *w5500_netif;
 static u8 Dev[EXI_CHANNEL_MAX];
-static u8 Freq[EXI_CHANNEL_MAX];
 
 static bool W5500_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 {
@@ -340,7 +339,7 @@ static bool W5500_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 	cmd &= ~W5500_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
-	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
+	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 3, EXI_WRITE);
@@ -356,7 +355,7 @@ static bool W5500_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 	cmd |=  W5500_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
-	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
+	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 3, EXI_WRITE);
@@ -559,7 +558,6 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 
 	EXI_LockEx(chan, dev);
 	Dev[chan] = dev;
-	Freq[chan] = dev == EXI_DEVICE_0 ? EXI_SPEED32MHZ : EXI_SPEED16MHZ;
 
 	if (!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04) {
 		EXI_Unlock(chan);
