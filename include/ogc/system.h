@@ -401,6 +401,7 @@ u16 SYS_SetFontEncoding(u16 enc);
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);
 void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width);
+s32 SYS_GetFontWidth(s32 c);
 void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu);
 void SYS_RegisterResetFunc(sys_resetinfo *info);
 void SYS_UnregisterResetFunc(sys_resetinfo *info);

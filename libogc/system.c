@@ -665,7 +665,7 @@ static void __expand_font(const u8 *src,u8 *dest)
 	s32 cnt;
 	u32 idx;
 	u8 val1,val2;
-	u8 *data = (u8*)sys_fontdata+44;
+	u8 *data = &sys_fontdata->c0;
 
 	if(sys_fontdata->sheet_format==0x0000) {
 		cnt = (sys_fontdata->sheet_fullsize/2)-1;
@@ -1546,7 +1546,7 @@ void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width)
 	*xpos = 0;
 	*ypos = 0;
 	*image = NULL;
-	if(!sys_fontwidthtab || ! sys_fontimage) return;
+	if(!sys_fontdata || !sys_fontimage) return;
 
 	if(c<sys_fontdata->first_char || c>sys_fontdata->last_char) c = sys_fontdata->inval_char;
 	else c -= sys_fontdata->first_char;
@@ -1556,7 +1556,8 @@ void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width)
 	*image = sys_fontimage+(sys_fontdata->sheet_size*sheets);
 	*xpos = (rem%sys_fontdata->sheet_column)*sys_fontdata->cell_width;
 	*ypos = (rem/sys_fontdata->sheet_column)*sys_fontdata->cell_height;
-	*width = sys_fontwidthtab[c];
+
+	if(width) *width = sys_fontwidthtab[c];
 }
 
 void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width)
@@ -1567,7 +1568,7 @@ void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width)
 	u8 *img_start;
 	u8 *ptr1,*ptr2;
 
-	if(!sys_fontwidthtab || ! sys_fontimage) return;
+	if(!sys_fontdata || !sys_fontimage) return;
 
 	if(c<sys_fontdata->first_char || c>sys_fontdata->last_char) c = sys_fontdata->inval_char;
 	else c -= sys_fontdata->first_char;
@@ -1598,7 +1599,17 @@ void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width)
 		}
 		ypos++;
 	}
-	*width = sys_fontwidthtab[c];
+	if(width) *width = sys_fontwidthtab[c];
+}
+
+s32 SYS_GetFontWidth(s32 c)
+{
+	if(!sys_fontdata) return 0;
+
+	if(c<sys_fontdata->first_char || c>sys_fontdata->last_char) c = sys_fontdata->inval_char;
+	else c -= sys_fontdata->first_char;
+
+	return sys_fontwidthtab[c];
 }
 
 resetcallback SYS_SetResetCallback(resetcallback cb)
