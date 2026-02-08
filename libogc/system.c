@@ -392,7 +392,7 @@ static void __STMEventHandler(u32 event)
 }
 #endif
 
-void *__argvArena1Lo = NULL;
+void *__attribute__((section(".sdata"))) __argvArena1Lo = NULL;
 
 void *__attribute__((weak)) __myArena1Lo = NULL;
 void *__attribute__((weak)) __myArena1Hi = NULL;
