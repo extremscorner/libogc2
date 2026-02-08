@@ -2,7 +2,7 @@
 
 irq.h -- Interrupt subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -72,7 +72,7 @@ distribution.
 #endif
 #define IRQ_MAX				 32
 
-#define IRQMASK(irq)		 (0x80000000u>>irq)
+#define IRQMASK(irq)		 (0x80000000u>>(irq))
 
 #define IM_MEM0				 IRQMASK(IRQ_MEM0)
 #define IM_MEM1				 IRQMASK(IRQ_MEM1)

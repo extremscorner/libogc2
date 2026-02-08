@@ -2,7 +2,7 @@
 
 exi.c -- EXI subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -130,9 +130,9 @@ static __inline__ void __exi_setinterrupts(s32 nChn,exibus_priv *exi)
 	printf("__exi_setinterrupts(%d,%p)\n",nChn,exi);
 #endif
 	if(nChn==EXI_CHANNEL_0) {
-		__MaskIrq((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI2_EXI)));
+		__MaskIrq(IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI2_EXI));
 		if(!(exi->flags&EXI_FLAG_LOCKED) && (exi->CallbackEXI || pexi->CallbackEXI))
-			__UnmaskIrq((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI2_EXI)));
+			__UnmaskIrq(IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI2_EXI));
 	} else if(nChn==EXI_CHANNEL_1) {
 		__MaskIrq(IRQMASK(IRQ_EXI1_EXI));
 		if(!(exi->flags&EXI_FLAG_LOCKED) && exi->CallbackEXI) __UnmaskIrq(IRQMASK(IRQ_EXI1_EXI));
@@ -227,7 +227,7 @@ static s32 __exi_attach(s32 nChn,EXICallback ext_cb)
 		if(__exi_probe(nChn)==1) {
 			__exi_clearirqs(nChn,1,0,0);
 			exi->CallbackEXT = ext_cb;
-			__UnmaskIrq(((IRQMASK(IRQ_EXI0_EXT))>>(nChn*3)));
+			__UnmaskIrq(IRQMASK(IRQ_EXI0_EXT)>>(nChn*3));
 			exi->flags |= EXI_FLAG_ATTACH;
 			ret = 1;
 		}
@@ -575,7 +575,7 @@ s32 EXI_Imm(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 	exi->CallbackTC = tc_cb;
 	if(tc_cb) {
 		__exi_clearirqs(nChn,0,1,0);
-		__UnmaskIrq(IRQMASK((IRQ_EXI0_TC+(nChn*3))));
+		__UnmaskIrq(IRQMASK(IRQ_EXI0_TC)>>(nChn*3));
 	}
 	exi->flags |= EXI_FLAG_IMM;
 
@@ -632,7 +632,7 @@ s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 	exi->CallbackTC = tc_cb;
 	if(tc_cb) {
 		__exi_clearirqs(nChn,0,1,0);
-		__UnmaskIrq((IRQMASK((IRQ_EXI0_TC+(nChn*3)))));
+		__UnmaskIrq(IRQMASK(IRQ_EXI0_TC)>>(nChn*3));
 	}
 	exi->flags |= EXI_FLAG_DMA;
 
@@ -923,7 +923,7 @@ s32 EXI_Detach(s32 nChn)
 		if(exi->flags&EXI_FLAG_LOCKED && exi->lockeddev==EXI_DEVICE_0) ret = 0;
 		else {
 			exi->flags &= ~EXI_FLAG_ATTACH;
-			__MaskIrq(((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI0_EXT))>>(nChn*3)));
+			__MaskIrq((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI0_EXT))>>(nChn*3));
 		}
 	}
 	_CPU_ISR_Restore(level);
@@ -1081,7 +1081,7 @@ void __ext_irq_handler(u32 nIrq,frame_context *pCtx)
 
 	exi = &eximap[chan];
 	exi->flags &= ~EXI_FLAG_ATTACH;
-	__MaskIrq(((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI0_EXT))>>(chan*3)));
+	__MaskIrq((IRQMASK(IRQ_EXI0_EXI)|IRQMASK(IRQ_EXI0_EXT))>>(chan*3));
 
 	cb = exi->CallbackEXT;
 #ifdef _EXI_DEBUG

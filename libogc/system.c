@@ -135,7 +135,6 @@ void __SYS_ReadROM(void *buf,u32 len,u32 offset);
 
 static s32 __sram_sync(void);
 static s32 __sram_writecallback(s32 chn,s32 dev);
-static s32 __mem_onreset(s32 final);
 
 extern void __lwp_thread_coreinit(void);
 extern void __lwp_sysinit(void);
@@ -223,6 +222,8 @@ static const u32 _dsp_initcode[] =
 	0x02FF02FF,0x00000000,0x00000000,0x00000000
 };
 
+static s32 __mem_onreset(s32 final);
+
 static sys_resetinfo mem_resetinfo = {
 	{},
 	__mem_onreset,
@@ -283,7 +284,7 @@ static s32 __mem_onreset(s32 final)
 {
 	if(final==TRUE) {
 		_memReg[8] = 255;
-		__UnmaskIrq(IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3);
+		__MaskIrq(IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3);
 	}
 	return 1;
 }
@@ -452,7 +453,7 @@ static void __memprotect_init(void)
 
 	_CPU_ISR_Disable(level);
 
-	__MaskIrq((IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3));
+	__MaskIrq(IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3);
 
 	_memReg[16] = 0;
 	_memReg[8] = 255;
@@ -1427,7 +1428,7 @@ void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl)
 
 		_CPU_ISR_Disable(level);
 
-		__UnmaskIrq(IRQMASK(chan));
+		__MaskIrq(IRQMASK(IRQ_MEM0+chan));
 		_memReg[chan<<2] = _SHIFTR(pstart,10,16);
 		_memReg[(chan<<2)+1] = _SHIFTR(pend,10,16);
 
@@ -1435,8 +1436,8 @@ void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl)
 		rcntrl = (rcntrl&~(_SHIFTL(3,(chan<<1),2)))|(_SHIFTL(cntrl,(chan<<1),2));
 		_memReg[8] = rcntrl;
 
-		if(cntrl==SYS_PROTECTRDWR)
-			__MaskIrq(IRQMASK(chan));
+		if(cntrl!=SYS_PROTECTRDWR)
+			__UnmaskIrq(IRQMASK(IRQ_MEM0+chan));
 
 		_CPU_ISR_Restore(level);
 	}
