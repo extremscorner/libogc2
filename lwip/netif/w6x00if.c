@@ -2,7 +2,7 @@
 
 w6x00if.c -- W6X00 device driver
 
-Copyright (C) 2024 - 2025 Extrems' Corner.org
+Copyright (C) 2024 - 2026 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -961,7 +961,7 @@ static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 
 	EXI_LockEx(chan, dev);
 	Dev[chan] = dev;
-	Freq[chan] = dev == EXI_DEVICE_0 ? EXI_SPEED32MHZ : EXI_SPEED16MHZ;
+	Freq[chan] = EXI_SPEEDMAX - 1;
 
 	switch (id) {
 		case W6100_CID:
@@ -974,13 +974,18 @@ static bool W6X00_Init(s32 chan, s32 dev, struct w6x00if *w6x00if)
 			break;
 	}
 
-	if (!W6X00_ReadReg16(chan, W6X00_CIDR, &cidr) || cidr != 0x6100 ||
+	while (!W6X00_ReadReg16(chan, W6X00_CIDR, &cidr) || cidr != 0x6100 ||
 		!W6X00_ReadReg16(chan, W6X00_VER, &ver) || ver != 0x4661 ||
 		!W6X00_ReadReg(chan, W6X00_CIDR2, &cidr2) || cidr2 < 0x10 || cidr2 > 0x11) {
-		EXI_Unlock(chan);
-		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
-			EXI_Detach(chan);
-		return false;
+		if (Freq[chan] > EXI_SPEED16MHZ) {
+			Freq[chan]--;
+			continue;
+		} else {
+			EXI_Unlock(chan);
+			if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
+				EXI_Detach(chan);
+			return false;
+		}
 	}
 
 	w6x00if->chan = chan;
