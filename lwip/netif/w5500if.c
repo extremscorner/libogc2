@@ -2,7 +2,7 @@
 
 w5500if.c -- W5500 device driver
 
-Copyright (C) 2024 - 2025 Extrems' Corner.org
+Copyright (C) 2024 - 2026 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -127,7 +127,9 @@ typedef enum {
 	W5500_UPORTR0,                             // Unreachable Port Register 0
 	W5500_UPORTR1,                             // Unreachable Port Register 1
 	W5500_PHYCFGR,                             // PHY Configuration Register
-	W5500_VERSIONR          = W5500_REG(0x39), // Chip Version Register
+	W5500_UNKNOWNR0         = W5500_REG(0x37), // Unknown Register 0
+	W5500_UNKNOWNR1,                           // Unknown Register 1
+	W5500_VERSIONR,                            // Chip Version Register
 
 #define W5500_S(n) \
 	W5500_S##n##_MR         = W5500_REG_S(n, Sn_MR),         \
@@ -188,6 +190,7 @@ typedef enum {
 	W5500_PSID              = W5500_REG(0x24), // PPPoE Session ID Register
 	W5500_PMRU              = W5500_REG(0x26), // PPPoE Maximum Receive Unit Register
 	W5500_UPORTR            = W5500_REG(0x2C), // Unreachable Port Register
+	W5500_UNKNOWNR          = W5500_REG(0x37), // Unknown Register
 
 #define W5500_S(n) \
 	W5500_S##n##_PORT       = W5500_REG_S(n, Sn_PORT),       \
@@ -331,6 +334,7 @@ struct w5500if {
 
 static struct netif *w5500_netif;
 static u8 Dev[EXI_CHANNEL_MAX];
+static u8 Freq[EXI_CHANNEL_MAX];
 
 static bool W5500_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 {
@@ -339,7 +343,7 @@ static bool W5500_ReadCmd(s32 chan, u32 cmd, void *buf, u32 len)
 	cmd &= ~W5500_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
-	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
+	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 3, EXI_WRITE);
@@ -355,7 +359,7 @@ static bool W5500_WriteCmd(s32 chan, u32 cmd, const void *buf, u32 len)
 	cmd |=  W5500_RWB;
 	cmd  = (cmd << 16) | (cmd >> 16);
 
-	if (!EXI_Select(chan, Dev[chan], EXI_SPEED32MHZ))
+	if (!EXI_Select(chan, Dev[chan], Freq[chan]))
 		return false;
 
 	err |= !EXI_ImmEx(chan, &cmd, 3, EXI_WRITE);
@@ -374,7 +378,6 @@ static bool W5500_WriteReg(s32 chan, W5500Reg addr, u8 data)
 	return W5500_WriteCmd(chan, W5500_OM(1) | addr, &data, 1);
 }
 
-#if 0
 static bool W5500_ReadReg16(s32 chan, W5500Reg16 addr, u16 *data)
 {
 	u16 tmp;
@@ -387,7 +390,6 @@ static bool W5500_ReadReg16(s32 chan, W5500Reg16 addr, u16 *data)
 
 	return true;
 }
-#endif
 
 static bool W5500_WriteReg16(s32 chan, W5500Reg16 addr, u16 data)
 {
@@ -546,6 +548,7 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 {
 	bool err = false;
 	u8 sr, versionr;
+	u16 unknownr;
 	u32 id;
 
 	while (!EXI_ProbeEx(chan));
@@ -558,12 +561,20 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 
 	EXI_LockEx(chan, dev);
 	Dev[chan] = dev;
+	Freq[chan] = EXI_SPEEDMAX - 1;
 
-	if (!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04) {
-		EXI_Unlock(chan);
-		if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
-			EXI_Detach(chan);
-		return false;
+	while (!W5500_Reset(chan) ||
+		!W5500_ReadReg16(chan, W5500_UNKNOWNR, &unknownr) || unknownr != 0x7825 ||
+		!W5500_ReadReg(chan, W5500_VERSIONR, &versionr) || versionr != 0x04) {
+		if (Freq[chan] > EXI_SPEED16MHZ) {
+			Freq[chan]--;
+			continue;
+		} else {
+			EXI_Unlock(chan);
+			if (chan < EXI_CHANNEL_2 && dev == EXI_DEVICE_0)
+				EXI_Detach(chan);
+			return false;
+		}
 	}
 
 	w5500if->chan = chan;
@@ -571,8 +582,6 @@ static bool W5500_Init(s32 chan, s32 dev, struct w5500if *w5500if)
 	w5500if->txQueued = 0;
 	w5500if->txQueue[0] = 0;
 	w5500if->rxQueue = 0;
-
-	err |= !W5500_Reset(chan);
 
 	W5500_GetMACAddr(chan, w5500if->ethaddr->addr);
 	err |= !W5500_WriteReg(chan, W5500_SHAR0, w5500if->ethaddr->addr[0]);
