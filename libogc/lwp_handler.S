@@ -17,7 +17,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -322,14 +322,17 @@ _cpu_context_switch:
 	sync
 	isync
 
+	li		r0,GP_1
+	stwcx.	sp,r3,r0
+
 	stw		sp,GP_1(r3)
 	lwz		sp,GP_1(r4)
 	stw		toc,GP_2(r3)
 	lwz		toc,GP_2(r4)
 
-	stmw		r13,GP_13(r3)
+	stmw	r13,GP_13(r3)
 	lmw		r13,GP_13(r4)
-	
+
 	mfgqr	r5,0
 	stw		r5,GQ_0(r3)
 	lwz		r6,GQ_0(r4)
