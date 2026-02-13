@@ -465,6 +465,14 @@ static void W5500_GetMACAddr(s32 chan, u8 macaddr[6])
 	macaddr[2] = 0xBF; macaddr[5] = sum;
 }
 
+s32 W5500_GetExiSpeed(s32 chan, s32 dev)
+{
+	if (chan < EXI_CHANNEL_0 || chan >= EXI_CHANNEL_MAX)
+		return EXI_SPEEDMAX - 1;
+
+	return Freq[chan];
+}
+
 static s32 ExiHandler(s32 chan, s32 dev)
 {
 	struct w5500if *w5500if = w5500_netif->state;
