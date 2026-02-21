@@ -29,7 +29,6 @@ distribution.
 #include <ogc/cond.h>
 #include <ogc/mutex.h>
 #include <ogc/timesupp.h>
-#include <stdio.h>
 #include <sys/iosupport.h>
 #include <sys/lock.h>
 
@@ -128,19 +127,4 @@ int __SYSCALL(cond_wait_recursive)(_COND_T *cond, _LOCK_RECURSIVE_T *lock, uint6
 	tv.tv_nsec = timeout_ns % TB_NSPERSEC;
 
 	return LWP_CondTimedWait(GetCond(cond), GetMutex(&lock->lock, true), &tv);
-}
-
-void flockfile(FILE *fp)
-{
-	__lock_acquire_recursive(fp->_lock);
-}
-
-int ftrylockfile(FILE *fp)
-{
-	return __lock_try_acquire_recursive(fp->_lock);
-}
-
-void funlockfile(FILE *fp)
-{
-	__lock_release_recursive(fp->_lock);
 }
