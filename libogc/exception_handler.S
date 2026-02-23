@@ -2,7 +2,7 @@
 
 exception_handler.S -- PPC exception handling support
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -223,16 +223,12 @@ fpu_exceptionhandler:
 
 	.global systemcallhandler_start,systemcallhandler_end
 systemcallhandler_start:
-	mtsprg	2,r9
-	mtsprg	3,r10
 	mfhid0	r9
 	ori		r10,r9,0x0008
 	mthid0	r10
 	isync
 	sync
 	mthid0	r9
-	mfsprg	r9,2
-	mfsprg	r10,3
 	rfi
 systemcallhandler_end:
 	nop
