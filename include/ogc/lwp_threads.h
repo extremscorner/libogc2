@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -114,7 +114,7 @@ typedef struct _lwpcntrl {
 	lwp_detach_state detach_state;
 	lwp_thrqueue join_list;
 	frame_context context;		//16
-	void *libc_reent;
+	struct _reent libc_reent;
 } lwp_cntrl, *lwp_cntrl_t;
 
 extern lwp_cntrl *_thr_main;
@@ -127,7 +127,6 @@ extern vu32 _thread_dispatch_disable_level;
 
 extern wd_cntrl _lwp_wd_timeslice;
 extern u32 _lwp_ticks_per_timeslice;
-extern void **__lwp_thr_libc_reent;
 extern lwp_queue _lwp_thr_ready[];
 
 void __thread_dispatch();

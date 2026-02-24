@@ -80,7 +80,6 @@ vu32 _thread_dispatch_disable_level;
 
 wd_cntrl _lwp_wd_timeslice;
 u32 _lwp_ticks_per_timeslice = 0;
-void **__lwp_thr_libc_reent = NULL;
 lwp_queue _lwp_thr_ready[LWP_MAXPRIORITIES];
 
 static void (*_lwp_exitfunc)(void);
@@ -93,7 +92,6 @@ extern void _cpu_context_save_fp(void *);
 extern void _cpu_context_restore_fp(void *);
 
 extern int __libc_create_hook(lwp_cntrl *,lwp_cntrl *);
-extern int __libc_start_hook(lwp_cntrl *,lwp_cntrl *);
 extern int __libc_delete_hook(lwp_cntrl *, lwp_cntrl *);
 
 extern void kprintf(const char *fmt,...);
@@ -241,10 +239,6 @@ void __thread_dispatch(void)
 		_thr_executing = heir;
 		_CPU_ISR_Restore(level);
 
-		if(__lwp_thr_libc_reent) {
-			exec->libc_reent = *__lwp_thr_libc_reent;
-			*__lwp_thr_libc_reent = heir->libc_reent;
-		}
 #ifdef _DEBUG
 		_cpu_context_switch_ex((void*)&exec->context,(void*)&heir->context);
 #else
@@ -749,7 +743,6 @@ u32 __lwp_thread_start(lwp_cntrl *thethread,void* (*entry)(void*),void *arg)
 		thethread->arg = arg;
 		__lwp_thread_loadenv(thethread);
 		__lwp_thread_ready(thethread);
-		__libc_start_hook(_thr_executing,thethread);
 		return 1;
 	}
 	return 0;

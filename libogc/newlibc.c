@@ -15,7 +15,9 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+newlibc.c -- Newlib reentrancy support
+
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -41,63 +43,23 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#include <stdlib.h>
-#include <string.h>
+#include <sys/iosupport.h>
 #include <sys/reent.h>
-#include "sys_state.h"
 #include "lwp_threads.h"
 
-int libc_reentrant;
-struct _reent libc_globl_reent;
-
-extern void _reclaim_reent(struct _reent *);
-
-int __libc_create_hook(lwp_cntrl *curr_thr,lwp_cntrl *create_thr)
+int __libc_create_hook(lwp_cntrl *curr_thr, lwp_cntrl *create_thr)
 {
-	create_thr->libc_reent = NULL;
-	return 1;
-}
-
-int __libc_start_hook(lwp_cntrl *curr_thr,lwp_cntrl *start_thr)
-{
-	struct _reent *ptr;
-
-	ptr = (struct _reent*)calloc(1,sizeof(struct _reent));
-	if(!ptr) abort();
-
-	_REENT_INIT_PTR((ptr));
-
-	start_thr->libc_reent = ptr;
+	_REENT_INIT_PTR(&create_thr->libc_reent);
 	return 1;
 }
 
 int __libc_delete_hook(lwp_cntrl *curr_thr, lwp_cntrl *delete_thr)
 {
-	struct _reent *ptr;
-
-	if(curr_thr==delete_thr)
-		ptr = _impure_ptr;
-	else
-		ptr = (struct _reent*)delete_thr->libc_reent;
-
-	if(ptr && ptr!=&libc_globl_reent) {
-		_reclaim_reent(ptr);
-		free(ptr);
-	}
-	delete_thr->libc_reent = NULL;
-
-	if(curr_thr==delete_thr) _impure_ptr = NULL;
-
+	_reclaim_reent(&delete_thr->libc_reent);
 	return 1;
 }
 
-void __libc_init(int reentrant)
+struct _reent *__SYSCALL(getreent)(void)
 {
-	libc_globl_reent = (struct _reent)_REENT_INIT((libc_globl_reent));
-	_impure_ptr = &libc_globl_reent;
-
-	if(reentrant) {
-		__lwp_thread_setlibcreent((void*)&_impure_ptr);
-		libc_reentrant = reentrant;
-	}
+	return &_thr_executing->libc_reent;
 }

@@ -151,7 +151,6 @@ extern void __exi_init(void);
 extern void __si_init(void);
 extern void __irq_init(void);
 extern void __memlock_init(void);
-extern void __libc_init(int);
 
 extern void __realmode(void(*)(void));
 extern void __configMEM1_16MB(void);
@@ -194,6 +193,7 @@ const void *__libogc_thread_join = __syscall_thread_join;
 const void *__libogc_thread_detach = __syscall_thread_detach;
 const void *__libogc_thread_exit = __syscall_thread_exit;
 const void *__libogc_thread_self = __syscall_thread_self;
+const void *__libogc_getreent = __syscall_getreent;
 const void *__libogc_clock_gettime = __syscall_clock_gettime;
 const void *__libogc_clock_settime = __syscall_clock_settime;
 const void *__libogc_clock_getres = __syscall_clock_getres;
@@ -1054,7 +1054,6 @@ void SYS_Init(void)
 	IRQ_Request(IRQ_PI_RSW,__RSWHandler);
 	__UnmaskIrq(IRQMASK(IRQ_PI_RSW));
 #endif
-	__libc_init(1);
 	__lwp_thread_startmultitasking();
 	_CPU_ISR_Restore(level);
 }
