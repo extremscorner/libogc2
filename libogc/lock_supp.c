@@ -2,7 +2,7 @@
 
 lock_supp.c -- devkitPPC lock support
 
-Copyright (C) 2025 - 2026 Extrems' Corner.org
+Copyright (C) 2026 Extrems' Corner.org
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any
@@ -31,6 +31,8 @@ distribution.
 #include <ogc/timesupp.h>
 #include <sys/iosupport.h>
 #include <sys/lock.h>
+
+__LOCK_INIT_RECURSIVE(static, __malloc_recursive_mutex);
 
 static mutex_t GetMutex(_LOCK_T *lock, bool recursive)
 {
@@ -127,4 +129,14 @@ int __SYSCALL(cond_wait_recursive)(_COND_T *cond, _LOCK_RECURSIVE_T *lock, uint6
 	tv.tv_nsec = timeout_ns % TB_NSPERSEC;
 
 	return LWP_CondTimedWait(GetCond(cond), GetMutex(&lock->lock, true), &tv);
+}
+
+void __SYSCALL(malloc_lock)(struct _reent *ptr)
+{
+	__SYSCALL(lock_acquire_recursive)(&__malloc_recursive_mutex);
+}
+
+void __SYSCALL(malloc_unlock)(struct _reent *ptr)
+{
+	__SYSCALL(lock_release_recursive)(&__malloc_recursive_mutex);
 }

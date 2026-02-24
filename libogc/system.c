@@ -150,7 +150,6 @@ extern void __lwp_sema_init(void);
 extern void __exi_init(void);
 extern void __si_init(void);
 extern void __irq_init(void);
-extern void __memlock_init(void);
 
 extern void __realmode(void(*)(void));
 extern void __configMEM1_16MB(void);
@@ -1037,7 +1036,6 @@ void SYS_Init(void)
 	__si_init();
 	__lwp_thread_coreinit();
 	__lwp_sysinit();
-	__memlock_init();
 	__lwp_mqbox_init();
 	__lwp_sema_init();
 	__lwp_mutex_init();
