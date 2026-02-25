@@ -52,16 +52,8 @@ typedef struct _padstatus {
 	u16 button;
 	s8 stickX;
 	s8 stickY;
-	union {
-		struct {
-			s8 substickX;
-			s8 substickY;
-		};
-		struct {
-			s8 gas;
-			s8 brake;
-		};
-	};
+	s8 substickX;
+	s8 substickY;
 	u8 triggerL;
 	u8 triggerR;
 	u8 analogA;
@@ -107,9 +99,6 @@ u8 PAD_TriggerR(s32 chan);
 
 u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
-
-#define PAD_Gas(chan) PAD_SubStickX(chan)
-#define PAD_Brake(chan) PAD_SubStickY(chan)
 
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb);
 
