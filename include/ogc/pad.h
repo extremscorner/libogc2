@@ -19,6 +19,9 @@
 #define PAD_MOTOR_RUMBLE			1
 #define PAD_MOTOR_STOP_HARD			2
 
+#define PAD_FORCE_ON				3
+#define PAD_FORCE_OFF				2
+
 #define PAD_ERR_NONE				0
 #define PAD_ERR_NO_CONTROLLER		-1
 #define PAD_ERR_NOT_READY			-2
@@ -31,6 +34,7 @@
 #define PAD_TRIGGER_Z				0x0010
 #define PAD_TRIGGER_R				0x0020
 #define PAD_TRIGGER_L				0x0040
+#define PAD_PEDAL_CONNECT			0x0080
 #define PAD_BUTTON_A				0x0100
 #define PAD_BUTTON_B				0x0200
 #define PAD_BUTTON_X				0x0400
