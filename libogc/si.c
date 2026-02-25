@@ -282,7 +282,7 @@ static void __si_gettypecallback(s32 chan,u32 type)
 	sipad_en = __PADFixBits&SI_CHAN_BIT(chan);
 	__PADFixBits &= ~SI_CHAN_BIT(chan);
 
-	if(type&0x0f || ((si_type[chan]&SI_TYPE_MASK)-SI_TYPE_GC)
+	if(type&0x0f || (si_type[chan]&SI_TYPE_MASK)!=SI_TYPE_GC
 		|| !(si_type[chan]&SI_GC_WIRELESS) || si_type[chan]&SI_WIRELESS_IR) {
 		SYS_SetWirelessID(chan,0);
 		__si_calltypeandstatuscallback(chan,si_type[chan]);

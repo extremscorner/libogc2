@@ -384,8 +384,8 @@ static void __pad_typeandstatuscallback(s32 chan,u32 type)
 		return;
 	}
 
-	__pad_type[__pad_resettingchan] = (type&~0xff);
-	if(((type&SI_TYPE_MASK)-SI_TYPE_GC)
+	__pad_type[__pad_resettingchan] = type&~0xff;
+	if((type&SI_TYPE_MASK)!=SI_TYPE_GC
 		|| !(type&SI_GC_STANDARD)) {
 		__pad_doreset();
 		return;

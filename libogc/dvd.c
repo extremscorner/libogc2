@@ -401,8 +401,8 @@ static u8 convert(u32 errorcode)
 {
 	u8 err,err_num;
 
-	if((errorcode-0x01230000)==0x4567) return 255;
-	else if((errorcode-0x01230000)==0x4568) return 254;
+	if(errorcode==0x01234567) return 255;
+	else if(errorcode==0x01234568) return 254;
 
 	err = _SHIFTR(errorcode,24,8);
 	err_num = err2num((errorcode&0x00ffffff));
@@ -514,28 +514,28 @@ static u32 __dvd_categorizeerror(u32 errorcode)
 #ifdef _DVD_DEBUG
 	printf("__dvd_categorizeerror(%08x)\n",errorcode);
 #endif
-	if((errorcode-0x20000)==0x0400) {
+	if(errorcode==DVD_ERROR_MOTOR_STOPPED) {
 		__dvd_lasterror = errorcode;
 		return 1;
 	}
 
-	if(DVD_ERROR(errorcode)==DVD_ERROR_MEDIUM_CHANGED
-		|| DVD_ERROR(errorcode)==DVD_ERROR_MEDIUM_NOT_PRESENT
-		|| DVD_ERROR(errorcode)==DVD_ERROR_MEDIUM_CHANGE_REQ
-		|| (DVD_ERROR(errorcode)-0x40000)==0x3100) return 0;
+	errorcode = DVD_ERROR(errorcode);
+	if(errorcode==DVD_ERROR_MEDIUM_CHANGED
+		|| errorcode==DVD_ERROR_MEDIUM_NOT_PRESENT
+		|| errorcode==DVD_ERROR_MEDIUM_CHANGE_REQ) return 0;
 
 	__dvd_internalretries++;
 	if(__dvd_internalretries==2) {
-		if(__dvd_lasterror==DVD_ERROR(errorcode)) {
-			__dvd_lasterror = DVD_ERROR(errorcode);
+		if(__dvd_lasterror==errorcode) {
+			__dvd_lasterror = errorcode;
 			return 1;
 		}
-		__dvd_lasterror = DVD_ERROR(errorcode);
+		__dvd_lasterror = errorcode;
 		return 2;
 	}
 
-	__dvd_lasterror = DVD_ERROR(errorcode);
-	if(DVD_ERROR(errorcode)!=DVD_ERROR_UNRECOVERABLE_READ) {
+	__dvd_lasterror = errorcode;
+	if(errorcode!=DVD_ERROR_UNRECOVERABLE_READ) {
 		if(__dvd_executing->cmd!=0x0005) return 3;
 	}
 	return 2;

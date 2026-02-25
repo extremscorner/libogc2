@@ -121,7 +121,7 @@ static const u32 _gxtexregionaddrtable[48] =
 };
 
 static struct __gx_regdef __gxregs __attribute__((section(".sbss")));
-static struct __gx_regdef* __gx = &__gxregs;
+static struct __gx_regdef *__gx = &__gxregs;
 static struct __gx_regdef _gx_saved_data;
 
 static s32 __gx_onreset(s32 final);
