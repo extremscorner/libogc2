@@ -19,6 +19,9 @@
 #define PAD_MOTOR_RUMBLE			1
 #define PAD_MOTOR_STOP_HARD			2
 
+#define PAD_FORCE_ON				3
+#define PAD_FORCE_OFF				2
+
 #define PAD_ERR_NONE				0
 #define PAD_ERR_NO_CONTROLLER		-1
 #define PAD_ERR_NOT_READY			-2
@@ -31,6 +34,7 @@
 #define PAD_TRIGGER_Z				0x0010
 #define PAD_TRIGGER_R				0x0020
 #define PAD_TRIGGER_L				0x0040
+#define PAD_PEDAL_CONNECT			0x0080
 #define PAD_BUTTON_A				0x0100
 #define PAD_BUTTON_B				0x0200
 #define PAD_BUTTON_X				0x0400
@@ -48,8 +52,16 @@ typedef struct _padstatus {
 	u16 button;
 	s8 stickX;
 	s8 stickY;
-	s8 substickX;
-	s8 substickY;
+	union {
+		struct {
+			s8 substickX;
+			s8 substickY;
+		};
+		struct {
+			s8 gas;
+			s8 brake;
+		};
+	};
 	u8 triggerL;
 	u8 triggerR;
 	u8 analogA;
@@ -95,6 +107,9 @@ u8 PAD_TriggerR(s32 chan);
 
 u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
+
+#define PAD_Gas(chan) PAD_SubStickX(chan)
+#define PAD_Brake(chan) PAD_SubStickY(chan)
 
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb);
 

@@ -386,7 +386,7 @@ static void __pad_typeandstatuscallback(s32 chan,u32 type)
 
 	__pad_type[__pad_resettingchan] = (type&~0xff);
 	if(((type&SI_TYPE_MASK)-SI_TYPE_GC)
-		|| !(type&SI_GC_STANDARD)) {
+		|| (type == SI_GC_RECEIVER)) {
 		__pad_doreset();
 		return;
 	}
@@ -437,6 +437,12 @@ static void __pad_enable(u32 chan)
 #endif
 	__pad_enabledbits |= PAD_CHAN_BIT(chan);
 	SI_GetResponse(chan,(void*)buf);
+	if (SI_GetType(chan) != SI_GC_KEYBOARD) {
+		SI_SetCommand(chan, (__pad_analogmode | 0x00400000));
+	}
+	else {
+		SI_SetCommand(chan, 0x00540000); //Keyboard-specific polling command
+	}
 	SI_SetCommand(chan,(__pad_analogmode|0x00400000));
 	SI_EnablePolling(__pad_enabledbits);
 }
@@ -617,7 +623,9 @@ u32 PAD_Read(PADStatus *status)
 #ifdef _PAD_DEBUG
 						printf("PAD_Read(%08x %08x)\n",buf[0],buf[1]);
 #endif
-						__pad_makestatus(chan,buf,&status[chan]);
+						if (type != SI_GC_KEYBOARD) {
+							__pad_makestatus(chan, buf, &status[chan]);
+						}
 #ifdef _PAD_DEBUG
 						printf("PAD_Read(%08x)\n",status[chan].button);
 #endif
@@ -827,6 +835,33 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 
 			cmd = 0x00400000|__pad_analogmode|(cmd&0x03);
 			SI_SetCommand(chan,cmd);
+			SI_TransferCommands();
+		}
+	}
+	_CPU_ISR_Restore(level);
+}
+
+void PAD_ControlForce(s32 chan, u32 cmd, s32 intensity)
+{
+	u32 level;
+	u32 mask, type;
+
+	if (intensity >= 0x80) {
+		cmd |= 0x100;
+	}
+	else if (intensity > -0x80) {
+		cmd |= intensity + 0x80;
+	}
+	cmd &= 0x7FF;
+
+	_CPU_ISR_Disable(level);
+
+	mask = PAD_CHAN_BIT(chan);
+	if (__pad_enabledbits & mask) {
+		type = SI_GetType(chan);
+		if (type == SI_GC_STEERING) {
+			cmd |= 0x300000;
+			SI_SetCommand(chan, cmd);
 			SI_TransferCommands();
 		}
 	}
