@@ -124,6 +124,7 @@ distribution.
 #define DVD_ERROR_SEEK_INCOMPLETE		0x030200
 #define DVD_ERROR_UNRECOVERABLE_READ	0x031100
 #define DVD_ERROR_TRANSFER_PROTOCOL		0x040800
+#define DVD_ERROR_MEDIUM_FMT_CORRUPT	0x043100
 #define DVD_ERROR_INVALID_COMMAND		0x052000
 #define DVD_ERROR_AUDIOBUFFER_NOTSET	0x052001
 #define DVD_ERROR_BLOCK_OUT_OF_RANGE	0x052100
@@ -524,6 +525,11 @@ static u32 __dvd_categorizeerror(u32 errorcode)
 		|| errorcode==DVD_ERROR_MEDIUM_NOT_PRESENT
 		|| errorcode==DVD_ERROR_MEDIUM_CHANGE_REQ) return 0;
 
+	if(errorcode==DVD_ERROR_MEDIUM_FMT_CORRUPT) {
+		__dvd_lasterror = errorcode;
+		return 1;
+	}
+
 	__dvd_internalretries++;
 	if(__dvd_internalretries==2) {
 		if(__dvd_lasterror==errorcode) {
@@ -535,10 +541,8 @@ static u32 __dvd_categorizeerror(u32 errorcode)
 	}
 
 	__dvd_lasterror = errorcode;
-	if(errorcode!=DVD_ERROR_UNRECOVERABLE_READ) {
-		if(__dvd_executing->cmd!=0x0005) return 3;
-	}
-	return 2;
+	if(errorcode==DVD_ERROR_UNRECOVERABLE_READ || __dvd_executing->cmd==0x0005) return 2;
+	return 3;
 }
 
 static void __SetupTimeoutAlarm(const struct timespec *tp)
@@ -1078,7 +1082,8 @@ static void __dvd_stategotoretrycb(s32 result)
 	if(result==0x0001) {
 		__dvd_internalretries = 0;
 		if(__dvd_currcmd==0x0004 || __dvd_currcmd==0x0005
-			|| __dvd_currcmd==0x000d || __dvd_currcmd==0x000f) {
+			|| __dvd_currcmd==0x000d || __dvd_currcmd==0x000f
+			|| __dvd_currcmd==0x0011) {
 			__dvd_resetrequired = 1;
 			if(__dvd_checkcancel(2)) return;
 
@@ -2677,7 +2682,8 @@ s32 DVD_CancelAsync(dvdcmdblk *block,dvdcbcallback cb)
 			break;
 		case DVD_STATE_COVER_CLOSED:
 			if(__dvd_currcmd==0x0004 || __dvd_currcmd==0x0005
-				|| __dvd_currcmd==0x000d || __dvd_currcmd==0x000f) {
+				|| __dvd_currcmd==0x000d || __dvd_currcmd==0x000f
+				|| __dvd_currcmd==0x0011) {
 				if(cb) cb(DVD_ERROR_OK,block);
 				break;
 			}
