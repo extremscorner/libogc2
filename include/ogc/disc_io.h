@@ -42,6 +42,7 @@
 #define FEATURE_GAMECUBE_PORT2      0x00000040
 #define FEATURE_GAMECUBE_PORT1      0x00000080
 #define FEATURE_GAMECUBE_DVD        0x00000100
+#define FEATURE_GAMECUBE_HSP        0x00000200
 #define FEATURE_WII_SD              0x00001000
 #define FEATURE_WII_USB             0x00002000
 #define FEATURE_WII_DVD             0x00004000
@@ -54,7 +55,8 @@ typedef bool (* FN_MEDIUM_STARTUP)(DISC_INTERFACE* disc) ;
 typedef bool (* FN_MEDIUM_ISINSERTED)(DISC_INTERFACE* disc) ;
 typedef bool (* FN_MEDIUM_READSECTORS)(DISC_INTERFACE* disc, sec_t sector, sec_t numSectors, void* buffer) ;
 typedef bool (* FN_MEDIUM_WRITESECTORS)(DISC_INTERFACE* disc, sec_t sector, sec_t numSectors, const void* buffer) ;
-typedef bool (* FN_MEDIUM_CLEARSTATUS)(DISC_INTERFACE* disc) ;
+typedef bool (* FN_MEDIUM_ERASESECTORS)(DISC_INTERFACE* disc, sec_t sector, sec_t numSectors) ;
+typedef bool (* FN_MEDIUM_FLUSH)(DISC_INTERFACE* disc) ;
 typedef bool (* FN_MEDIUM_SHUTDOWN)(DISC_INTERFACE* disc) ;
 
 #ifdef LIBOGC_INTERNAL
@@ -70,9 +72,11 @@ struct DISC_INTERFACE_STRUCT {
 	DISC_INTERFACE_CONST FN_MEDIUM_ISINSERTED	isInserted ;
 	DISC_INTERFACE_CONST FN_MEDIUM_READSECTORS	readSectors ;
 	DISC_INTERFACE_CONST FN_MEDIUM_WRITESECTORS	writeSectors ;
-	DISC_INTERFACE_CONST FN_MEDIUM_CLEARSTATUS	clearStatus ;
+	DISC_INTERFACE_CONST FN_MEDIUM_ERASESECTORS	eraseSectors ;
+	DISC_INTERFACE_CONST FN_MEDIUM_FLUSH		flush ;
 	DISC_INTERFACE_CONST FN_MEDIUM_SHUTDOWN		shutdown ;
 	DISC_INTERFACE_CONST sec_t					numberOfSectors ;
+	DISC_INTERFACE_CONST uint32_t				sectorsPerBlock ;
 	DISC_INTERFACE_CONST uint32_t				bytesPerSector ;
 } ;
 

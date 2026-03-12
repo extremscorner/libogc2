@@ -971,7 +971,12 @@ static bool diio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSecto
 	return false;
 }
 
-static bool diio_ClearStatus(DISC_INTERFACE *disc)
+static bool diio_EraseSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors)
+{
+	return false;
+}
+
+static bool diio_Flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -989,8 +994,10 @@ DISC_INTERFACE __io_wiidvd = {
 	diio_IsInserted,
 	diio_ReadSectors,
 	diio_WriteSectors,
-	diio_ClearStatus,
+	diio_EraseSectors,
+	diio_Flush,
 	diio_Shutdown,
 	~0,
+	16,
 	2048
 };

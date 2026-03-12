@@ -620,7 +620,12 @@ static bool __mmce_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSec
 	return MMCE_WriteSectors(chan, sector, numSectors, buffer) == MMCE_RESULT_READY;
 }
 
-static bool __mmce_clearStatus(DISC_INTERFACE *disc)
+static bool __mmce_eraseSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors)
+{
+	return false;
+}
+
+static bool __mmce_flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -654,9 +659,11 @@ DISC_INTERFACE __io_mmcea = {
 	__mmce_isInserted,
 	__mmce_readSectors,
 	__mmce_writeSectors,
-	__mmce_clearStatus,
+	__mmce_eraseSectors,
+	__mmce_flush,
 	__mmce_shutdown,
 	~0,
+	1,
 	512
 };
 
@@ -667,9 +674,11 @@ DISC_INTERFACE __io_mmceb = {
 	__mmce_isInserted,
 	__mmce_readSectors,
 	__mmce_writeSectors,
-	__mmce_clearStatus,
+	__mmce_eraseSectors,
+	__mmce_flush,
 	__mmce_shutdown,
 	~0,
+	1,
 	512
 };
 
@@ -680,8 +689,10 @@ DISC_INTERFACE __io_mmce2 = {
 	__mmce_isInserted,
 	__mmce_readSectors,
 	__mmce_writeSectors,
-	__mmce_clearStatus,
+	__mmce_eraseSectors,
+	__mmce_flush,
 	__mmce_shutdown,
 	~0,
+	1,
 	512
 };

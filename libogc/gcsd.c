@@ -164,7 +164,12 @@ static bool __gcsd_writeSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSec
 	return false;
 }
 
-static bool __gcsd_clearStatus(DISC_INTERFACE *disc)
+static bool __gcsd_eraseSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors)
+{
+	return false;
+}
+
+static bool __gcsd_flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -188,9 +193,11 @@ DISC_INTERFACE __io_gcsda = {
 	__gcsd_isInserted,
 	__gcsd_readSectors,
 	__gcsd_writeSectors,
-	__gcsd_clearStatus,
+	__gcsd_eraseSectors,
+	__gcsd_flush,
 	__gcsd_shutdown,
 	0,
+	1,
 	PAGE_SIZE512
 };
 
@@ -201,9 +208,11 @@ DISC_INTERFACE __io_gcsdb = {
 	__gcsd_isInserted,
 	__gcsd_readSectors,
 	__gcsd_writeSectors,
-	__gcsd_clearStatus,
+	__gcsd_eraseSectors,
+	__gcsd_flush,
 	__gcsd_shutdown,
 	0,
+	1,
 	PAGE_SIZE512
 };
 
@@ -214,9 +223,11 @@ DISC_INTERFACE __io_gcsd2 = {
 	__gcsd_isInserted,
 	__gcsd_readSectors,
 	__gcsd_writeSectors,
-	__gcsd_clearStatus,
+	__gcsd_eraseSectors,
+	__gcsd_flush,
 	__gcsd_shutdown,
 	0,
+	1,
 	PAGE_SIZE512
 };
 

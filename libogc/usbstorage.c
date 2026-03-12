@@ -2,7 +2,7 @@
 
 usbstorage.c -- Bulk-only USB mass storage support
 
-Copyright (C) 2008 - 2025
+Copyright (C) 2008 - 2026
 Sven Peter (svpe) <svpe@gmx.net>
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
@@ -1000,7 +1000,12 @@ static bool __usbstorage_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t 
 	return retval >= 0;
 }
 
-static bool __usbstorage_ClearStatus(DISC_INTERFACE *disc)
+static bool __usbstorage_EraseSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors)
+{
+	return false;
+}
+
+static bool __usbstorage_Flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -1057,9 +1062,11 @@ DISC_INTERFACE __io_usbstorage = {
 	__usbstorage_IsInserted,
 	__usbstorage_ReadSectors,
 	__usbstorage_WriteSectors,
-	__usbstorage_ClearStatus,
+	__usbstorage_EraseSectors,
+	__usbstorage_Flush,
 	__usbstorage_Shutdown,
 	0,
+	1,
 	0
 };
 

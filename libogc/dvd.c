@@ -3618,7 +3618,12 @@ static bool __gcdvd_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSect
 	return false;
 }
 
-static bool __gcdvd_ClearStatus(DISC_INTERFACE *disc)
+static bool __gcdvd_EraseSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors)
+{
+	return false;
+}
+
+static bool __gcdvd_Flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -3711,7 +3716,12 @@ static bool __gcode_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSect
 	return true;
 }
 
-static bool __gcode_ClearStatus(DISC_INTERFACE *disc)
+static bool __gcode_EraseSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors)
+{
+	return false;
+}
+
+static bool __gcode_Flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -3728,9 +3738,11 @@ DISC_INTERFACE __io_gcdvd = {
 	__gcdvd_IsInserted,
 	__gcdvd_ReadSectors,
 	__gcdvd_WriteSectors,
-	__gcdvd_ClearStatus,
+	__gcdvd_EraseSectors,
+	__gcdvd_Flush,
 	__gcdvd_Shutdown,
 	~0,
+	16,
 	2048
 };
 
@@ -3741,8 +3753,10 @@ DISC_INTERFACE __io_gcode = {
 	__gcode_IsInserted,
 	__gcode_ReadSectors,
 	__gcode_WriteSectors,
-	__gcode_ClearStatus,
+	__gcode_EraseSectors,
+	__gcode_Flush,
 	__gcode_Shutdown,
 	~0,
+	1,
 	512
 };

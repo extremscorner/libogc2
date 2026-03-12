@@ -624,7 +624,12 @@ static bool __aram_writeSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 	return true;
 }
 
-static bool __aram_clearStatus(DISC_INTERFACE *disc)
+static bool __aram_eraseSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSectors)
+{
+	return false;
+}
+
+static bool __aram_flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -640,13 +645,15 @@ static bool __aram_shutdown(DISC_INTERFACE *disc)
 
 DISC_INTERFACE __io_aram = {
 	DEVICE_TYPE_GAMECUBE_ARAM,
-	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE,
+	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_HSP,
 	__aram_startup,
 	__aram_isInserted,
 	__aram_readSectors,
 	__aram_writeSectors,
-	__aram_clearStatus,
+	__aram_eraseSectors,
+	__aram_flush,
 	__aram_shutdown,
 	0,
+	1,
 	512
 };
