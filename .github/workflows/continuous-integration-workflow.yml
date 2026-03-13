@@ -22,6 +22,7 @@ jobs:
       with:
         repository: extremscorner/libdvm
         path: libdvm
+        submodules: true
 
     - name: Checkout libntfs
       uses: actions/checkout@main
