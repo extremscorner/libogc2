@@ -19,22 +19,25 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [gekkoboot](https://github.com/redolution/gekkoboot) - Nintendo GameCube bootloader
 - [Genesis Plus GX](https://github.com/ekeeke/Genesis-Plus-GX) - Sega 8/16-bit emulator
 - [Octave](https://github.com/mholtkamp/octave) - Cross-platform 3D game engine
+   - [Vacpyre](https://github.com/mholtkamp/vacpyre) - Puzzle shooter game
 - [Scratch Everywhere!](https://github.com/ScratchEverywhere/ScratchEverywhere) - Scratch 3.0 runtime
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Snes9x GX](https://github.com/dborth/snes9xgx) - Super Nintendo Entertainment System emulator
+- [SpeedGC](https://github.com/dorianpazur/SpeedGC) - Arcade racing game
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
 - [Visual Boy Advance GX](https://github.com/dborth/vbagx) - Game Boy Advance emulator
 - [WakeMii](https://github.com/emukidid/wakemii) - Alarm clock music player
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
 - [WiiSX/CubeSX](https://github.com/emukidid/pcsxgc) - PlayStation 1 emulator
-- [Xeno Crisis](https://shop.bitmapbureau.com/collections/gamecube/products/xeno-crisis-gamecube) - Retro-style arena shooter
+- [Xeno Crisis](https://shop.bitmapbureau.com/collections/gamecube/products/xeno-crisis-gamecube) - Retro-style arena shooter game
 
 ### Unofficial ports
 
 - [ftpii](https://github.com/leo60228/ftpii) by **@leo60228** - FTP server
 - [MPlayer CE](https://github.com/SuperrSonic/mplayer-ce-libogc2) by **@SuperrSonic** - Media player
-- [Nicky Boom](https://github.com/emukidid/Nicky-Boum) by **@emukidid** - Side-scrolling platformer
-- [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/ppc-sys) by **@RetroGamer02** - Vertically scrolling shooter
+- [NeoCD RX](https://github.com/TriVoxel/NeoCDRX) by **@TriVoxel** - Neo Geo CD emulator
+- [Nicky Boom](https://github.com/emukidid/Nicky-Boum) by **@emukidid** - Side-scrolling platform game
+- [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/bswap-sys) by **@RetroGamer02** - Vertically scrolling shooter game
 - [RetroArch](https://github.com/SuperrSonic/RA-GCN) by **@SuperrSonic** - Multi-system emulator
 - [WiiMC](https://github.com/SuperrSonic/WiiMC-GCN) by **@SuperrSonic** - Media player
 
