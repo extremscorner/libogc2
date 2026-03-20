@@ -903,7 +903,6 @@ void c_guMtxReflect(Mtx m,const guVector *p,const guVector *n)
     m[2][3] = pdotn * n->z;
 }
 
-
 void c_guVecAdd(const guVector *a,const guVector *b,guVector *ab)
 {
     ab->x = a->x + b->x;
@@ -924,7 +923,6 @@ void c_guVecScale(const guVector *src,guVector *dst,f32 scale)
     dst->y = src->y * scale;
     dst->z = src->z * scale;
 }
-
 
 void c_guVecNormalize(const guVector *src,guVector *unit)
 {
@@ -948,6 +946,11 @@ void c_guVecCross(const guVector *a,const guVector *b,guVector *axb)
 	axb->x = vTmp.x;
 	axb->y = vTmp.y;
 	axb->z = vTmp.z;
+}
+
+f32 c_guVecDotProduct(const guVector *a,const guVector *b)
+{
+	return (a->x*b->x) + (a->y*b->y) + (a->z*b->z);
 }
 
 void c_guVecMultiply(const Mtx mt,const guVector *src,guVector *dst)
@@ -975,15 +978,6 @@ void c_guVecMultiplySR(const Mtx mt,const guVector *src,guVector *dst)
     dst->x = tmp.x;
     dst->y = tmp.y;
     dst->z = tmp.z;
-}
-
-f32 c_guVecDotProduct(const guVector *a,const guVector *b)
-{
-    f32 dot;
-
-	dot = (a->x * b->x) + (a->y * b->y) + (a->z * b->z);
-
-    return dot;
 }
 
 void c_guQuatAdd(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab)
@@ -1095,6 +1089,19 @@ void ps_guQuatMultiply(const guQuaternion *a,const guQuaternion *b,guQuaternion 
 	);
 }
 #endif
+
+void c_guQuatScale(const guQuaternion *src,guQuaternion *dst,f32 scale)
+{
+	dst->x = src->x * scale;
+	dst->y = src->y * scale;
+	dst->z = src->z * scale;
+	dst->w = src->w * scale;
+}
+
+f32 c_guQuatDotProduct(const guQuaternion *a,const guQuaternion *b)
+{
+	return (a->x*b->x) + (a->y*b->y) + (a->z*b->z) + (a->w*b->w);
+}
 
 void c_guQuatNormalize(const guQuaternion *a,guQuaternion *d)
 {

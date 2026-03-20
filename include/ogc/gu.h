@@ -350,9 +350,9 @@ void c_guVecSub(const guVector *a,const guVector *b,guVector *ab);
 void c_guVecScale(const guVector *src,guVector *dst,f32 scale);
 void c_guVecNormalize(const guVector *src,guVector *unit);
 void c_guVecCross(const guVector *a,const guVector *b,guVector *axb);
+f32 c_guVecDotProduct(const guVector *a,const guVector *b);
 void c_guVecMultiply(const Mtx mt,const guVector *src,guVector *dst);
 void c_guVecMultiplySR(const Mtx mt,const guVector *src,guVector *dst);
-f32 c_guVecDotProduct(const guVector *a,const guVector *b);
 
 #ifdef GEKKO
 void ps_guVecAdd(const guVector *a,const guVector *b,guVector *ab);
@@ -360,14 +360,16 @@ void ps_guVecSub(const guVector *a,const guVector *b,guVector *ab);
 void ps_guVecScale(const guVector *src,guVector *dst,f32 scale);
 void ps_guVecNormalize(const guVector *src,guVector *unit);
 void ps_guVecCross(const guVector *a,const guVector *b,guVector *axb);
+f32 ps_guVecDotProduct(const guVector *a,const guVector *b);
 void ps_guVecMultiply(const Mtx mt,const guVector *src,guVector *dst);
 void ps_guVecMultiplySR(const Mtx mt,const guVector *src,guVector *dst);
-f32 ps_guVecDotProduct(const guVector *a,const guVector *b);
 #endif	//GEKKO
 
 void c_guQuatAdd(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab);
 void c_guQuatSub(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab);
 void c_guQuatMultiply(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab);
+void c_guQuatScale(const guQuaternion *src,guQuaternion *dst,f32 scale);
+f32 c_guQuatDotProduct(const guQuaternion *a,const guQuaternion *b);
 void c_guQuatNormalize(const guQuaternion *a,guQuaternion *d);
 void c_guQuatInverse(const guQuaternion *a,guQuaternion *d);
 void c_guQuatMtx(guQuaternion *a,const Mtx m);
@@ -376,6 +378,8 @@ void c_guQuatMtx(guQuaternion *a,const Mtx m);
 void ps_guQuatAdd(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab);
 void ps_guQuatSub(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab);
 void ps_guQuatMultiply(const guQuaternion *a,const guQuaternion *b,guQuaternion *ab);
+void ps_guQuatScale(const guQuaternion *src,guQuaternion *dst,f32 scale);
+f32 ps_guQuatDotProduct(const guQuaternion *a,const guQuaternion *b);
 void ps_guQuatNormalize(const guQuaternion *a,guQuaternion *d);
 void ps_guQuatInverse(const guQuaternion *a,guQuaternion *d);
 #endif
@@ -436,14 +440,16 @@ void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad);
 #define guVecSub				c_guVecSub
 #define guVecScale				c_guVecScale
 #define guVecNormalize			c_guVecNormalize
-#define guVecMultiply			c_guVecMultiply
 #define guVecCross				c_guVecCross
-#define guVecMultiplySR			c_guVecMultiplySR
 #define guVecDotProduct			c_guVecDotProduct
+#define guVecMultiply			c_guVecMultiply
+#define guVecMultiplySR			c_guVecMultiplySR
 
 #define guQuatAdd				c_guQuatAdd
 #define guQuatSub				c_guQuatSub
 #define guQuatMultiply			c_guQuatMultiply
+#define guQuatScale				c_guQuatScale
+#define guQuatDotProduct		c_guQuatDotProduct
 #define guQuatNormalize			c_guQuatNormalize
 #define guQuatInverse			c_guQuatInverse
 #define guQuatMtx				c_guQuatMtx
@@ -472,14 +478,16 @@ void guMtx44RotAxisRad(Mtx44 mt,const guVector *axis,f32 rad);
 #define guVecSub				ps_guVecSub
 #define guVecScale				ps_guVecScale
 #define guVecNormalize			ps_guVecNormalize
-#define guVecMultiply			ps_guVecMultiply
 #define guVecCross				ps_guVecCross
-#define guVecMultiplySR			ps_guVecMultiplySR
 #define guVecDotProduct			ps_guVecDotProduct
+#define guVecMultiply			ps_guVecMultiply
+#define guVecMultiplySR			ps_guVecMultiplySR
 
 #define guQuatAdd				ps_guQuatAdd
 #define guQuatSub				ps_guQuatSub
 #define guQuatMultiply			ps_guQuatMultiply
+#define guQuatScale				ps_guQuatScale
+#define guQuatDotProduct		ps_guQuatDotProduct
 #define guQuatNormalize			ps_guQuatNormalize
 #define guQuatInverse			ps_guQuatInverse
 #define guQuatMtx				c_guQuatMtx
