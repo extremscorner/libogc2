@@ -36,6 +36,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [ftpii](https://github.com/leo60228/ftpii) by **@leo60228** - FTP server
 - [MPlayer CE](https://github.com/SuperrSonic/mplayer-ce-libogc2) by **@SuperrSonic** - Media player
 - [NeoCD RX](https://github.com/TriVoxel/NeoCDRX) by **@TriVoxel** - Neo Geo CD emulator
+- [Neverball](https://github.com/extremscorner/neverball) by **@mardy** - Rolling ball game
 - [Nicky Boom](https://github.com/emukidid/Nicky-Boum) by **@emukidid** - Side-scrolling platform game
 - [Raptor: Call of the Shadows](https://github.com/RetroGamer02/raptor-consoles/tree/bswap-sys) by **@RetroGamer02** - Vertically scrolling shooter game
 - [RetroArch](https://github.com/SuperrSonic/RA-GCN) by **@SuperrSonic** - Multi-system emulator
@@ -43,7 +44,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 
 ### Subprojects
 
-[cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [GRRLIB](https://github.com/extremscorner/GRRLIB), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [opengx](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
+[bt-embedded](https://github.com/extremscorner/bt-embedded), [cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [GRRLIB](https://github.com/extremscorner/GRRLIB), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [opengx](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
 
 ## Installing
 
