@@ -10,5 +10,5 @@ RUN rm /etc/apt/sources.list.d/devkitpro.list && \
     sed -i '/^\[dkp-libs\]$/,$d' /opt/devkitpro/pacman/etc/pacman.conf && \
     echo -e '[libogc2-devkitpro]\nServer = https://packages.libogc2.org/devkitpro/linux/$arch' >> /opt/devkitpro/pacman/etc/pacman.conf && \
     dkp-pacman -Syy && \
-    dkp-pacman -S --ask 5 --ignore *-docs*,*-examples* gamecube-dev gamecube-portlibs ppc-portlibs wii-dev wii-portlibs && \
+    dkp-pacman -S --ask 5 --ignore *-docs*,*-examples* gamecube-dev gamecube-portlibs libogc2-dkp-toolchain-vars ppc-portlibs wii-dev wii-portlibs && \
     yes | dkp-pacman -Scc
