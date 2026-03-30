@@ -371,7 +371,9 @@ s32 LWP_SetThreadPriority(lwp_t thethread,u8 prio)
 
 	old_prio = __lwp_priofromcore(lwp_thread->real_prio);
 	lwp_thread->real_prio = __lwp_priotocore(prio);
-	__lwp_thread_changepriority(lwp_thread,lwp_thread->real_prio,TRUE);
+
+	if(lwp_thread->res_cnt==0 || lwp_thread->cur_prio>lwp_thread->real_prio)
+		__lwp_thread_changepriority(lwp_thread,lwp_thread->real_prio,TRUE);
 	__lwp_thread_dispatchenable();
 
 	return old_prio;

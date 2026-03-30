@@ -27,7 +27,7 @@
 
 mutex.c -- Thread subsystem III
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -149,7 +149,7 @@ s32 LWP_MutexInit(mutex_t *mutex,bool use_recursive)
 	ret = __lwp_mutex_allocate();
 	if(!ret) return EAGAIN;
 
-	attr.mode = LWP_MUTEX_FIFO;
+	attr.mode = LWP_MUTEX_INHERITPRIO;
 	attr.nest_behavior = (use_recursive)?LWP_MUTEX_NEST_ACQUIRE:LWP_MUTEX_NEST_ERROR;
 	attr.onlyownerrelease = TRUE;
 	attr.prioceil = LWP_PRIO_MIN + 1;
