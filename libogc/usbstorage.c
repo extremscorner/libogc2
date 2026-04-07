@@ -240,7 +240,7 @@ static s32 __send_cbw(usbstorage_handle *dev, u8 lun, u32 len, u8 flags, const u
 	__stwbrx(cbw_buffer, 8, len);
 	cbw_buffer[12] = flags;
 	cbw_buffer[13] = lun;
-	cbw_buffer[14] = (cbLen > 6 ? 10 : 6);
+	cbw_buffer[14] = cbLen;
 
 	memcpy(cbw_buffer + 15, cb, cbLen);
 
@@ -362,7 +362,7 @@ static s32 __usbstorage_clearerrors(usbstorage_handle *dev, u8 lun)
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = SCSI_TEST_UNIT_READY;
 
-	retval = __cycle(dev, lun, NULL, 0, cmd, 1, 0, &status, NULL);
+	retval = __cycle(dev, lun, NULL, 0, cmd, sizeof(cmd), 0, &status, NULL);
 	if (retval < 0) return retval;
 
 	if (status)
@@ -370,7 +370,7 @@ static s32 __usbstorage_clearerrors(usbstorage_handle *dev, u8 lun)
 		cmd[0] = SCSI_REQUEST_SENSE;
 		cmd[4] = SCSI_SENSE_REPLY_SIZE;
 		memset(sense, 0, SCSI_SENSE_REPLY_SIZE);
-		retval = __cycle(dev, lun, sense, SCSI_SENSE_REPLY_SIZE, cmd, 6, 0, NULL, NULL);
+		retval = __cycle(dev, lun, sense, SCSI_SENSE_REPLY_SIZE, cmd, sizeof(cmd), 0, NULL, NULL);
 		if (retval>=0) {
 			switch (sense[2]&0xF) {
 				case SCSI_SENSE_NOT_READY:
@@ -1066,7 +1066,7 @@ DISC_INTERFACE __io_usbstorage = {
 	__usbstorage_Flush,
 	__usbstorage_Shutdown,
 	0,
-	1,
+	0,
 	0
 };
 
