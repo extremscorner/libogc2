@@ -317,7 +317,7 @@ static s32 __cycle(usbstorage_handle *dev, u8 lun, u8 *buffer, u32 len, u8 *cb, 
 		{
 			u32 thisLen = _len > max_size ? max_size : _len;
 
-			if ((u32)_buffer&0x1F || !((u32)_buffer&0x10000000)) {
+			if (!SYS_IsDMAAddress(_buffer, 32) || !SYS_IsDMAAddress(_buffer + thisLen, 1)) {
 				if (write) memcpy(dev->buffer, _buffer, thisLen);
 				retval = __USB_BlkMsgTimeout(dev, ep, thisLen, dev->buffer, usbtimeout);
 				if (!write && retval > 0)
