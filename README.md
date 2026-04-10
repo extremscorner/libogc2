@@ -23,7 +23,6 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [Scratch Everywhere!](https://github.com/ScratchEverywhere/ScratchEverywhere) - Scratch 3.0 runtime
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Snes9x GX](https://github.com/dborth/snes9xgx) - Super Nintendo Entertainment System emulator
-- [SpeedGC](https://github.com/dorianpazur/SpeedGC) - Arcade racing game
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
 - [Visual Boy Advance GX](https://github.com/dborth/vbagx) - Game Boy Advance emulator
 - [WakeMii](https://github.com/emukidid/wakemii) - Alarm clock music player
