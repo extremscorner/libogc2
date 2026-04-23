@@ -60,7 +60,6 @@
 
 #define XY(x, y)   (((y) << 10) | (x))
 
-#define GX_DEFAULT_BG	{64,64,64,255}
 #define BLACK			{0,0,0,0}
 #define WHITE			{255,255,255,255}
 
@@ -701,7 +700,7 @@ static void __GX_InitGX(void)
 	GX_SetBlendMode(GX_BM_NONE,GX_BL_SRCALPHA,GX_BL_INVSRCALPHA,GX_LO_CLEAR);
 	GX_SetColorUpdate(GX_ENABLE);
 	GX_SetAlphaUpdate(GX_ENABLE);
-	GX_SetZMode(GX_ENABLE,GX_LEQUAL,GX_TRUE);
+	GX_SetZMode(GX_TRUE,GX_LEQUAL,GX_TRUE);
 	GX_SetZCompLoc(GX_TRUE);
 	GX_SetDither(GX_ENABLE);
 	GX_SetDstAlpha(GX_DISABLE,0);
@@ -709,16 +708,15 @@ static void __GX_InitGX(void)
 
 	GX_SetFieldMask(GX_ENABLE,GX_ENABLE);
 
-	flag = 0;
-	if(rmode->viHeight==(rmode->xfbHeight<<1)) flag = 1;
+	flag = GX_DISABLE;
+	if(rmode->viHeight==(rmode->xfbHeight<<1)) flag = GX_ENABLE;
 	GX_SetFieldMode(rmode->field_rendering,flag);
 
-	GX_SetCopyClear((GXColor)GX_DEFAULT_BG,GX_MAX_Z24);
 	GX_SetDispCopySrc(0,0,rmode->fbWidth,rmode->efbHeight);
-	GX_SetDispCopyDst(rmode->fbWidth,rmode->efbHeight);
-	GX_SetDispCopyYScale(1.0);
+	GX_SetDispCopyDst(rmode->fbWidth,rmode->xfbHeight);
+	GX_SetDispCopyYScale(GX_GetYScaleFactor(rmode->efbHeight,rmode->xfbHeight));
 	GX_SetCopyClamp(GX_CLAMP_TOP|GX_CLAMP_BOTTOM);
-	GX_SetCopyFilter(GX_FALSE,NULL,GX_FALSE,NULL);
+	GX_SetCopyFilter(rmode->aa,rmode->sample_pattern,GX_TRUE,rmode->vfilter);
 	GX_SetDispCopyGamma(GX_GM_1_0);
 	GX_SetDispCopyFrame2Field(GX_COPY_PROGRESSIVE);
 	GX_ClearBoundingBox();
