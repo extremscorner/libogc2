@@ -43,6 +43,7 @@ distribution.
 
 -------------------------------------------------------------*/
 
+#include <sys/errno.h>
 #include <sys/iosupport.h>
 #include <sys/reent.h>
 #include "lwp_threads.h"
@@ -57,6 +58,11 @@ int __libc_delete_hook(lwp_cntrl *curr_thr, lwp_cntrl *delete_thr)
 {
 	_reclaim_reent(&delete_thr->libc_reent);
 	return 1;
+}
+
+int *__errno(void)
+{
+	return &_REENT_ERRNO(&_thr_executing->libc_reent);
 }
 
 struct _reent *__SYSCALL(getreent)(void)
