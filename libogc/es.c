@@ -2,7 +2,7 @@
 
 es.c -- ETicket services
 
-Copyright (C) 2008 - 2025
+Copyright (C) 2008 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Hector Martin (marcan)
@@ -991,7 +991,7 @@ static int _ES_read_r (struct _reent *r, void *fd, char *ptr, size_t len) {
 	} else {
 		int chunk;
 		if(!file->iobuf) {
-			file->iobuf = _memalign_r(r, 32, ES_READ_BUF_SIZE);
+			file->iobuf = memalign(32, ES_READ_BUF_SIZE);
 			if(!file->iobuf) {
 				r->_errno = ENOMEM;
 				return -1;

@@ -197,6 +197,10 @@ const void *__libogc_clock_gettime = __syscall_clock_gettime;
 const void *__libogc_clock_settime = __syscall_clock_settime;
 const void *__libogc_clock_getres = __syscall_clock_getres;
 const void *__libogc_nanosleep = __syscall_nanosleep;
+const void *__libogc_malloc_r = _malloc_r;
+const void *__libogc_free_r = _free_r;
+const void *__libogc_realloc_r = _realloc_r;
+const void *__libogc_calloc_r = _calloc_r;
 const void *__libogc_malloc_lock = __syscall_malloc_lock;
 const void *__libogc_malloc_unlock = __syscall_malloc_unlock;
 
