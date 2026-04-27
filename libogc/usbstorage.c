@@ -966,6 +966,22 @@ static bool __usbstorage_IsInserted(DISC_INTERFACE *disc)
 		{
 			disc->numberOfSectors = __usbfd.n_sectors[__lun];
 			disc->bytesPerSector = __usbfd.sector_size[__lun];
+
+			switch (disc->bytesPerSector)
+			{
+				case 512:
+					disc->sectorsPerBlock = 8;
+					break;
+				case 2048:
+					disc->sectorsPerBlock = 16;
+					break;
+				case 4096:
+					disc->sectorsPerBlock = 1;
+					break;
+				default:
+					disc->sectorsPerBlock = 0;
+					break;
+			}
 			break;
 		}
 
