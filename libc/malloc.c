@@ -1502,7 +1502,7 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 #endif /* ABORT_ON_ASSERT_FAILURE */
 #else  /* DEBUG */
 #ifndef assert
-#define assert(x)
+#define assert(x) (void)(x)
 #endif
 #define DEBUG 0
 #endif /* DEBUG */
