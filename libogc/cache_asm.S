@@ -2,7 +2,7 @@
 
 cache_asm.S -- Cache interface
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -265,7 +265,7 @@ __L2Init:
 	stw		r31,12(sp)
 	mfmsr	r31
 	sync
-	li		r3,48
+	li		r3,MSR_IR|MSR_DR
 	mtmsr	r3
 	sync
 	bl		L2Disable
@@ -346,7 +346,7 @@ L2SetWriteThrough:
 	.globl __LCEnable
 __LCEnable:
 	mfmsr	r5
-	ori		r5,r5,0x1000
+	ori		r5,r5,MSR_ME
 	mtmsr	r5
 	lis		r3,0x8000
 	li		r4,1024
