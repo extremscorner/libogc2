@@ -2046,24 +2046,24 @@ u32 SYS_GetCoreFrequency(void)
 
 s8 SYS_GetCoreTemperature(void)
 {
-	s32 i,ret;
+	s32 i,temp;
 	u32 pvr,thrm;
 
 	pvr = mfpvr();
 	if(_SHIFTR(pvr,16,16)!=0x8 || _SHIFTR(pvr,12,4)==0x7) return -1;
-	if(!(mfthrm3()&1))
-		mtthrm3((_SHIFTL(0x04,25,5)|_SHIFTL(8000,1,13)|1));
+	if(!(mfthrm3()&THRM3_E))
+		mtthrm3(THRM3_CALIBRATION(0x04)|THRM3_SITV(8000)|THRM3_E);
 
 	i = 5;
-	ret = 64;
+	temp = 64;
 	while(i--) {
-		mtthrm2((_SHIFTL(ret,23,7)|1));
+		mtthrm2(THRM2_THRESHOLD(temp)|THRM2_V);
 		do {
 			thrm = mfthrm2();
-		} while(!(thrm&0x40000000));
-		if(thrm&0x80000000) ret += (2<<i);
-		else ret -= (2<<i);
+		} while(!(thrm&THRM2_TIV));
+		if(thrm&THRM2_TIN) temp += (2<<i);
+		else temp -= (2<<i);
 	}
 	mtthrm2(0);
-	return ret;
+	return temp;
 }

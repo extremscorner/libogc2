@@ -335,22 +335,44 @@
 #define ECID2		926
 #define ECID3		927
 
-#define MSR_LE				0x00000001
-#define MSR_RI				0x00000002
-#define MSR_PM				0x00000004
-#define MSR_DR				0x00000010
-#define MSR_IR				0x00000020
-#define MSR_IP				0x00000040
-#define MSR_FE1				0x00000100
-#define MSR_BE				0x00000200
-#define MSR_SE				0x00000400
-#define MSR_FE0				0x00000800
-#define MSR_ME				0x00001000
-#define MSR_FP				0x00002000
-#define MSR_PR				0x00004000
-#define MSR_EE				0x00008000
-#define MSR_ILE				0x00010000
-#define MSR_POW				0x00040000
+#define MSR_LE					0x00000001
+#define MSR_RI					0x00000002
+#define MSR_PM					0x00000004
+#define MSR_DR					0x00000010
+#define MSR_IR					0x00000020
+#define MSR_IP					0x00000040
+#define MSR_FE1					0x00000100
+#define MSR_BE					0x00000200
+#define MSR_SE					0x00000400
+#define MSR_FE0					0x00000800
+#define MSR_ME					0x00001000
+#define MSR_FP					0x00002000
+#define MSR_PR					0x00004000
+#define MSR_EE					0x00008000
+#define MSR_ILE					0x00010000
+#define MSR_POW					0x00040000
+
+#define THRM1_TIN				0x80000000
+#define THRM1_TIV				0x40000000
+#define THRM1_THRESHOLD_MASK	0x3F800000
+#define THRM1_THRESHOLD(n)		(((n) << 23) & THRM1_THRESHOLD_MASK)
+#define THRM1_TID				0x00000004
+#define THRM1_TIE				0x00000002
+#define THRM1_V					0x00000001
+
+#define THRM2_TIN				THRM1_TIN
+#define THRM2_TIV				THRM1_TIV
+#define THRM2_THRESHOLD_MASK	THRM1_THRESHOLD_MASK
+#define THRM2_THRESHOLD(n)		THRM1_THRESHOLD(n)
+#define THRM2_TID				THRM1_TID
+#define THRM2_TIE				THRM1_TIE
+#define THRM2_V					THRM1_V
+
+#define THRM3_CALIBRATION_MASK	0x3E000000
+#define THRM3_CALIBRATION(x)	(((x) << 25) & THRM3_CALIBRATION_MASK)
+#define THRM3_SITV_MASK			0x00003FFE
+#define THRM3_SITV(n)			(((n) << 1) & THRM3_SITV_MASK)
+#define THRM3_E					0x00000001
 
 #define PPC_ALIGNMENT		8
 
