@@ -342,7 +342,11 @@ void SYS_ResetPMC(void);
 u32 SYS_GetBusFrequency(void);
 f32 SYS_GetCoreMultiplier(void);
 u32 SYS_GetCoreFrequency(void);
+#if defined(HW_DOL)
 s8 SYS_GetCoreTemperature(void);
+s8 SYS_GetTAUCalibration(void);
+void SYS_SetTAUCalibration(s8 calib);
+#endif
 
 
 /*! \fn s32 SYS_CreateAlarm(syswd_t *thealarm)

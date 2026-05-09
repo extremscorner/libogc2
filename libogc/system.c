@@ -1773,6 +1773,73 @@ void SYS_SetEuRGB60(u8 enable)
 	__SYS_UnlockSram(write);
 }
 
+#if defined(HW_DOL)
+s8 SYS_GetTAUCalibration(void)
+{
+	s8 calib;
+	u8 calib_bits;
+	syssram *sram;
+
+	sram = __SYS_LockSram();
+	if(!(sram->ntd&0x20)) calib_bits = 0x04;
+	else calib_bits = (sram->ntd&0x1f);
+	__SYS_UnlockSram(0);
+
+	calib = 0;
+	if(calib_bits&0x01) calib += 4;
+	if(calib_bits&0x02) calib += 12;
+	if(calib_bits&0x04) calib += 24;
+	if(calib_bits&0x08) calib += 40;
+	if(calib_bits&0x10) calib = -calib;
+	return calib;
+}
+
+u8 __SYS_SetTAUCalibration(s8 calib)
+{
+	u8 calib_bits = 0x20;
+
+	if(calib<0) {
+		calib = -calib;
+		calib_bits |= 0x10;
+	}
+	if(calib>=40) {
+		calib -= 40;
+		calib_bits |= 0x08;
+	}
+	if(calib>=24) {
+		calib -= 24;
+		calib_bits |= 0x04;
+	}
+	if(calib>=12) {
+		calib -= 12;
+		calib_bits |= 0x02;
+	}
+	if(calib>=4) {
+		calib -= 4;
+		calib_bits |= 0x01;
+	}
+	mtthrm3((mfthrm3()&~THRM3_CALIBRATION_MASK)|THRM3_CALIBRATION(calib_bits));
+	return calib_bits;
+}
+
+void SYS_SetTAUCalibration(s8 calib)
+{
+	u32 write;
+	u8 calib_bits;
+	syssram *sram;
+
+	calib_bits = __SYS_SetTAUCalibration(calib);
+
+	write = 0;
+	sram = __SYS_LockSram();
+	if((sram->ntd&0x3f)!=calib_bits) {
+		sram->ntd = (sram->ntd&~0x3f)|(calib_bits&0x3f);
+		write = 1;
+	}
+	__SYS_UnlockSram(write);
+}
+#endif
+
 u8 SYS_GetLanguage(void)
 {
 	u8 lang;
@@ -2044,6 +2111,7 @@ u32 SYS_GetCoreFrequency(void)
 	return clock;
 }
 
+#if defined(HW_DOL)
 s8 SYS_GetCoreTemperature(void)
 {
 	s32 i,temp;
@@ -2051,8 +2119,10 @@ s8 SYS_GetCoreTemperature(void)
 
 	pvr = mfpvr();
 	if(_SHIFTR(pvr,16,16)!=0x8 || _SHIFTR(pvr,12,4)==0x7) return -1;
-	if(!(mfthrm3()&THRM3_E))
-		mtthrm3(THRM3_CALIBRATION(0x04)|THRM3_SITV(8000)|THRM3_E);
+	if(!(mfthrm3()&THRM3_E)) {
+		mtthrm3(THRM3_SITV(8000)|THRM3_E);
+		__SYS_SetTAUCalibration(SYS_GetTAUCalibration());
+	}
 
 	i = 5;
 	temp = 64;
@@ -2065,5 +2135,6 @@ s8 SYS_GetCoreTemperature(void)
 		else temp -= (2<<i);
 	}
 	mtthrm2(0);
-	return temp;
+	return (temp+2);
 }
+#endif
