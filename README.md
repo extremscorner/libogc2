@@ -25,7 +25,9 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [Scratch Everywhere!](https://github.com/ScratchEverywhere/ScratchEverywhere) - Scratch 3.0 runtime
 - [Seta GX](https://github.com/fadedled/seta-gx) - Sega Saturn emulator
 - [Snes9x GX](https://github.com/dborth/snes9xgx) - Super Nintendo Entertainment System emulator
+- [SuDokuL](https://github.com/Mode8fx/SuDokuL) - Sudoku puzzle game
 - [Swiss](https://github.com/emukidid/swiss-gc) - Swiss army knife of GameCube homebrew
+- [Trogdor: Reburninated](https://github.com/Mode8fx/Trogdor-Reburninated) - Arcade action game
 - [Visual Boy Advance GX](https://github.com/dborth/vbagx) - Game Boy Advance emulator
 - [WakeMii](https://github.com/emukidid/wakemii) - Alarm clock music player
 - [Wii64/Cube64](https://github.com/emukidid/Wii64) - Nintendo 64 emulator
@@ -45,7 +47,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 
 ### Subprojects
 
-[bt-embedded](https://github.com/extremscorner/bt-embedded), [cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [GRRLIB](https://github.com/extremscorner/GRRLIB), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [opengx](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
+[BtEmbedded](https://github.com/extremscorner/bt-embedded), [cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [Embedded Game Controller](https://github.com/extremscorner/embedded-game-controller), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [GRRLIB](https://github.com/extremscorner/GRRLIB), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [OpenGX](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
 
 ## Installing
 
