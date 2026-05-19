@@ -9,6 +9,7 @@
 #include "processor.h"
 #include "si.h"
 #include "pad.h"
+#include "n64.h"
 
 //#define _PAD_DEBUG
 
@@ -874,6 +875,12 @@ u32 PAD_ScanPads(void)
 	u32 padBit,connected;
 	u16 state,oldstate;
 	PADStatus padstatus[PAD_CHANMAX];
+	static N64Status n64status[PAD_CHANMAX] = {
+		{ .err = N64_ERR_NO_CONTROLLER },
+		{ .err = N64_ERR_NO_CONTROLLER },
+		{ .err = N64_ERR_NO_CONTROLLER },
+		{ .err = N64_ERR_NO_CONTROLLER }
+	};
 
 	resetBits = 0;
 	connected = 0;
@@ -903,18 +910,68 @@ u32 PAD_ScanPads(void)
 			connected |= (1<<i);
 			break;
 
-		case PAD_ERR_TRANSFER:
-			__pad_keys[i].up = __pad_keys[i].down = 0;
-			connected |= (1<<i);
-			break;
-
 		case PAD_ERR_NO_CONTROLLER:
-			if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
-			__pad_keys[i].chan = -1;
-			resetBits |= padBit;
+			switch(SI_Probe(i)) {
+			case SI_N64_CONTROLLER:
+				N64_ReadAsync(i,&n64status[i],NULL);
+
+				switch(n64status[i].err) {
+				case N64_ERR_READY:
+					state = 0;
+
+					if(n64status[i].button&N64_BUTTON_LEFT)		state |= PAD_BUTTON_LEFT;
+					if(n64status[i].button&N64_BUTTON_RIGHT)	state |= PAD_BUTTON_RIGHT;
+					if(n64status[i].button&N64_BUTTON_DOWN)		state |= PAD_BUTTON_DOWN;
+					if(n64status[i].button&N64_BUTTON_UP)		state |= PAD_BUTTON_UP;
+					if(n64status[i].button&N64_BUTTON_Z)		state |= PAD_TRIGGER_Z;
+					if(n64status[i].button&N64_BUTTON_R)		state |= PAD_TRIGGER_R;
+					if(n64status[i].button&N64_BUTTON_L)		state |= PAD_TRIGGER_L;
+					if(n64status[i].button&N64_BUTTON_A)		state |= PAD_BUTTON_A;
+					if(n64status[i].button&N64_BUTTON_B)		state |= PAD_BUTTON_B;
+					if(n64status[i].button&N64_BUTTON_START)	state |= PAD_BUTTON_START;
+
+					__pad_keys[i].stickX	= n64status[i].stickX;
+					__pad_keys[i].stickY	= n64status[i].stickY;
+					__pad_keys[i].substickX	= 0;
+					__pad_keys[i].substickY	= 0;
+
+					if(n64status[i].button&N64_BUTTON_C_RIGHT)	__pad_keys[i].substickX += INT8_MAX;
+					if(n64status[i].button&N64_BUTTON_C_LEFT)	__pad_keys[i].substickX -= INT8_MAX;
+					if(n64status[i].button&N64_BUTTON_C_DOWN)	__pad_keys[i].substickY -= INT8_MAX;
+					if(n64status[i].button&N64_BUTTON_C_UP)		__pad_keys[i].substickY += INT8_MAX;
+
+					oldstate				= __pad_keys[i].state;
+					__pad_keys[i].up		= ~state & oldstate;
+					__pad_keys[i].down		= state & ~oldstate;
+					__pad_keys[i].state		= state;
+					__pad_keys[i].chan		= i;
+
+					connected |= (1<<i);
+					break;
+
+				case N64_ERR_NO_CONTROLLER:
+					if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
+					__pad_keys[i].chan = -1;
+					break;
+
+				default:
+					__pad_keys[i].up = __pad_keys[i].down = 0;
+					if(__pad_keys[i].chan!=-1) connected |= (1<<i);
+					break;
+				}
+				break;
+
+			default:
+				if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
+				__pad_keys[i].chan = -1;
+				resetBits |= padBit;
+				break;
+			}
 			break;
 
 		default:
+			__pad_keys[i].up = __pad_keys[i].down = 0;
+			if(__pad_keys[i].chan!=-1) connected |= (1<<i);
 			break;
 		}
 	}

@@ -144,7 +144,7 @@ OGCOBJ		:=	\
 			console_font_8x16.o timesupp.o lock_supp.o newlibc.o usbgecko.o usbmouse.o \
 			sbrk.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
 			sdgecko_io.o sdgecko_buf.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
-			texconv.o wiilaunch.o mic.o system_report.o mmce.o threads_supp.o \
+			texconv.o wiilaunch.o mic.o system_report.o mmce.o n64.o threads_supp.o \
 			malloc.o mallocr.o strdup.o strndup.o
 
 #---------------------------------------------------------------------------------

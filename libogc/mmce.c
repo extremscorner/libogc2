@@ -60,9 +60,8 @@ static vu32 *const _piReg = (u32 *)0xCC003000;
 
 static void __attribute__((constructor)) __MMCE_Init(void)
 {
-	LWP_InitQueue(&__MMCE[0].syncQueue);
-	LWP_InitQueue(&__MMCE[1].syncQueue);
-	LWP_InitQueue(&__MMCE[2].syncQueue);
+	for (s32 chan = EXI_CHANNEL_0; chan < EXI_CHANNEL_MAX; chan++)
+		LWP_InitQueue(&__MMCE[chan].syncQueue);
 }
 
 static s32 MMCE_Sync(s32 chan)
