@@ -159,11 +159,11 @@ static s8 __pad_clampS8(s8 var,s8 org)
 	printf("__pad_clampS8(%d,%d)\n",var,org);
 #endif
 	siorg = (s32)org;
-	if(siorg>0) {
-		siorg -= 128;
+	if(siorg>=0) {
+		siorg -= INT8_MAX;
 		if((s32)var<siorg) var = siorg;
-	} else if(siorg<0) {
-		siorg += 127;
+	} else {
+		siorg += INT8_MAX;
 		if(siorg<(s32)var) var = siorg;
 	}
 #ifdef _PAD_DEBUG
