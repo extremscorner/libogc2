@@ -912,6 +912,10 @@ u32 PAD_ScanPads(void)
 
 		case PAD_ERR_NO_CONTROLLER:
 			switch(SI_Probe(i)) {
+			case SI_ERROR_BUSY:
+				if(n64status[i].err==N64_ERR_NO_CONTROLLER)
+					goto no_controller;
+
 			case SI_N64_CONTROLLER:
 				N64_ReadAsync(i,&n64status[i],NULL);
 
@@ -950,17 +954,16 @@ u32 PAD_ScanPads(void)
 					break;
 
 				case N64_ERR_NO_CONTROLLER:
-					if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
-					__pad_keys[i].chan = -1;
+					goto no_controller;
 					break;
 
 				default:
-					__pad_keys[i].up = __pad_keys[i].down = 0;
-					if(__pad_keys[i].chan!=-1) connected |= (1<<i);
+					goto not_ready;
 					break;
 				}
 				break;
 
+no_controller:
 			default:
 				if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
 				__pad_keys[i].chan = -1;
@@ -969,6 +972,7 @@ u32 PAD_ScanPads(void)
 			}
 			break;
 
+not_ready:
 		default:
 			__pad_keys[i].up = __pad_keys[i].down = 0;
 			if(__pad_keys[i].chan!=-1) connected |= (1<<i);
