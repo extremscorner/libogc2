@@ -2425,7 +2425,7 @@ static inline u32 __VISetRegs(void)
 	return 1;
 }
 
-static void __VIDisplayPositionToXY(s32 xpos,s32 ypos,s32 *px,s32 *py)
+static void __VIDisplayPositionToXY(u32 xpos,u32 ypos,s16 *px,s16 *py)
 {
 	u32 hpos,vpos;
 	u32 hline,val;
@@ -2434,25 +2434,25 @@ static void __VIDisplayPositionToXY(s32 xpos,s32 ypos,s32 *px,s32 *py)
 	vpos = (ypos-1);
 	hline = ((vpos<<1)+(hpos/currTiming->hlw));
 
-	*px = (s32)hpos;
+	*px = (s16)hpos;
 	if(HorVer.nonInter==VI_INTERLACE) {
 		if(hline<currTiming->nhlines) {
-			val = currTiming->prbOdd+(currTiming->equ*3);
+			val = ((currTiming->equ*3)+currTiming->prbOdd);
 			if(hline>=val) {
 				val = (currTiming->nhlines-currTiming->psbOdd);
 				if(hline<val) {
-					*py = (s32)(((hline-(currTiming->equ*3))-currTiming->prbOdd)&~0x01);
+					*py = (s16)((hline-((currTiming->equ*3)+currTiming->prbOdd))&~1);
 				} else
 					*py = -1;
 			} else
 				*py = -1;
 		} else {
 			hline -= currTiming->nhlines;
-			val = (currTiming->prbEven+(currTiming->equ*3));
+			val = ((currTiming->equ*3)+currTiming->prbEven);
 			if(hline>=val) {
 				val = (currTiming->nhlines-currTiming->psbEven);
 				if(hline<val) {
-					*py = (s32)((((hline-(currTiming->equ*3))-currTiming->prbEven)&~0x01)+1);
+					*py = (s16)(((hline-((currTiming->equ*3)+currTiming->prbEven))&~1)+1);
 				} else
 					*py = -1;
 			} else
@@ -2461,46 +2461,36 @@ static void __VIDisplayPositionToXY(s32 xpos,s32 ypos,s32 *px,s32 *py)
 	} else if(HorVer.nonInter==VI_NON_INTERLACE) {
 		if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
 
-		val = (currTiming->prbOdd+(currTiming->equ*3));
+		val = ((currTiming->equ*3)+currTiming->prbOdd);
 		if(hline>=val) {
 			val = (currTiming->nhlines-currTiming->psbOdd);
 			if(hline<val) {
-				*py = (s32)(((hline-(currTiming->equ*3))-currTiming->prbOdd)&~0x01);
+				*py = (s16)((hline-((currTiming->equ*3)+currTiming->prbOdd))&~1);
 			} else
 				*py = -1;
 		} else
 			*py = -1;
 	} else if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) {
-		if(hline<currTiming->nhlines) {
-			val = currTiming->prbOdd+(currTiming->equ*3);
-			if(hline>=val) {
-				val = (currTiming->nhlines-currTiming->psbOdd);
-				if(hline<val) {
-					*py = (s32)((hline-(currTiming->equ*3))-currTiming->prbOdd);
-				} else
-					*py = -1;
+		if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
+
+		val = ((currTiming->equ*3)+currTiming->prbOdd);
+		if(hline>=val) {
+			val = (currTiming->nhlines-currTiming->psbOdd);
+			if(hline<val) {
+				*py = (s16)((hline-((currTiming->equ*3)+currTiming->prbOdd))>>1);
 			} else
 				*py = -1;
-		} else {
-			hline -= currTiming->nhlines;
-			val = (currTiming->prbEven+(currTiming->equ*3));
-			if(hline>=val) {
-				val = (currTiming->nhlines-currTiming->psbEven);
-				if(hline<val) {
-					*py = (s32)(((hline-(currTiming->equ*3))-currTiming->prbEven)&~0x01);
-				} else
-					*py = -1;
-			} else
-				*py = -1;
-		}
-	}
+		} else
+			*py = -1;
+	} else
+		*py = -1;
 }
 
-static inline void __VIGetCurrentPosition(s32 *px,s32 *py)
+static inline void __VIGetCurrentPosition(s16 *px,s16 *py)
 {
-	s32 xpos,ypos;
+	u32 xpos,ypos;
 
-	__getCurrentDisplayPosition((u32*)&xpos,(u32*)&ypos);
+	__getCurrentDisplayPosition(&xpos,&ypos);
 	__VIDisplayPositionToXY(xpos,ypos,px,py);
 }
 
@@ -2511,7 +2501,7 @@ static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 #endif
 	u32 ret = 0;
 	u32 intr;
-	s32 xpos,ypos;
+	s16 xpos,ypos;
 
 	intr = _viReg[24];
 	if(intr&0x8000) {
@@ -2539,7 +2529,7 @@ static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 
 	intr = _viReg[30];
 	if(ret&0x04 || ret&0x08) {
-		if(positionCB!=NULL) {
+		if(positionCB) {
 			__VIGetCurrentPosition(&xpos,&ypos);
 			positionCB(xpos,ypos);
 		}
@@ -3177,14 +3167,14 @@ u32 VIDEO_HaveComponentCable(void)
 	return dtv;
 }
 
-void VIDEO_SetAdjustingValues(s16 hor,s16 ver)
+void VIDEO_SetAdjustingValues(s16 posX,s16 posY)
 {
 	u32 level;
 	const struct _timing *curtiming;
 
 	_CPU_ISR_Disable(level);
-	displayOffsetH = hor;
-	displayOffsetV = ver;
+	displayOffsetH = posX;
+	displayOffsetV = posY;
 
 	curtiming = HorVer.timing;
 	__adjustPosition(curtiming->acv);
@@ -3196,12 +3186,62 @@ void VIDEO_SetAdjustingValues(s16 hor,s16 ver)
 	_CPU_ISR_Restore(level);
 }
 
-void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver)
+void VIDEO_GetAdjustingValues(s16 *posX,s16 *posY)
 {
 	u32 level;
 
 	_CPU_ISR_Disable(level);
-	*hor = displayOffsetH;
-	*ver = displayOffsetV;
+	*posX = displayOffsetH;
+	*posY = displayOffsetV;
 	_CPU_ISR_Restore(level);
+}
+
+void VIDEO_EnablePositionInterrupt(s16 posX,s16 posY,VIPositionCallback callback)
+{
+	u32 level,hline;
+
+	_CPU_ISR_Disable(level);
+	if(HorVer.nonInter==VI_INTERLACE) {
+		if(posY%2) {
+			hline = (currTiming->nhlines+((currTiming->equ*3)+currTiming->prbEven));
+			_viReg[30] = 0x1000|((hline/2)+((posY/2)+1));
+			_viReg[31] = posX+1;
+		} else {
+			hline = ((currTiming->equ*3)+currTiming->prbOdd);
+			_viReg[28] = 0x1000|((hline/2)+((posY/2)+1));
+			_viReg[29] = posX+1;
+		}
+	} else if(HorVer.nonInter==VI_NON_INTERLACE) {
+		hline = ((currTiming->equ*3)+currTiming->prbOdd);
+		_viReg[28] = 0x1000|((hline/2)+((posY/2)+1));
+		_viReg[29] = posX+1;
+
+		hline += currTiming->nhlines;
+		_viReg[30] = 0x1000|((hline/2)+((posY/2)+1));
+		_viReg[31] = posX+1;
+	} else if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) {
+		hline = ((currTiming->equ*3)+currTiming->prbOdd);
+		_viReg[28] = 0x1000|((hline/2)+(posY+1));
+		_viReg[29] = posX+1;
+
+		hline += currTiming->nhlines;
+		_viReg[30] = 0x1000|((hline/2)+(posY+1));
+		_viReg[31] = posX+1;
+	}
+	positionCB = callback;
+	_CPU_ISR_Restore(level);
+}
+
+VIPositionCallback VIDEO_DisablePositionInterrupt(void)
+{
+	u32 level;
+	VIPositionCallback old;
+
+	_CPU_ISR_Disable(level);
+	_viReg[28] = 0x0000;
+	_viReg[30] = 0x0000;
+	old = positionCB;
+	positionCB = NULL;
+	_CPU_ISR_Restore(level);
+	return old;
 }

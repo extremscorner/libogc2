@@ -53,7 +53,7 @@ distribution.
  */
 typedef void (*VIRetraceCallback)(u32 retraceCount);
 
-typedef void (*VIPositionCallback)(u32 posX,u32 posY);
+typedef void (*VIPositionCallback)(s16 posX,s16 posY);
 
 void* VIDEO_GetNextFramebuffer(void);
 void* VIDEO_GetCurrentFramebuffer(void);
@@ -242,8 +242,11 @@ u32 VIDEO_HaveComponentCable(void);
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode);
 
-void VIDEO_SetAdjustingValues(s16 hor,s16 ver);
-void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver);
+void VIDEO_SetAdjustingValues(s16 posX,s16 posY);
+void VIDEO_GetAdjustingValues(s16 *posX,s16 *posY);
+
+void VIDEO_EnablePositionInterrupt(s16 posX,s16 posY,VIPositionCallback callback);
+VIPositionCallback VIDEO_DisablePositionInterrupt(void);
 
 #ifdef __cplusplus
    }
