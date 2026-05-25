@@ -479,7 +479,7 @@ static void __pad_samplinghandler(u32 irq,void *ctx)
 		__pad_samplingcallback();
 }
 
-u32 __PADDisableRecalibration(u32 disable)
+u32 __PADDisableRecalibration(s32 disable)
 {
 	u32 level,ret;
 	u8 *flags = (u8*)0x800030e3;
@@ -497,7 +497,7 @@ u32 __PADDisableRecalibration(u32 disable)
 	return ret;
 }
 
-u32 __PADDisableRumble(u32 disable)
+u32 __PADDisableRumble(s32 disable)
 {
 	u32 level,ret;
 	u8 *flags = (u8*)0x800030e3;
