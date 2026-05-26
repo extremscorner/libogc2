@@ -213,6 +213,8 @@ extern u8 __ipcbufferLo[], __ipcbufferHi[];
 
 u32 __sys_inIPL = (u32)__isIPL;
 
+const char __sys_versioninfo[] = _V_STRING;
+
 static const u32 _dsp_initcode[] =
 {
 	0x029F0010,0x029F0033,0x029F0034,0x029F0035,
@@ -232,9 +234,6 @@ static sys_resetinfo mem_resetinfo = {
 	__mem_onreset,
 	127
 };
-
-static const char *__sys_versiondate;
-static const char *__sys_versionbuild;
 
 static void (*reload)(void) = (void(*)(void))0x80001800;
 
@@ -985,12 +984,7 @@ void* __SYS_GetIPCBufferHi(void)
 {
 	return __ipcbufferhi;
 }
-#endif
 
-void _V_EXPORTNAME(void)
-{ __sys_versionbuild = _V_STRING; __sys_versiondate = _V_DATE_; }
-
-#if defined(HW_RVL)
 void __SYS_DoPowerCB(void)
 {
 	u32 level;
@@ -1018,8 +1012,6 @@ void SYS_Init(void)
 
 	_CPU_ISR_Disable(level);
 	__SYS_PreInit();
-
-	_V_EXPORTNAME();
 
 	__sysarena_init();
 #if defined(HW_RVL)
