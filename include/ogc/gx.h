@@ -2089,7 +2089,7 @@ u32 GX_EndDispList(void);
  *
  * \param[in] primitve \ref primtype to draw
  * \param[in] vtxfmt \ref vtxfmt to use
- * \param[in] vtxcnt number of vertices being drawn; maximum is 65536
+ * \param[in] vtxcnt number of vertices being drawn; maximum is 65535
  */
 void GX_Begin(u8 primitve,u8 vtxfmt,u16 vtxcnt);
 
@@ -2148,6 +2148,13 @@ void GX_BeginDispList(void *list,u32 size);
  */
 void GX_CallDispList(const void *list,u32 nbytes);
 
+static inline void GX_FastCallDispList(const void *list,u32 nbytes)
+{
+	wgPipe->U8 = 0x40;
+	wgPipe->U32 = (u32)list;
+	wgPipe->U32 = nbytes;
+}
+
 /*!
  * \fn static inline void GX_End(void)
  * \brief Used to end the drawing of a graphics primitive. This does nothing in libogc.
@@ -2156,6 +2163,12 @@ void GX_CallDispList(const void *list,u32 nbytes);
  */
 static inline void GX_End(void)
 {
+}
+
+static inline void GX_FastBegin(u8 primitve,u8 vtxfmt,u16 vtxcnt)
+{
+	wgPipe->U8 = (primitve&~7)|(vtxfmt&7);
+	wgPipe->U16 = vtxcnt;
 }
 
 static inline void GX_Position3f32(f32 x,f32 y,f32 z)

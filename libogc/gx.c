@@ -2593,7 +2593,7 @@ void GX_SetVtxAttrFmtv(u8 vtxfmt,const GXVtxAttrFmt *attr_list)
 
 void GX_Begin(u8 primitve,u8 vtxfmt,u16 vtxcnt)
 {
-	u8 reg = primitve|(vtxfmt&7);
+	u8 reg = (primitve&~7)|(vtxfmt&7);
 
 	if(__gx->dirtyState)
 		__GX_SetDirtyState();
