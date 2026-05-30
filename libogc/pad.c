@@ -13,8 +13,6 @@
 
 //#define _PAD_DEBUG
 
-#define PAD_PRODPADS		6
-
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
 #define _SHIFTR(v, s, w)	\
@@ -405,7 +403,7 @@ static void __pad_typeandstatuscallback(s32 chan,u32 type)
 	if(!(type&SI_GC_WIRELESS) || type&SI_WIRELESS_IR) {
 		if(recal_bits) ret = SI_Transfer(__pad_resettingchan,&__pad_cmdcalibrate,3,&__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
 		else ret = SI_Transfer(__pad_resettingchan,&__pad_cmdreadorigin,1,&__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
-	} else if(type&SI_WIRELESS_FIX_ID && !(type&SI_WIRELESS_CONT_MASK) && !(type&SI_WIRELESS_LITE)) {
+	} else if(type&SI_WIRELESS_FIX_ID && (type&SI_WIRELESS_LITE_MASK)==SI_WIRELESS_CONT) {
 		if(type&SI_WIRELESS_RECEIVED) ret = SI_Transfer(__pad_resettingchan,&__pad_cmdreadorigin,1,&__pad_origin[__pad_resettingchan],10,__pad_origincallback,0);
 		else ret = SI_Transfer(__pad_resettingchan,&__pad_cmdprobedevice[__pad_resettingchan],3,&__pad_origin[__pad_resettingchan],8,__pad_probecallback,0);
 	}
@@ -429,7 +427,7 @@ static void __pad_receivecheckcallback(s32 chan,u32 type)
 		__pad_checkingbits &= ~mask;
 		if(!(tmp&0x0f)
 			&& (type&SI_GC_WIRELESS) && (type&SI_WIRELESS_RECEIVED) && (type&SI_WIRELESS_FIX_ID)
-			&& !(type&SI_WIRELESS_IR) && !(type&SI_WIRELESS_CONT_MASK) && !(type&SI_WIRELESS_LITE))  SI_Transfer(chan,&__pad_cmdreadorigin,1,&__pad_origin[chan],10,__pad_originupdatecallback,0);
+			&& !(type&SI_WIRELESS_IR) && (type&SI_WIRELESS_LITE_MASK)==SI_WIRELESS_CONT) SI_Transfer(chan,&__pad_cmdreadorigin,1,&__pad_origin[chan],10,__pad_originupdatecallback,0);
 		else __pad_disable(chan);
 	}
 }
@@ -527,31 +525,28 @@ void __PADDisableXPatch(void)
 u32 PAD_Init(void)
 {
 	u32 chan;
-	u16 prodpads = PAD_PRODPADS;
+	u16 *fix_mode = (u16*)0x800030e0;
 	u8 *spec = (u8*)0x800030e9;
 #ifdef _PAD_DEBUG
 	printf("PAD_Init()\n");
 #endif
 	if(__pad_initialized) return 1;
-
 	if(*spec) PAD_SetSpec(*spec);
 	__pad_initialized = 1;
 
 	memset(__pad_keys,0,sizeof(keyinput)*PAD_CHANMAX);
 
-	__pad_recalibratebits = 0xf0000000;
-
 	chan = 0;
 	while(chan<4) {
+		__pad_cmdprobedevice[chan] = 0x4d000000|(chan<<22)|_SHIFTL(*fix_mode,8,14);
 		__pad_keys[chan].chan = -1;
-		__pad_cmdprobedevice[chan] = 0x4d000000|(chan<<22)|_SHIFTL(prodpads,8,14);
 		chan++;
 	}
 
 	SI_RefreshSamplingRate();
 	SYS_RegisterResetFunc(&pad_resetinfo);
 
-	return PAD_Reset(0xf0000000);
+	return PAD_Recalibrate(0xf0000000);
 }
 
 u32 PAD_Read(PADStatus *status)
@@ -594,7 +589,7 @@ u32 PAD_Read(PADStatus *status)
 					printf("PAD_Read(%08x)\n",sistatus);
 #endif
 					SI_GetResponse(chan,(void*)buf);
-					if(!(__pad_waitingbits&mask)) {
+					if(__pad_waitingbits&mask) {
 						memset(&status[chan],0,sizeof(PADStatus));
 						status[chan].err = PAD_ERR_NONE;
 						if(!(__pad_checkingbits&mask)) {
@@ -967,15 +962,16 @@ u32 PAD_ScanPads(void)
 				}
 				break;
 
+			case SI_GC_CONTROLLER:
+			case SI_GC_WAVEBIRD:
+				resetBits |= padBit;
 no_controller:
 			default:
 				if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
 				__pad_keys[i].chan = -1;
-				resetBits |= padBit;
 				break;
 			}
 			break;
-
 not_ready:
 		default:
 			__pad_keys[i].up = __pad_keys[i].down = 0;

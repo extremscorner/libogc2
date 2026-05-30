@@ -272,14 +272,14 @@ static void __si_calltypeandstatuscallback(s32 chan,u32 type)
 
 static void __si_gettypecallback(s32 chan,u32 type)
 {
-	u32 sipad_en,id;
+	u32 fix_bits,id;
 
 	si_type[chan] = (si_type[chan]&~SI_ERROR_BUSY)|type;
 	typeTime[chan] = __SYS_GetSystemTime();
 #ifdef _SI_DEBUG
 	printf("__si_gettypecallback(%d,%08x,%08x)\n",chan,type,si_type[chan]);
 #endif
-	sipad_en = __PADFixBits&SI_CHAN_BIT(chan);
+	fix_bits = __PADFixBits&SI_CHAN_BIT(chan);
 	__PADFixBits &= ~SI_CHAN_BIT(chan);
 
 	if(type&0x0f || (si_type[chan]&SI_TYPE_MASK)!=SI_TYPE_GC
@@ -293,7 +293,7 @@ static void __si_gettypecallback(s32 chan,u32 type)
 #ifdef _SI_DEBUG
 	printf("__si_gettypecallback(id = %08x)\n",id);
 #endif
-	if(sipad_en && id&SI_WIRELESS_FIX_ID) {
+	if(fix_bits && id&SI_WIRELESS_FIX_ID) {
 		cmdfixdevice[chan] = 0x4e100000|(id&SI_WIRELESS_TYPE_ID);
 		si_type[chan] = SI_ERROR_BUSY;
 		SI_Transfer(chan,&cmdfixdevice[chan],3,&si_type[chan],3,__si_gettypecallback,0);
@@ -654,7 +654,8 @@ u32 SI_GetTypeAsync(s32 chan,SICallback cb)
 	type = SI_GetType(chan);
 	if(si_type[chan]&SI_ERROR_BUSY) {
 		for(i=0;i<4;i++) {
-			if(!typeCallback[chan][i] && typeCallback[chan][i]!=cb) {
+			if(typeCallback[chan][i]==cb) break;
+			if(typeCallback[chan][i]==NULL) {
 				typeCallback[chan][i] = cb;
 				break;
 			}
