@@ -44,6 +44,7 @@ extern "C" {
 #define dlmemalign             memalign
 #define dlposix_memalign       posix_memalign
 #define dlrealloc              realloc
+#define dlrealloc_in_place     realloc_in_place
 #define dlvalloc               valloc
 #define dlpvalloc              pvalloc
 #define dlmallinfo             mallinfo
