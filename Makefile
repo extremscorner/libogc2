@@ -96,7 +96,7 @@ endif
 INCLUDES	+=	-I$(PORTLIBS_PATH)/ppc/include
 
 
-CFLAGS		:= -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall -Wno-address-of-packed-member $(MACHDEP) $(INCLUDES)
+CFLAGS		:= -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall -Wno-address-of-packed-member -Wno-prio-ctor-dtor $(MACHDEP) $(INCLUDES)
 ASFLAGS		:=	$(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
 #---------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ OGCOBJ		:=	\
 			sbrk.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
 			sdgecko_io.o sdgecko_buf.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
 			texconv.o wiilaunch.o mic.o system_report.o mmce.o n64.o threads_supp.o \
-			malloc.o mallocr.o strdup.o strndup.o
+			malloc_wii.o malloc.o mallocr.o strdup.o strndup.o
 
 #---------------------------------------------------------------------------------
 MODOBJ		:=	freqtab.o mixer.o modplay.o semitonetab.o gcmodplay.o

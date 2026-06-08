@@ -10,7 +10,7 @@
 #include "system.h"
 
 #if defined(HW_RVL)
-u32 MALLOC_MEM2 __attribute__((weak)) = 1;
+BOOL MALLOC_MEM2 __attribute__((weak)) = TRUE;
 #endif
 
 void* _sbrk_r(struct _reent *ptr,ptrdiff_t incr)

@@ -1410,6 +1410,18 @@ DLMALLOC_EXPORT void* mspace_calloc(mspace msp, size_t n_elements, size_t elem_s
 DLMALLOC_EXPORT void* mspace_memalign(mspace msp, size_t alignment, size_t bytes);
 
 /*
+  mspace_valloc behaves as valloc, but operates within
+  the given space.
+*/
+DLMALLOC_EXPORT void* mspace_valloc(mspace msp, size_t bytes);
+
+/*
+  mspace_pvalloc behaves as pvalloc, but operates within
+  the given space.
+*/
+DLMALLOC_EXPORT void* mspace_pvalloc(mspace msp, size_t bytes);
+
+/*
   mspace_independent_calloc behaves as independent_calloc, but
   operates within the given space.
 */
@@ -5889,6 +5901,20 @@ void* mspace_memalign(mspace msp, size_t alignment, size_t bytes) {
   if (alignment <= MALLOC_ALIGNMENT)
     return mspace_malloc(msp, bytes);
   return internal_memalign(ms, alignment, bytes);
+}
+
+void* mspace_valloc(mspace msp, size_t bytes) {
+  size_t pagesz;
+  ensure_initialization();
+  pagesz = mparams.page_size;
+  return mspace_memalign(msp, pagesz, bytes);
+}
+
+void* mspace_pvalloc(mspace msp, size_t bytes) {
+  size_t pagesz;
+  ensure_initialization();
+  pagesz = mparams.page_size;
+  return mspace_memalign(msp, pagesz, (bytes + pagesz - SIZE_T_ONE) & ~(pagesz - SIZE_T_ONE));
 }
 
 void** mspace_independent_calloc(mspace msp, size_t n_elements,
