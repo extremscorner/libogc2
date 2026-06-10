@@ -96,6 +96,14 @@ u8 PAD_TriggerR(s32 chan);
 u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
 
+#define PAD_Steering				PAD_StickX
+
+#define PAD_PedalGas				PAD_AnalogA
+#define PAD_PedalBrake				PAD_AnalogB
+
+#define PAD_PaddleLeft				PAD_TriggerL
+#define PAD_PaddleRight				PAD_TriggerR
+
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb);
 
 /*+----------------------------------------------------------------------------------------------+*/

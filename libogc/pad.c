@@ -8,6 +8,7 @@
 #include "asm.h"
 #include "processor.h"
 #include "si.h"
+#include "si_steering.h"
 #include "pad.h"
 #include "n64.h"
 
@@ -874,6 +875,7 @@ u32 PAD_ScanPads(void)
 	u32 resetBits;
 	u32 padBit,connected;
 	u16 state,oldstate;
+	SISteeringStatus steering;
 	PADStatus padstatus[PAD_CHANMAX];
 	static N64Status n64status[PAD_CHANMAX] = {
 		{ .err = N64_ERR_NO_CONTROLLER },
@@ -892,7 +894,6 @@ u32 PAD_ScanPads(void)
 
 		switch(padstatus[i].err) {
 		case PAD_ERR_NONE:
-			oldstate				= __pad_keys[i].state;
 			state					= padstatus[i].button;
 			__pad_keys[i].stickX	= padstatus[i].stickX;
 			__pad_keys[i].stickY	= padstatus[i].stickY;
@@ -902,6 +903,8 @@ u32 PAD_ScanPads(void)
 			__pad_keys[i].triggerR	= padstatus[i].triggerR;
 			__pad_keys[i].analogA	= padstatus[i].analogA;
 			__pad_keys[i].analogB	= padstatus[i].analogB;
+
+			oldstate				= __pad_keys[i].state;
 			__pad_keys[i].up		= ~state & oldstate;
 			__pad_keys[i].down		= state & ~oldstate;
 			__pad_keys[i].state		= state;
@@ -953,6 +956,39 @@ u32 PAD_ScanPads(void)
 					break;
 
 				case N64_ERR_NO_CONTROLLER:
+					goto no_controller;
+					break;
+
+				default:
+					goto not_ready;
+					break;
+				}
+				break;
+
+			case SI_GC_STEERING:
+				SI_InitSteering();
+				SI_ReadSteering(i,&steering);
+
+				switch(steering.err) {
+				case SI_STEERING_ERR_READY:
+					state					= steering.button;
+					__pad_keys[i].stickX	= steering.steering;
+					__pad_keys[i].triggerL	= steering.left;
+					__pad_keys[i].triggerR	= steering.right;
+					__pad_keys[i].analogA	= steering.gas;
+					__pad_keys[i].analogB	= steering.brake;
+
+					oldstate				= __pad_keys[i].state;
+					__pad_keys[i].up		= ~state & oldstate;
+					__pad_keys[i].down		= state & ~oldstate;
+					__pad_keys[i].state		= state;
+					__pad_keys[i].chan		= i;
+
+					connected |= (1<<i);
+					break;
+
+				case SI_STEERING_ERR_NO_CONTROLLER:
+					SI_ResetSteeringAsync(i,NULL);
 					goto no_controller;
 					break;
 
