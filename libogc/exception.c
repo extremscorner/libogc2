@@ -2,7 +2,7 @@
 
 exception.c -- PPC exception handling support
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -266,7 +266,8 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
 	framebuffer = VIDEO_GetCurrentFramebuffer();
-	CON_Init(framebuffer,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
+	if(CON_Init(framebuffer,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ))
+		__reload();
 
 	kprintf("\n\n\n\tException (%s) occurred!", exception_name[pCtx->nExcept]);
 
