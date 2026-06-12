@@ -2,7 +2,7 @@
 
 wpad.c -- Wiimote Application Programmers Interface
 
-Copyright (C) 2008 - 2025
+Copyright (C) 2008 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Hector Martin (marcan)
@@ -1120,6 +1120,7 @@ void WPAD_Shutdown(void)
 	_CPU_ISR_Disable(level);
 
 	__wpads_inited = WPAD_STATE_DISABLED;
+	SYS_UnregisterResetFunc(&__wpad_resetinfo);
 	SYS_RemoveAlarm(__wpad_timer);
 	for(i=0;i<WPAD_MAX_WIIMOTES;i++) {
 		wpdcb = &__wpdcb[i];

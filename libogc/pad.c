@@ -887,6 +887,7 @@ u32 PAD_ScanPads(void)
 	resetBits = 0;
 	connected = 0;
 
+	PAD_Init();
 	PAD_Read(padstatus);
 	//PAD_Clamp(padstatus);
 	for(i=0;i<PAD_CHANMAX;i++) {
