@@ -877,12 +877,7 @@ u32 PAD_ScanPads(void)
 	u16 state,oldstate;
 	SISteeringStatus steering;
 	PADStatus padstatus[PAD_CHANMAX];
-	static N64Status n64status[PAD_CHANMAX] = {
-		{ .err = N64_ERR_NO_CONTROLLER },
-		{ .err = N64_ERR_NO_CONTROLLER },
-		{ .err = N64_ERR_NO_CONTROLLER },
-		{ .err = N64_ERR_NO_CONTROLLER }
-	};
+	N64Status n64status;
 
 	resetBits = 0;
 	connected = 0;
@@ -916,36 +911,32 @@ u32 PAD_ScanPads(void)
 
 		case PAD_ERR_NO_CONTROLLER:
 			switch(SI_Probe(i)) {
-			case SI_ERROR_BUSY:
-				if(n64status[i].err==N64_ERR_NO_CONTROLLER)
-					goto no_controller;
-
 			case SI_N64_CONTROLLER:
-				N64_ReadAsync(i,&n64status[i],NULL);
+				N64_GetResponse(i,&n64status);
 
-				switch(n64status[i].err) {
+				switch(n64status.err) {
 				case N64_ERR_READY:
 					state = 0;
-					if(n64status[i].button&N64_BUTTON_LEFT)		state |= PAD_BUTTON_LEFT;
-					if(n64status[i].button&N64_BUTTON_RIGHT)	state |= PAD_BUTTON_RIGHT;
-					if(n64status[i].button&N64_BUTTON_DOWN)		state |= PAD_BUTTON_DOWN;
-					if(n64status[i].button&N64_BUTTON_UP)		state |= PAD_BUTTON_UP;
-					if(n64status[i].button&N64_BUTTON_Z)		state |= PAD_TRIGGER_Z;
-					if(n64status[i].button&N64_BUTTON_R)		state |= PAD_TRIGGER_R;
-					if(n64status[i].button&N64_BUTTON_L)		state |= PAD_TRIGGER_L;
-					if(n64status[i].button&N64_BUTTON_A)		state |= PAD_BUTTON_A;
-					if(n64status[i].button&N64_BUTTON_B)		state |= PAD_BUTTON_B;
-					if(n64status[i].button&N64_BUTTON_START)	state |= PAD_BUTTON_START;
+					if(n64status.button&N64_BUTTON_LEFT)	state |= PAD_BUTTON_LEFT;
+					if(n64status.button&N64_BUTTON_RIGHT)	state |= PAD_BUTTON_RIGHT;
+					if(n64status.button&N64_BUTTON_DOWN)	state |= PAD_BUTTON_DOWN;
+					if(n64status.button&N64_BUTTON_UP)		state |= PAD_BUTTON_UP;
+					if(n64status.button&N64_BUTTON_Z)		state |= PAD_TRIGGER_Z;
+					if(n64status.button&N64_BUTTON_R)		state |= PAD_TRIGGER_R;
+					if(n64status.button&N64_BUTTON_L)		state |= PAD_TRIGGER_L;
+					if(n64status.button&N64_BUTTON_A)		state |= PAD_BUTTON_A;
+					if(n64status.button&N64_BUTTON_B)		state |= PAD_BUTTON_B;
+					if(n64status.button&N64_BUTTON_START)	state |= PAD_BUTTON_START;
 
-					__pad_keys[i].stickX	= n64status[i].stickX;
-					__pad_keys[i].stickY	= n64status[i].stickY;
+					__pad_keys[i].stickX	= n64status.stickX;
+					__pad_keys[i].stickY	= n64status.stickY;
 					__pad_keys[i].substickX	= 0;
 					__pad_keys[i].substickY	= 0;
 
-					if(n64status[i].button&N64_BUTTON_C_RIGHT)	__pad_keys[i].substickX += INT8_MAX;
-					if(n64status[i].button&N64_BUTTON_C_LEFT)	__pad_keys[i].substickX -= INT8_MAX;
-					if(n64status[i].button&N64_BUTTON_C_DOWN)	__pad_keys[i].substickY -= INT8_MAX;
-					if(n64status[i].button&N64_BUTTON_C_UP)		__pad_keys[i].substickY += INT8_MAX;
+					if(n64status.button&N64_BUTTON_C_RIGHT)	__pad_keys[i].substickX += INT8_MAX;
+					if(n64status.button&N64_BUTTON_C_LEFT)	__pad_keys[i].substickX -= INT8_MAX;
+					if(n64status.button&N64_BUTTON_C_DOWN)	__pad_keys[i].substickY -= INT8_MAX;
+					if(n64status.button&N64_BUTTON_C_UP)	__pad_keys[i].substickY += INT8_MAX;
 
 					oldstate				= __pad_keys[i].state;
 					__pad_keys[i].up		= ~state & oldstate;
@@ -957,6 +948,7 @@ u32 PAD_ScanPads(void)
 					break;
 
 				case N64_ERR_NO_CONTROLLER:
+					N64_EnablePolling(padBit);
 					goto no_controller;
 					break;
 

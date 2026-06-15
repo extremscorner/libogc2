@@ -31,6 +31,8 @@ distribution.
 #include <ogc/n64.h>
 #include <ogc/si.h>
 #include <ogc/system.h>
+#include <ogc/video.h>
+#include <string.h>
 
 typedef struct {
 	s32 result;
@@ -46,10 +48,15 @@ typedef struct {
 } N64ControlBlock;
 
 static N64ControlBlock __N64[SI_MAX_CHAN];
+static N64Status __N64Status[SI_MAX_CHAN];
+static u32 EnabledBits;
+static u32 PollingBits;
+static u32 ResponseBits;
 static bool Reset;
 
 static s32 OnReset(s32 final)
 {
+	N64_DisablePolling(SI_CHAN0_BIT | SI_CHAN1_BIT | SI_CHAN2_BIT | SI_CHAN3_BIT);
 	Reset = true;
 	return TRUE;
 }
@@ -122,7 +129,7 @@ static void TypeCallback(s32 chan, u32 type)
 		return;
 	else if (SI_DecodeType(type) != SI_N64_CONTROLLER)
 		cb->result = N64_ERR_NO_CONTROLLER;
-	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __N64_Handler, 0))
+	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __N64_Handler, 65))
 		cb->result = N64_ERR_BUSY;
 	else
 		return;
@@ -162,12 +169,10 @@ static void ShortCommandProc(s32 chan, s32 result)
 	N64ControlBlock *cb = &__N64[chan];
 
 	if (result == N64_ERR_READY) {
-		if (cb->in[0] != 0x05 || cb->in[1] != 0x00) {
+		if (cb->in[0] != 0x05 || cb->in[1] != 0x00)
 			cb->result = N64_ERR_NO_CONTROLLER;
-			return;
-		}
-
-		*cb->status = cb->in[2];
+		else if (cb->status)
+			*cb->status = cb->in[2];
 	}
 }
 
@@ -243,4 +248,93 @@ s32 N64_Read(s32 chan, N64Status *status)
 	s32 result = N64_ReadAsync(chan, status, __N64_SyncCallback);
 	if (result == N64_ERR_READY) return N64_Sync(chan);
 	return result;
+}
+
+static void PositionCallback(s16 posX, s16 posY);
+
+static void N64_RefreshPositionInterrupt(void)
+{
+	if (EnabledBits && !PollingBits) {
+		switch (VIDEO_GetCurrentTvMode()) {
+			case VI_NTSC:
+			case VI_MPAL:
+			case VI_EURGB60:
+				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_NTSC - 32, PositionCallback);
+				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_NTSC - 31, PositionCallback);
+				return;
+			case VI_PAL:
+				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_PAL - 32, PositionCallback);
+				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_PAL - 31, PositionCallback);
+				return;
+		}
+	}
+
+	VIDEO_DisablePositionInterrupt();
+}
+
+static void PollingCallback(s32 chan, s32 result)
+{
+	u32 mask = SI_CHAN_BIT(chan);
+
+	if (result == N64_ERR_NO_CONTROLLER)
+		EnabledBits &= ~mask;
+
+	PollingBits &= ~mask;
+	ResponseBits |= mask;
+	N64_RefreshPositionInterrupt();
+}
+
+void N64_EnablePolling(u32 mask)
+{
+	u32 level = IRQ_Disable();
+	if (!Reset) EnabledBits |= mask;
+	N64_RefreshPositionInterrupt();
+	IRQ_Restore(level);
+}
+
+void N64_DisablePolling(u32 mask)
+{
+	u32 level = IRQ_Disable();
+	EnabledBits &= ~mask;
+	N64_RefreshPositionInterrupt();
+	IRQ_Restore(level);
+}
+
+static void PositionCallback(s16 posX, s16 posY)
+{
+	for (s32 chan = SI_CHAN0; chan < SI_MAX_CHAN; chan++) {
+		u32 mask = SI_CHAN_BIT(chan);
+
+		if ((EnabledBits & mask) &&
+			N64_ReadAsync(chan, &__N64Status[chan], PollingCallback) == N64_ERR_READY)
+			PollingBits |= mask;
+	}
+
+	N64_RefreshPositionInterrupt();
+}
+
+bool N64_GetResponse(s32 chan, N64Status *status)
+{
+	u32 level = IRQ_Disable();
+	u32 mask = SI_CHAN_BIT(chan);
+
+	if (ResponseBits & mask) {
+		ResponseBits &= ~mask;
+		memcpy(status, &__N64Status[chan], sizeof(N64Status));
+		IRQ_Restore(level);
+		return true;
+	} else if (PollingBits & mask) {
+		memset(status, 0, sizeof(N64Status));
+		status->err = N64_ERR_BUSY;
+	} else if (EnabledBits & mask) {
+		memset(status, 0, sizeof(N64Status));
+		status->err = N64_ERR_TRANSFER;
+		N64_ReadAsync(chan, &__N64Status[chan], PollingCallback);
+	} else {
+		memset(status, 0, sizeof(N64Status));
+		status->err = N64_ERR_NO_CONTROLLER;
+	}
+
+	IRQ_Restore(level);
+	return false;
 }

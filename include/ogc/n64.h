@@ -69,6 +69,9 @@ s32 N64_Reset(s32 chan, u8 *status);
 s32 N64_ResetAsync(s32 chan, u8 *status, N64Callback callback);
 s32 N64_Read(s32 chan, N64Status *status);
 s32 N64_ReadAsync(s32 chan, N64Status *status, N64Callback callback);
+void N64_EnablePolling(u32 mask);
+void N64_DisablePolling(u32 mask);
+bool N64_GetResponse(s32 chan, N64Status *status);
 
 #ifdef __cplusplus
 }
