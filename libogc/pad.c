@@ -28,10 +28,10 @@ typedef struct _keyinput {
 	u8 triggerR;
 	u8 analogA;
 	u8 analogB;
-	u16 up;
-	u16 down;
-	u16 state;
-	u32 chan;
+	u32 up;
+	u32 down;
+	u32 state;
+	s32 chan;
 } keyinput;
 
 typedef void (*SPECCallback)(u32 chan,u32 *data,PADStatus *status);
@@ -874,7 +874,7 @@ u32 PAD_ScanPads(void)
 	s32 i;
 	u32 resetBits;
 	u32 padBit,connected;
-	u16 state,oldstate;
+	u32 state,oldstate;
 	SISteeringStatus steering;
 	PADStatus padstatus[PAD_CHANMAX];
 	N64Status n64status;
@@ -900,6 +900,21 @@ u32 PAD_ScanPads(void)
 			__pad_keys[i].analogA	= padstatus[i].analogA;
 			__pad_keys[i].analogB	= padstatus[i].analogB;
 
+			if(!PAD_IsBarrel(i)) {
+				if(padstatus[i].stickX<(INT8_MIN/2))	state |= PADEX_STICK_LEFT;
+				if(padstatus[i].stickX>(INT8_MAX/2))	state |= PADEX_STICK_RIGHT;
+				if(padstatus[i].stickY<(INT8_MIN/2))	state |= PADEX_STICK_DOWN;
+				if(padstatus[i].stickY>(INT8_MAX/2))	state |= PADEX_STICK_UP;
+				if(padstatus[i].substickX<(INT8_MIN/2))	state |= PADEX_SUBSTICK_LEFT;
+				if(padstatus[i].substickX>(INT8_MAX/2))	state |= PADEX_SUBSTICK_RIGHT;
+				if(padstatus[i].substickY<(INT8_MIN/2))	state |= PADEX_SUBSTICK_DOWN;
+				if(padstatus[i].substickY>(INT8_MAX/2))	state |= PADEX_SUBSTICK_UP;
+				if(padstatus[i].triggerR>(UINT8_MAX/2))	state |= PADEX_TRIGGER_R;
+				if(padstatus[i].triggerL>(UINT8_MAX/2))	state |= PADEX_TRIGGER_L;
+				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= PADEX_ANALOG_A;
+				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= PADEX_ANALOG_B;
+			}
+
 			oldstate				= __pad_keys[i].state;
 			__pad_keys[i].up		= ~state & oldstate;
 			__pad_keys[i].down		= state & ~oldstate;
@@ -922,21 +937,33 @@ u32 PAD_ScanPads(void)
 					if(n64status.button&N64_BUTTON_DOWN)	state |= PAD_BUTTON_DOWN;
 					if(n64status.button&N64_BUTTON_UP)		state |= PAD_BUTTON_UP;
 					if(n64status.button&N64_BUTTON_Z)		state |= PAD_TRIGGER_Z;
-					if(n64status.button&N64_BUTTON_R)		state |= PAD_TRIGGER_R;
-					if(n64status.button&N64_BUTTON_L)		state |= PAD_TRIGGER_L;
+					if(n64status.button&N64_BUTTON_R)		state |= PAD_TRIGGER_R | PADEX_TRIGGER_R;
+					if(n64status.button&N64_BUTTON_L)		state |= PAD_TRIGGER_L | PADEX_TRIGGER_L;
 					if(n64status.button&N64_BUTTON_A)		state |= PAD_BUTTON_A;
 					if(n64status.button&N64_BUTTON_B)		state |= PAD_BUTTON_B;
 					if(n64status.button&N64_BUTTON_START)	state |= PAD_BUTTON_START;
+					if(n64status.button&N64_BUTTON_C_LEFT)	state |= PADEX_SUBSTICK_LEFT  | PADEX_BUTTON_C_LEFT;
+					if(n64status.button&N64_BUTTON_C_RIGHT)	state |= PADEX_SUBSTICK_RIGHT | PADEX_BUTTON_C_RIGHT;
+					if(n64status.button&N64_BUTTON_C_DOWN)	state |= PADEX_SUBSTICK_DOWN  | PADEX_BUTTON_C_DOWN;
+					if(n64status.button&N64_BUTTON_C_UP)	state |= PADEX_SUBSTICK_UP    | PADEX_BUTTON_C_UP;
+					if(n64status.stickX<(INT8_MIN/2))		state |= PADEX_STICK_LEFT;
+					if(n64status.stickX>(INT8_MAX/2))		state |= PADEX_STICK_RIGHT;
+					if(n64status.stickY<(INT8_MIN/2))		state |= PADEX_STICK_DOWN;
+					if(n64status.stickY>(INT8_MAX/2))		state |= PADEX_STICK_UP;
 
 					__pad_keys[i].stickX	= n64status.stickX;
 					__pad_keys[i].stickY	= n64status.stickY;
 					__pad_keys[i].substickX	= 0;
 					__pad_keys[i].substickY	= 0;
+					__pad_keys[i].triggerL	= 0;
+					__pad_keys[i].triggerR	= 0;
 
-					if(n64status.button&N64_BUTTON_C_RIGHT)	__pad_keys[i].substickX += INT8_MAX;
-					if(n64status.button&N64_BUTTON_C_LEFT)	__pad_keys[i].substickX -= INT8_MAX;
-					if(n64status.button&N64_BUTTON_C_DOWN)	__pad_keys[i].substickY -= INT8_MAX;
-					if(n64status.button&N64_BUTTON_C_UP)	__pad_keys[i].substickY += INT8_MAX;
+					if(state&PADEX_SUBSTICK_LEFT)	__pad_keys[i].substickX -= INT8_MAX;
+					if(state&PADEX_SUBSTICK_RIGHT)	__pad_keys[i].substickX += INT8_MAX;
+					if(state&PADEX_SUBSTICK_DOWN)	__pad_keys[i].substickY -= INT8_MAX;
+					if(state&PADEX_SUBSTICK_UP)		__pad_keys[i].substickY += INT8_MAX;
+					if(state&PADEX_TRIGGER_R)		__pad_keys[i].triggerR += UINT8_MAX;
+					if(state&PADEX_TRIGGER_L)		__pad_keys[i].triggerL += UINT8_MAX;
 
 					oldstate				= __pad_keys[i].state;
 					__pad_keys[i].up		= ~state & oldstate;
@@ -970,6 +997,13 @@ u32 PAD_ScanPads(void)
 					__pad_keys[i].triggerR	= steering.right;
 					__pad_keys[i].analogA	= steering.gas;
 					__pad_keys[i].analogB	= steering.brake;
+
+					if(steering.steering<(INT8_MIN/4))	state |= PADEX_STEERING_LEFT;
+					if(steering.steering>(INT8_MAX/4))	state |= PADEX_STEERING_RIGHT;
+					if(steering.right>(UINT8_MAX/2))	state |= PADEX_PADDLE_RIGHT;
+					if(steering.left>(UINT8_MAX/2))		state |= PADEX_PADDLE_LEFT;
+					if(steering.gas>(UINT8_MAX/2))		state |= PADEX_PEDAL_GAS;
+					if(steering.brake>(UINT8_MAX/2))	state |= PADEX_PEDAL_BRAKE;
 
 					oldstate				= __pad_keys[i].state;
 					__pad_keys[i].up		= ~state & oldstate;
@@ -1017,19 +1051,19 @@ not_ready:
 	return connected;
 }
 
-u16 PAD_ButtonsUp(s32 chan)
+u32 PAD_ButtonsUp(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].up;
 }
 
-u16 PAD_ButtonsDown(s32 chan)
+u32 PAD_ButtonsDown(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].down;
 }
 
-u16 PAD_ButtonsHeld(s32 chan)
+u32 PAD_ButtonsHeld(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].state;

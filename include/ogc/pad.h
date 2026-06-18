@@ -37,6 +37,30 @@
 #define PAD_BUTTON_Y				0x0800
 #define PAD_BUTTON_MENU				0x1000
 #define PAD_BUTTON_START			0x1000
+
+#define PADEX_STICK_LEFT			(0x0001<<16)
+#define PADEX_STICK_RIGHT			(0x0002<<16)
+#define PADEX_STICK_DOWN			(0x0004<<16)
+#define PADEX_STICK_UP				(0x0008<<16)
+#define PADEX_SUBSTICK_LEFT			(0x0010<<16)
+#define PADEX_SUBSTICK_RIGHT		(0x0020<<16)
+#define PADEX_SUBSTICK_DOWN			(0x0040<<16)
+#define PADEX_SUBSTICK_UP			(0x0080<<16)
+#define PADEX_BUTTON_C_LEFT			(0x0100<<16)
+#define PADEX_BUTTON_C_RIGHT		(0x0200<<16)
+#define PADEX_BUTTON_C_DOWN			(0x0400<<16)
+#define PADEX_BUTTON_C_UP			(0x0800<<16)
+#define PADEX_TRIGGER_R				(0x1000<<16)
+#define PADEX_TRIGGER_L				(0x2000<<16)
+#define PADEX_ANALOG_A				(0x4000<<16)
+#define PADEX_ANALOG_B				(0x8000<<16)
+
+#define PADEX_STEERING_LEFT			PADEX_STICK_LEFT
+#define PADEX_STEERING_RIGHT		PADEX_STICK_RIGHT
+#define PADEX_PEDAL_GAS				PADEX_ANALOG_A
+#define PADEX_PEDAL_BRAKE			PADEX_ANALOG_B
+#define PADEX_PADDLE_LEFT			PADEX_TRIGGER_L
+#define PADEX_PADDLE_RIGHT			PADEX_TRIGGER_R
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
@@ -80,9 +104,9 @@ u32 PAD_IsBarrel(s32 chan);
 
 u32 PAD_ScanPads(void);
 
-u16 PAD_ButtonsUp(s32 chan);
-u16 PAD_ButtonsDown(s32 chan);
-u16 PAD_ButtonsHeld(s32 chan);
+u32 PAD_ButtonsUp(s32 chan);
+u32 PAD_ButtonsDown(s32 chan);
+u32 PAD_ButtonsHeld(s32 chan);
 
 s8 PAD_SubStickX(s32 chan);
 s8 PAD_SubStickY(s32 chan);
