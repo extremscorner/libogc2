@@ -936,9 +936,9 @@ u32 PAD_ScanPads(void)
 					if(n64status.button&N64_BUTTON_RIGHT)	state |= PAD_BUTTON_RIGHT;
 					if(n64status.button&N64_BUTTON_DOWN)	state |= PAD_BUTTON_DOWN;
 					if(n64status.button&N64_BUTTON_UP)		state |= PAD_BUTTON_UP;
-					if(n64status.button&N64_BUTTON_Z)		state |= PAD_TRIGGER_Z;
-					if(n64status.button&N64_BUTTON_R)		state |= PAD_TRIGGER_R | PADEX_TRIGGER_R;
-					if(n64status.button&N64_BUTTON_L)		state |= PAD_TRIGGER_L | PADEX_TRIGGER_L;
+					if(n64status.button&N64_TRIGGER_Z)		state |= PAD_TRIGGER_Z;
+					if(n64status.button&N64_TRIGGER_R)		state |= PAD_TRIGGER_R | PADEX_TRIGGER_R;
+					if(n64status.button&N64_TRIGGER_L)		state |= PAD_TRIGGER_L | PADEX_TRIGGER_L;
 					if(n64status.button&N64_BUTTON_A)		state |= PAD_BUTTON_A;
 					if(n64status.button&N64_BUTTON_B)		state |= PAD_BUTTON_B;
 					if(n64status.button&N64_BUTTON_START)	state |= PAD_BUTTON_START;

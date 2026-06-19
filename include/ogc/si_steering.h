@@ -30,33 +30,37 @@ distribution.
 
 #include <gctypes.h>
 
-#define SI_STEERING_ERR_READY           0
-#define SI_STEERING_ERR_NO_CONTROLLER  -1
-#define SI_STEERING_ERR_BUSY           -2
-#define SI_STEERING_ERR_TRANSFER       -3
+#define SI_STEERING_ERR_READY                    0
+#define SI_STEERING_ERR_NO_CONTROLLER           -1
+#define SI_STEERING_ERR_BUSY                    -2
+#define SI_STEERING_ERR_TRANSFER                -3
 
-#define SI_STEERING_STATUS_MTR_EN    0x01
-#define SI_STEERING_STATUS_MTR_BK    0x02
-#define SI_STEERING_STATUS_POWER     0x04
-#define SI_STEERING_STATUS_PEDAL     0x08
+#define SI_STEERING_BUTTON_LEFT             0x0001
+#define SI_STEERING_BUTTON_RIGHT            0x0002
+#define SI_STEERING_BUTTON_DOWN             0x0004
+#define SI_STEERING_BUTTON_UP               0x0008
+#define SI_STEERING_BUTTON_Z                0x0010
+#define SI_STEERING_BUTTON_R                0x0020
+#define SI_STEERING_BUTTON_L                0x0040
+#define SI_STEERING_BUTTON_A                0x0100
+#define SI_STEERING_BUTTON_B                0x0200
+#define SI_STEERING_BUTTON_X                0x0400
+#define SI_STEERING_BUTTON_Y                0x0800
+#define SI_STEERING_BUTTON_START            0x1000
 
-#define SI_STEERING_BUTTON_LEFT    0x0001
-#define SI_STEERING_BUTTON_RIGHT   0x0002
-#define SI_STEERING_BUTTON_DOWN    0x0004
-#define SI_STEERING_BUTTON_UP      0x0008
-#define SI_STEERING_TRIGGER_Z      0x0010
-#define SI_STEERING_TRIGGER_R      0x0020
-#define SI_STEERING_TRIGGER_L      0x0040
-#define SI_STEERING_BUTTON_A       0x0100
-#define SI_STEERING_BUTTON_B       0x0200
-#define SI_STEERING_BUTTON_X       0x0400
-#define SI_STEERING_BUTTON_Y       0x0800
-#define SI_STEERING_BUTTON_START   0x1000
+#define SI_STEERING_TRIGGER_Z SI_STEERING_BUTTON_Z
+#define SI_STEERING_TRIGGER_R SI_STEERING_BUTTON_R
+#define SI_STEERING_TRIGGER_L SI_STEERING_BUTTON_L
 
-#define SI_STEERING_CONTROL_BRAKE   0x000
-#define SI_STEERING_CONTROL_STANDBY 0x400
-#define SI_STEERING_CONTROL_DRIVE   0x600
-#define SI_STEERING_CONTROL_MASK    0x600
+#define SI_STEERING_STATUS_MTR_EN             0x01
+#define SI_STEERING_STATUS_MTR_BK             0x02
+#define SI_STEERING_STATUS_POWER              0x04
+#define SI_STEERING_STATUS_PEDAL              0x08
+
+#define SI_STEERING_CONTROL_BRAKE            0x000
+#define SI_STEERING_CONTROL_STANDBY          0x400
+#define SI_STEERING_CONTROL_DRIVE            0x600
+#define SI_STEERING_CONTROL_MASK             0x600
 
 #ifdef __cplusplus
 extern "C" {
