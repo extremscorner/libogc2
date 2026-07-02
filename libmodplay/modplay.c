@@ -146,7 +146,7 @@ static u32* modplay_getinctab(s32 freq)
 	if(inc_tabs[curr_tab]) return inc_tabs[curr_tab];
 
 	tv = VIDEO_GetCurrentTvMode();
-	if(tv==VI_PAL) fdivid = 7093789.2/2.0F;
+	if(tv==VI_PAL || tv==VI_DEBUG_PAL) fdivid = 7093789.2/2.0F;
 	else fdivid = 7159090.5/2.0F;
 
 	inc_tab = (u32*)malloc(sizeof(u32)*4096);

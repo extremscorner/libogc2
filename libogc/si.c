@@ -134,6 +134,7 @@ static __inline__ struct _xy* __si_getxy(void)
 			return xy[0];
 			break;
 		case VI_PAL:
+		case VI_DEBUG_PAL:
 			return xy[1];
 			break;
 	}

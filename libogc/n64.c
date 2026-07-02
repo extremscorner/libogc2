@@ -263,6 +263,7 @@ static void N64_RefreshPositionInterrupt(void)
 				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_NTSC - 31, PositionCallback);
 				return;
 			case VI_PAL:
+			case VI_DEBUG_PAL:
 				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_PAL - 32, PositionCallback);
 				VIDEO_EnablePositionInterrupt(0, VI_MAX_HEIGHT_PAL - 31, PositionCallback);
 				return;

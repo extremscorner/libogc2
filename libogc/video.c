@@ -1648,6 +1648,26 @@ static const struct _timing {
 		0x7A,0x019C
 	},
 	{
+		0x06,0x0120,
+		0x001E,0x001F,0x0001,0x0000,
+		0x0D,0x0C,0x0B,0x0A,
+		0x026B,0x026A,0x0269,0x026C,
+		0x0271,0x01AD,
+		0x40,0x47,0x69,0xA2,
+		0x0175,
+		0x7A,0x019C
+	},
+	{
+		0x06,0x0120,
+		0x001E,0x001E,0x0002,0x0002,
+		0x0D,0x0B,0x0D,0x0B,
+		0x026B,0x026D,0x026B,0x026D,
+		0x0272,0x01AD,
+		0x40,0x47,0x69,0xA2,
+		0x0175,
+		0x7A,0x019C
+	},
+	{
 		0x0A,0x0240,
 		0x0044,0x0044,0x0000,0x0000,
 		0x14,0x14,0x14,0x14,
@@ -1785,11 +1805,9 @@ static const struct _timing* __gettiming(u32 vimode)
 			return &video_timing[1];
 			break;
 		case VI_TVMODE_PAL_INT:
-		case VI_TVMODE_DEBUG_PAL_INT:
 			return &video_timing[2];
 			break;
 		case VI_TVMODE_PAL_DS:
-		case VI_TVMODE_DEBUG_PAL_DS:
 			return &video_timing[3];
 			break;
 		case VI_TVMODE_MPAL_INT:
@@ -1806,8 +1824,15 @@ static const struct _timing* __gettiming(u32 vimode)
 		case VI_TVMODE_NTSC_3D:
 			return &video_timing[7];
 			break;
-		case VI_TVMODE_PAL_PROG:
+		case VI_TVMODE_DEBUG_PAL_INT:
 			return &video_timing[8];
+			break;
+		case VI_TVMODE_DEBUG_PAL_DS:
+			return &video_timing[9];
+			break;
+		case VI_TVMODE_PAL_PROG:
+		case VI_TVMODE_DEBUG_PAL_PROG:
+			return &video_timing[10];
 			break;
 		default:
 			break;
@@ -2577,7 +2602,7 @@ void* VIDEO_GetCurrentFramebuffer(void)
 
 void VIDEO_Init(void)
 {
-	u32 level,vimode = 0;
+	u32 level,vimode;
 	u32 *tvInBootrom = (u32*)0x800000cc;
 
 	if(video_initialized) return;
@@ -2617,10 +2642,14 @@ void VIDEO_Init(void)
 
 	HorVer.nonInter = VIDEO_GetScanMode();
 	HorVer.tv = _SHIFTR(_viReg[1],8,2);
-	if(HorVer.tv==VI_NTSC && (*tvInBootrom==VI_PAL || *tvInBootrom==VI_EURGB60)) HorVer.tv = VI_EURGB60;
+	if(HorVer.tv==VI_NTSC) {
+		if(*tvInBootrom==VI_PAL) HorVer.tv = VI_EURGB60;
+		else if(*tvInBootrom==VI_DEBUG_PAL) HorVer.tv = VI_DEBUG_PAL;
+		else if(*tvInBootrom==VI_EURGB60) HorVer.tv = VI_EURGB60;
+	}
 
-	vimode = HorVer.nonInter;
-	if(HorVer.tv!=VI_DEBUG) vimode |= (HorVer.tv<<2);
+	if(HorVer.tv==VI_DEBUG) vimode = VI_TVMODE(VI_NTSC,HorVer.nonInter);
+	else vimode = VI_TVMODE(HorVer.tv,HorVer.nonInter);
 	currTiming = __gettiming(vimode);
 	currTvMode = HorVer.tv;
 
@@ -2959,7 +2988,7 @@ u32 VIDEO_GetCurrentTvMode(void)
 
 	_CPU_ISR_Disable(level);
 	if(currTvMode==VI_PAL) tv = VI_PAL;
-	else if(currTvMode==VI_DEBUG_PAL) tv = VI_PAL;
+	else if(currTvMode==VI_DEBUG_PAL) tv = VI_DEBUG_PAL;
 	else if(currTvMode==VI_EURGB60) tv = VI_EURGB60;
 	else if(currTvMode==VI_MPAL) tv = VI_MPAL;
 	else tv = VI_NTSC;
@@ -3004,6 +3033,7 @@ f32 VIDEO_GetAspectRatio(void)
 			if(height<480) ratio *= 480.0f / (f32)height;
 			break;
 		case VI_PAL:
+		case VI_DEBUG_PAL:
 			if(width<704) ratio *= (f32)width / 704.0f;
 			if(height<576) ratio *= 576.0f / (f32)height;
 			break;

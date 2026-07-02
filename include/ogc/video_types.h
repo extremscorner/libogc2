@@ -2,7 +2,7 @@
 
 video_types.h -- support header
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -140,6 +140,7 @@ distribution.
 
 #define VI_TVMODE_DEBUG_PAL_INT		VI_TVMODE(VI_DEBUG_PAL,   VI_INTERLACE)
 #define VI_TVMODE_DEBUG_PAL_DS		VI_TVMODE(VI_DEBUG_PAL,   VI_NON_INTERLACE)
+#define VI_TVMODE_DEBUG_PAL_PROG	VI_TVMODE(VI_DEBUG_PAL,   VI_PROGRESSIVE)
 
 
 /*!
