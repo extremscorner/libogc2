@@ -623,7 +623,7 @@ u32 PAD_Read(PADStatus *status)
 #ifdef _PAD_DEBUG
 						printf("PAD_Read(%08x)\n",status[chan].button);
 #endif
-						if(status[chan].button&0x00002000) {
+						if(status[chan].button&0x2000) {
 							memset(&status[chan],0,sizeof(PADStatus));
 							status[chan].err = PAD_ERR_TRANSFER;
 							SI_Transfer(chan,&__pad_cmdreadorigin,1,&__pad_origin[chan],10,__pad_originupdatecallback,0);
@@ -913,6 +913,8 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].triggerL>(UINT8_MAX/2))	state |= PADEX_TRIGGER_L;
 				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= PADEX_ANALOG_A;
 				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= PADEX_ANALOG_B;
+			} else if(!_SHIFTR(padstatus[i].triggerL,4,4)) {
+				if(padstatus[i].triggerR>(UINT8_MAX/8))	state |= PADEX_BARREL_MIC;
 			}
 
 			state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (__builtin_clz(PAD_TRIGGER_R | PAD_TRIGGER_L) - __builtin_clz(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
