@@ -913,8 +913,10 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].triggerL>(UINT8_MAX/2))	state |= PADEX_TRIGGER_L;
 				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= PADEX_ANALOG_A;
 				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= PADEX_ANALOG_B;
-			} else if(!_SHIFTR(padstatus[i].triggerL,4,4)) {
-				if(padstatus[i].triggerR>(UINT8_MAX/8))	state |= PADEX_BARREL_MIC;
+			} else {
+				if((padstatus[i].triggerR-padstatus[i].triggerL)>(UINT8_MAX/8)) {
+					state |= PADEX_BARREL_MIC;
+				}
 			}
 
 			state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (__builtin_clz(PAD_TRIGGER_R | PAD_TRIGGER_L) - __builtin_clz(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
@@ -1121,4 +1123,10 @@ u8 PAD_AnalogB(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].analogB;
+}
+
+u8 PAD_BarrelMic(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_clampU8(__pad_keys[chan].triggerR,__pad_keys[chan].triggerL);
 }

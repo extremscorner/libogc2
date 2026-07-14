@@ -126,6 +126,8 @@ u8 PAD_TriggerR(s32 chan);
 u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
 
+u8 PAD_BarrelMic(s32 chan);
+
 #define PAD_Steering				PAD_StickX
 
 #define PAD_PedalGas				PAD_AnalogA
