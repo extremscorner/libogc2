@@ -104,9 +104,6 @@
 #define __stswx(base,bytes,value)	\
 	__asm__ __volatile__ ("mtxer %2; stswx %1,%y0" : "=Z"(*(u32*)(base)) : "r"(value), "r"(bytes) : "xer");
 
-#define cntlzw(_val) ({register u32 _rval; \
-					  __asm__ __volatile__("cntlzw %0, %1" : "=r"((_rval)) : "r"((_val))); _rval;})
-
 #define _CPU_MSR_GET( _msr_value ) \
   do { \
     _msr_value = 0; \
@@ -200,6 +197,16 @@ static inline u64 bswap64(u64 val)
 	return __builtin_bswap64(val);
 }
 #endif
+
+static inline u32 cntlzw(u32 val)
+{
+	return __builtin_clzg(val, 32);
+}
+
+static inline u32 cntlzd(u64 val)
+{
+	return __builtin_clzg(val, 64);
+}
 
 // Basic I/O
 

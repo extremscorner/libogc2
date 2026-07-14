@@ -919,7 +919,7 @@ u32 PAD_ScanPads(void)
 				}
 			}
 
-			state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (__builtin_clz(PAD_TRIGGER_R | PAD_TRIGGER_L) - __builtin_clz(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
+			state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
 
 			oldstate				= __pad_keys[i].state;
 			__pad_keys[i].up		= ~state & oldstate;
@@ -1011,7 +1011,7 @@ u32 PAD_ScanPads(void)
 					if(steering.gas>(UINT8_MAX/2))		state |= PADEX_PEDAL_GAS;
 					if(steering.brake>(UINT8_MAX/2))	state |= PADEX_PEDAL_BRAKE;
 
-					state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (__builtin_clz(PAD_TRIGGER_R | PAD_TRIGGER_L) - __builtin_clz(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
+					state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
 
 					oldstate				= __pad_keys[i].state;
 					__pad_keys[i].up		= ~state & oldstate;

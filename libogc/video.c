@@ -1780,19 +1780,6 @@ static void printDebugCalculations(void)
 }
 #endif
 
-static __inline__ u32 cntlzd(u64 bit)
-{
-	u32 hi,lo,value = 0;
-
-	hi = (u32)(bit>>32);
-	lo = (u32)(bit&-1);
-
-	value = cntlzw(hi);
-	if(value>=32) value += cntlzw(lo);
-
-	return value;
-}
-
 static const struct _timing* __gettiming(u32 vimode)
 {
 	switch(vimode) {
