@@ -47,6 +47,7 @@ distribution.
 #define SI_STEERING_BUTTON_X                0x0400
 #define SI_STEERING_BUTTON_Y                0x0800
 #define SI_STEERING_BUTTON_START            0x1000
+#define SI_STEERING_BUTTON_ALL              0x1F7F
 
 #define SI_STEERING_TRIGGER_Z SI_STEERING_BUTTON_Z
 #define SI_STEERING_TRIGGER_R SI_STEERING_BUTTON_R

@@ -49,6 +49,7 @@ distribution.
 #define N64_BUTTON_C_UP     0x0800
 #define N64_BUTTON_R        0x1000
 #define N64_BUTTON_L        0x2000
+#define N64_BUTTON_ALL      0x3FFF
 
 #define N64_TRIGGER_Z N64_BUTTON_Z
 #define N64_TRIGGER_R N64_BUTTON_R

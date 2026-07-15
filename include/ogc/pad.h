@@ -37,6 +37,7 @@
 #define PAD_BUTTON_Y				0x0800
 #define PAD_BUTTON_MENU				0x1000
 #define PAD_BUTTON_START			0x1000
+#define PAD_BUTTON_ALL				0x1F7F
 
 #define PAD_TRIGGER_Z				PAD_BUTTON_Z
 #define PAD_TRIGGER_R				PAD_BUTTON_R
