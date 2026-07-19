@@ -2,7 +2,7 @@
 
 card.c -- Memory card subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -77,7 +77,7 @@ struct card_direntry {
 	u8 company[2];
 	u8 pad_00;
 	u8 bannerfmt;
-	u8 filename[CARD_FILENAMELEN];
+	char filename[CARD_FILENAMELEN];
 	u32 lastmodified;
 	u32 iconaddr;
 	u16 iconfmt;
@@ -460,7 +460,7 @@ static s32 __card_setstatusexasync(s32 chn,s32 fileno,struct card_direntry *entr
 	
 	if(chn<EXI_CHANNEL_0 || chn>=EXI_CHANNEL_2) return CARD_ERROR_NOCARD; 
 	if(fileno<0 || fileno>=CARD_MAXFILES) return CARD_ERROR_FATAL_ERROR;
-	if(entry->filename[0]==0xff || entry->filename[0]==0) return CARD_ERROR_FATAL_ERROR;
+	if(entry->filename[0]=='\xff' || entry->filename[0]=='\x00') return CARD_ERROR_FATAL_ERROR;
 	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
 
 	ret = CARD_ERROR_BROKEN;
@@ -521,7 +521,7 @@ static s32 __card_setstatusex(s32 chn,s32 fileno,struct card_direntry *entry)
 }
 #endif
 
-static s32 __card_getfilenum(card_block *card,const char *filename,const char *gamecode,const char *company,s32 *fileno)
+static s32 __card_getfilenum(card_block *card,const char *filename,u8 gamecode[4],u8 company[2],s32 *fileno)
 {
 	u32 i = 0;
 	struct card_direntry *entries = NULL;
@@ -535,7 +535,7 @@ static s32 __card_getfilenum(card_block *card,const char *filename,const char *g
 	entries = dirblock->entries;
 	for(i=0;i<CARD_MAXFILES;i++) {
 		if(entries[i].gamecode[0]!=0xff) {
-			if(strncmp(filename,(const char*)entries[i].filename,CARD_FILENAMELEN)==0) {
+			if(strncmp(entries[i].filename,filename,CARD_FILENAMELEN)==0) {
 				if((gamecode && gamecode[0]!=0xff && memcmp(entries[i].gamecode,gamecode,4)!=0)
 					|| (company && company[0]!=0xff && memcmp(entries[i].company,company,2)!=0)) continue;
 
@@ -2703,7 +2703,7 @@ s32 CARD_CreateAsync(s32 chn,const char *filename,u32 size,card_file *file,cardc
 	for(i=0;i<CARD_MAXFILES;i++) {
 		if(entry[i].gamecode[0]==0xff) {
 			if(filenum==-1) filenum = i;
-		} else if(strncmp(filename,(const char*)entry[i].filename,CARD_FILENAMELEN)==0) {
+		} else if(strncmp(entry[i].filename,filename,CARD_FILENAMELEN)==0) {
 			if((card_gamecode[0]==0xff || card_company[0]==0xff)
 				|| ((card_gamecode[0]!=0xff && memcmp(entry[i].gamecode,card_gamecode,4)==0)
 				&& (card_company[0]!=0xff && memcmp(entry[i].company,card_company,2)==0))) {
@@ -2730,7 +2730,7 @@ s32 CARD_CreateAsync(s32 chn,const char *filename,u32 size,card_file *file,cardc
 	entry[filenum].length = size/card->sector_size;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-truncation"
-	strncpy((char*)entry[filenum].filename,filename,CARD_FILENAMELEN);
+	strncpy(entry[filenum].filename,filename,CARD_FILENAMELEN);
 #pragma GCC diagnostic pop
 	
 	card->curr_file = file;
@@ -2779,10 +2779,10 @@ s32 CARD_CreateEntryAsync(s32 chn,card_dir *direntry,card_file *file,cardcallbac
 	for(i=0;i<CARD_MAXFILES;i++) {
 		if(entry[i].gamecode[0]==0xff) {
 			if(filenum==-1) filenum = i;
-		} else if(strncmp(direntry->filename,(const char*)entry[i].filename,CARD_FILENAMELEN)==0) {
-			if((entry->gamecode[0]==0xff || entry->company[0]==0xff)
-				|| ((entry->gamecode[0]!=0xff && memcmp(entry[i].gamecode,entry->gamecode,4)==0)
-				&& (entry->company[0]!=0xff && memcmp(entry[i].company,entry->company,2)==0))) {
+		} else if(strncmp(entry[i].filename,direntry->filename,CARD_FILENAMELEN)==0) {
+			if((direntry->gamecode[0]==0xff || direntry->company[0]==0xff)
+				|| ((direntry->gamecode[0]!=0xff && memcmp(entry[i].gamecode,direntry->gamecode,4)==0)
+				&& (direntry->company[0]!=0xff && memcmp(entry[i].company,direntry->company,2)==0))) {
 				__card_putcntrlblock(card,CARD_ERROR_EXIST);
 				return CARD_ERROR_EXIST;
 			}
@@ -2804,7 +2804,7 @@ s32 CARD_CreateEntryAsync(s32 chn,card_dir *direntry,card_file *file,cardcallbac
 	card->card_api_cb = cb;
 	
 	entry[filenum].length = direntry->filelen/card->sector_size;
-	strncpy((char*)entry[filenum].filename,direntry->filename,CARD_FILENAMELEN);
+	strncpy(entry[filenum].filename,direntry->filename,CARD_FILENAMELEN);
 	
 	card->curr_file = file;
 	file->chn = chn;
@@ -2837,7 +2837,7 @@ s32 CARD_Open(s32 chn,const char *filename,card_file *file)
 	
 	file->filenum = -1;
 	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
-	if((ret=__card_getfilenum(card,filename,(const char*)card_gamecode,(const char*)card_company,&fileno))<0) {
+	if((ret=__card_getfilenum(card,filename,card_gamecode,card_company,&fileno))<0) {
 		__card_putcntrlblock(card,ret);
 		return ret;
 	}
@@ -2866,7 +2866,7 @@ s32 CARD_OpenEntry(s32 chn,card_dir *entry,card_file *file)
 	
 	file->filenum = -1;
 	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
-	if((ret=__card_getfilenum(card,entry->filename,(const char*)entry->gamecode,(const char*)entry->company,&fileno))<0) {
+	if((ret=__card_getfilenum(card,entry->filename,entry->gamecode,entry->company,&fileno))<0) {
 		__card_putcntrlblock(card,ret);
 		return ret;
 	}
@@ -2912,7 +2912,7 @@ s32 CARD_DeleteAsync(s32 chn,const char *filename,cardcallback callback)
 	printf("CARD_DeleteAsync(%d,%s,%p)\n",chn,filename,callback);
 #endif
 	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
-	if((ret=__card_getfilenum(card,filename,(const char*)card_gamecode,(const char*)card_company,&fileno))<0) {
+	if((ret=__card_getfilenum(card,filename,card_gamecode,card_company,&fileno))<0) {
 		__card_putcntrlblock(card,ret);
 		return ret;
 	}
@@ -2956,7 +2956,7 @@ s32 CARD_DeleteEntryAsync(s32 chn,card_dir *dir_entry,cardcallback callback)
 	printf("CARD_DeleteEntryAsync(%d,%p,%p)\n",chn,dir_entry,callback);
 #endif
 	if((ret=__card_getcntrlblock(chn,&card))<0) return ret;
-	if((ret=__card_getfilenum(card,dir_entry->filename,(const char*)dir_entry->gamecode,(const char*)dir_entry->company,&fileno))<0) {
+	if((ret=__card_getfilenum(card,dir_entry->filename,dir_entry->gamecode,dir_entry->company,&fileno))<0) {
 		__card_putcntrlblock(card,ret);
 		return ret;
 	}

@@ -128,8 +128,8 @@ typedef struct _dvddiskid dvddiskid;
  * \param magic magic number
  */
 struct _dvddiskid {
-	s8 gamename[4];
-	s8 company[2];
+	char gamename[4];
+	char company[2];
 	u8 disknum;
 	u8 gamever;
 	u8 streaming;
