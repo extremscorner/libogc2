@@ -115,11 +115,11 @@ u32 PAD_ButtonsUp(s32 chan);
 u32 PAD_ButtonsDown(s32 chan);
 u32 PAD_ButtonsHeld(s32 chan);
 
-s8 PAD_SubStickX(s32 chan);
-s8 PAD_SubStickY(s32 chan);
-
 s8 PAD_StickX(s32 chan);
 s8 PAD_StickY(s32 chan);
+
+s8 PAD_SubStickX(s32 chan);
+s8 PAD_SubStickY(s32 chan);
 
 u8 PAD_TriggerL(s32 chan);
 u8 PAD_TriggerR(s32 chan);

@@ -1077,52 +1077,52 @@ u32 PAD_ButtonsHeld(s32 chan)
 	return __pad_keys[chan].state;
 }
 
-s8 PAD_SubStickX(s32 chan)
-{
-	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].substickX;
-}
-
-s8 PAD_SubStickY(s32 chan)
-{
-	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].substickY;
-}
-
 s8 PAD_StickX(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].stickX;
+	return __pad_clampS8(__pad_keys[chan].stickX,0);
 }
 
 s8 PAD_StickY(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].stickY;
+	return __pad_clampS8(__pad_keys[chan].stickY,0);
+}
+
+s8 PAD_SubStickX(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_clampS8(__pad_keys[chan].substickX,0);
+}
+
+s8 PAD_SubStickY(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_clampS8(__pad_keys[chan].substickY,0);
 }
 
 u8 PAD_TriggerL(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].triggerL;
+	return __pad_clampU8(__pad_keys[chan].triggerL,0);
 }
 
 u8 PAD_TriggerR(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].triggerR;
+	return __pad_clampU8(__pad_keys[chan].triggerR,0);
 }
 
 u8 PAD_AnalogA(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].analogA;
+	return __pad_clampU8(__pad_keys[chan].analogA,0);
 }
 
 u8 PAD_AnalogB(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_keys[chan].analogB;
+	return __pad_clampU8(__pad_keys[chan].analogB,0);
 }
 
 u8 PAD_BarrelMic(s32 chan)
