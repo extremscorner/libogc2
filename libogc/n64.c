@@ -28,6 +28,7 @@ distribution.
 #include <gctypes.h>
 #include <ogc/irq.h>
 #include <ogc/lwp.h>
+#include <ogc/machine/processor.h>
 #include <ogc/n64.h>
 #include <ogc/si.h>
 #include <ogc/system.h>
@@ -169,10 +170,13 @@ static void ShortCommandProc(s32 chan, s32 result)
 	N64ControlBlock *cb = &__N64[chan];
 
 	if (result == N64_ERR_READY) {
-		if (cb->in[0] != 0x05 || cb->in[1] != 0x00)
+		u32 type = __lswi(cb->in, 2);
+		u8 status = cb->in[2];
+
+		if (type != SI_N64_CONTROLLER)
 			cb->result = N64_ERR_NO_CONTROLLER;
 		else if (cb->status)
-			*cb->status = cb->in[2];
+			*cb->status = status;
 	}
 }
 
@@ -222,7 +226,7 @@ static void ReadProc(s32 chan, s32 result)
 	N64Status *status = (N64Status *)cb->ptr;
 
 	if (result == N64_ERR_READY) {
-		status->button = cb->in[1] << 8 | cb->in[0];
+		status->button = __lhbrx(cb->in, 0);
 		status->stickX = cb->in[2];
 		status->stickY = cb->in[3];
 	}

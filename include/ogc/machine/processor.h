@@ -82,12 +82,22 @@
 
 #define __lhbrx(base,index)			\
 ({	register u16 res;				\
-	__asm__ __volatile__ ("lhbrx	%0,%1,%2" : "=r"(res) : "b%"(index), "r"(base) : "memory"); \
+	__asm__ __volatile__ ("lhbrx	%0,%1,%2" : "=r"(res) : "Ob"(index), "r"(base) : "memory"); \
 	res; })
 
 #define __lwbrx(base,index)			\
 ({	register u32 res;				\
-	__asm__ __volatile__ ("lwbrx	%0,%1,%2" : "=r"(res) : "b%"(index), "r"(base) : "memory"); \
+	__asm__ __volatile__ ("lwbrx	%0,%1,%2" : "=r"(res) : "Ob"(index), "r"(base) : "memory"); \
+	res; })
+
+#define __lswi(base,bytes)			\
+({	register u32 res;				\
+	__asm__ __volatile__ ("lswi		%0,%P1,%2" : "=&b"(res) : "Q"(*(u32*)(base)), "i"(bytes)); \
+	res; })
+
+#define __lsdi(base,bytes)			\
+({	register u64 res;				\
+	__asm__ __volatile__ ("lswi		%0,%P1,%2" : "=&b"(res) : "Q"(*(u64*)(base)), "i"(bytes)); \
 	res; })
 
 #define __lswx(base,bytes)			\
@@ -95,14 +105,28 @@
 	__asm__ __volatile__ ("mtxer %2; lswx %0,%y1" : "=&b"(res) : "Z"(*(u32*)(base)), "r"(bytes) : "xer"); \
 	res; })
 
+#define __lsdx(base,bytes)			\
+({	register u64 res;				\
+	__asm__ __volatile__ ("mtxer %2; lswx %0,%y1" : "=&b"(res) : "Z"(*(u64*)(base)), "r"(bytes) : "xer"); \
+	res; })
+
 #define __sthbrx(base,index,value)	\
-	__asm__ __volatile__ ("sthbrx	%0,%1,%2" : : "r"(value), "b%"(index), "r"(base) : "memory")
+	__asm__ __volatile__ ("sthbrx	%0,%1,%2" : : "r"((u16)(value)), "Ob"(index), "r"(base) : "memory")
 
 #define __stwbrx(base,index,value)	\
-	__asm__ __volatile__ ("stwbrx	%0,%1,%2" : : "r"(value), "b%"(index), "r"(base) : "memory")
+	__asm__ __volatile__ ("stwbrx	%0,%1,%2" : : "r"((u32)(value)), "Ob"(index), "r"(base) : "memory")
+
+#define __stswi(base,bytes,value)	\
+	__asm__ __volatile__ ("stswi	%1,%P0,%2" : "=Q"(*(u32*)(base)) : "r"((u32)(value)), "i"(bytes));
+
+#define __stsdi(base,bytes,value)	\
+	__asm__ __volatile__ ("stswi	%1,%P0,%2" : "=Q"(*(u64*)(base)) : "r"((u64)(value)), "i"(bytes));
 
 #define __stswx(base,bytes,value)	\
-	__asm__ __volatile__ ("mtxer %2; stswx %1,%y0" : "=Z"(*(u32*)(base)) : "r"(value), "r"(bytes) : "xer");
+	__asm__ __volatile__ ("mtxer %2; stswx %1,%y0" : "=Z"(*(u32*)(base)) : "r"((u32)(value)), "r"(bytes) : "xer");
+
+#define __stsdx(base,bytes,value)	\
+	__asm__ __volatile__ ("mtxer %2; stswx %1,%y0" : "=Z"(*(u64*)(base)) : "r"((u64)(value)), "r"(bytes) : "xer");
 
 #define _CPU_MSR_GET( _msr_value ) \
   do { \
