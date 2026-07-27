@@ -121,6 +121,62 @@ static void __N64_Handler(s32 chan, u32 type)
 	}
 }
 
+static bool IsValidType(u32 type, u8 cmd)
+{
+	switch (SI_DecodeType(type)) {
+		case SI_N64_CONTROLLER:
+			switch (cmd) {
+				case 0x00 ... 0x03:
+				case 0xFF:
+					return true;
+				default:
+					return false;
+			}
+			break;
+		case SI_N64_MIC:
+			switch (cmd) {
+				case 0x00:
+				case 0x09 ... 0x0D:
+				case 0xFF:
+					return true;
+				default:
+					return false;
+			}
+			break;
+		case SI_N64_KEYBOARD:
+			switch (cmd) {
+				case 0x00:
+				case 0x13:
+				case 0xFF:
+					return true;
+				default:
+					return false;
+			}
+			break;
+		case SI_N64_MOUSE:
+			switch (cmd) {
+				case 0x00 ... 0x01:
+				case 0xFF:
+					return true;
+				default:
+					return false;
+			}
+			break;
+		case SI_GBA:
+			switch (cmd) {
+				case 0x00:
+				case 0x14 ... 0x15:
+				case 0xFF:
+					return true;
+				default:
+					return false;
+			}
+			break;
+		default:
+			return false;
+	}
+}
+
 static void TypeCallback(s32 chan, u32 type)
 {
 	N64ControlBlock *cb = &__N64[chan];
@@ -128,7 +184,7 @@ static void TypeCallback(s32 chan, u32 type)
 
 	if (Reset)
 		return;
-	else if (SI_DecodeType(type) != SI_N64_CONTROLLER)
+	else if (!IsValidType(type, cb->out[0]))
 		cb->result = N64_ERR_NO_CONTROLLER;
 	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __N64_Handler, 65))
 		cb->result = N64_ERR_BUSY;
@@ -173,7 +229,7 @@ static void ShortCommandProc(s32 chan, s32 result)
 		u32 type = __lswi(cb->in, 2);
 		u8 status = cb->in[2];
 
-		if (type != SI_N64_CONTROLLER)
+		if ((type & SI_TYPE_MASK) != SI_TYPE_N64)
 			cb->result = N64_ERR_NO_CONTROLLER;
 		else if (cb->status)
 			*cb->status = status;
@@ -311,6 +367,7 @@ static void PositionCallback(s16 posX, s16 posY)
 		u32 mask = SI_CHAN_BIT(chan);
 
 		if ((EnabledBits & mask) &&
+			!((ResponseBits & mask) && (SI_GetType(chan) & SI_N64_MOUSE)) &&
 			N64_ReadAsync(chan, &__N64Status[chan], PollingCallback) == N64_ERR_READY)
 			PollingBits |= mask;
 	}

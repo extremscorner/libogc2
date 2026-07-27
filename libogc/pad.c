@@ -940,6 +940,30 @@ ready:
 
 		case PAD_ERR_NO_CONTROLLER:
 			switch(SI_Probe(i)) {
+			case SI_N64_MOUSE:
+				N64_GetResponse(i,&n64status);
+
+				switch(n64status.err) {
+				case N64_ERR_READY:
+					state						= n64status.button & (N64_BUTTON_B | N64_BUTTON_A);
+					__pad_keys[i].stickDeltaX	= n64status.stickX;
+					__pad_keys[i].stickDeltaY	= n64status.stickY;
+
+					state = (((state << 1) | (state >> 1)) & (N64_BUTTON_A | N64_BUTTON_B)) << (cntlzw(N64_BUTTON_A | N64_BUTTON_B) - cntlzw(PAD_BUTTON_A | PAD_BUTTON_B));
+					goto ready;
+					break;
+
+				case N64_ERR_NO_CONTROLLER:
+					N64_EnablePolling(padBit);
+					goto no_controller;
+					break;
+
+				default:
+					goto not_ready;
+					break;
+				}
+				break;
+
 			case SI_N64_CONTROLLER:
 				N64_GetResponse(i,&n64status);
 

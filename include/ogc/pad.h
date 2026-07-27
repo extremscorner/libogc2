@@ -43,8 +43,6 @@
 #define PAD_TRIGGER_R				PAD_BUTTON_R
 #define PAD_TRIGGER_L				PAD_BUTTON_L
 
-#define PADEX_BARREL_MIC			0x0080
-
 #define PADEX_STICK_LEFT			(0x0001<<16)
 #define PADEX_STICK_RIGHT			(0x0002<<16)
 #define PADEX_STICK_DOWN			(0x0004<<16)
@@ -61,6 +59,11 @@
 #define PADEX_TRIGGER_L				(0x2000<<16)
 #define PADEX_ANALOG_A				(0x4000<<16)
 #define PADEX_ANALOG_B				(0x8000<<16)
+
+#define PADEX_BARREL_MIC			0x0080
+
+#define PADEX_MOUSE_LEFT			PAD_BUTTON_A
+#define PADEX_MOUSE_RIGHT			PAD_BUTTON_B
 
 #define PADEX_STEERING_LEFT			PADEX_STICK_LEFT
 #define PADEX_STEERING_RIGHT		PADEX_STICK_RIGHT
@@ -134,6 +137,9 @@ u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
 
 u8 PAD_BarrelMic(s32 chan);
+
+#define PAD_MouseX					PAD_StickDeltaX
+#define PAD_MouseY					PAD_StickDeltaY
 
 #define PAD_SteeringDelta			PAD_StickDeltaX
 #define PAD_Steering				PAD_StickX
