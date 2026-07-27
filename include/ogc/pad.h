@@ -115,6 +115,12 @@ u32 PAD_ButtonsUp(s32 chan);
 u32 PAD_ButtonsDown(s32 chan);
 u32 PAD_ButtonsHeld(s32 chan);
 
+s16 PAD_StickDeltaX(s32 chan);
+s16 PAD_StickDeltaY(s32 chan);
+
+s16 PAD_SubStickDeltaX(s32 chan);
+s16 PAD_SubStickDeltaY(s32 chan);
+
 s8 PAD_StickX(s32 chan);
 s8 PAD_StickY(s32 chan);
 
@@ -129,6 +135,7 @@ u8 PAD_AnalogB(s32 chan);
 
 u8 PAD_BarrelMic(s32 chan);
 
+#define PAD_SteeringDelta			PAD_StickDeltaX
 #define PAD_Steering				PAD_StickX
 
 #define PAD_PedalGas				PAD_AnalogA

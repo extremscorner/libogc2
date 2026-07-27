@@ -20,6 +20,14 @@
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
 typedef struct _keyinput {
+	s32 chan;
+	u32 up;
+	u32 down;
+	u32 state;
+	s16 stickDeltaX;
+	s16 stickDeltaY;
+	s16 substickDeltaX;
+	s16 substickDeltaY;
 	s8 stickX;
 	s8 stickY;
 	s8 substickX;
@@ -28,10 +36,6 @@ typedef struct _keyinput {
 	u8 triggerR;
 	u8 analogA;
 	u8 analogB;
-	u32 up;
-	u32 down;
-	u32 state;
-	s32 chan;
 } keyinput;
 
 typedef void (*SPECCallback)(u32 chan,u32 *data,PADStatus *status);
@@ -890,15 +894,19 @@ u32 PAD_ScanPads(void)
 
 		switch(padstatus[i].err) {
 		case PAD_ERR_NONE:
-			state					= padstatus[i].button & PAD_BUTTON_ALL;
-			__pad_keys[i].stickX	= padstatus[i].stickX;
-			__pad_keys[i].stickY	= padstatus[i].stickY;
-			__pad_keys[i].substickX	= padstatus[i].substickX;
-			__pad_keys[i].substickY	= padstatus[i].substickY;
-			__pad_keys[i].triggerL	= padstatus[i].triggerL;
-			__pad_keys[i].triggerR	= padstatus[i].triggerR;
-			__pad_keys[i].analogA	= padstatus[i].analogA;
-			__pad_keys[i].analogB	= padstatus[i].analogB;
+			state							= padstatus[i].button & PAD_BUTTON_ALL;
+			__pad_keys[i].stickDeltaX		= padstatus[i].stickX - __pad_keys[i].stickX;
+			__pad_keys[i].stickDeltaY		= padstatus[i].stickY - __pad_keys[i].stickY;
+			__pad_keys[i].substickDeltaX	= padstatus[i].substickX - __pad_keys[i].substickX;
+			__pad_keys[i].substickDeltaY	= padstatus[i].substickY - __pad_keys[i].substickY;
+			__pad_keys[i].stickX			= padstatus[i].stickX;
+			__pad_keys[i].stickY			= padstatus[i].stickY;
+			__pad_keys[i].substickX			= padstatus[i].substickX;
+			__pad_keys[i].substickY			= padstatus[i].substickY;
+			__pad_keys[i].triggerL			= padstatus[i].triggerL;
+			__pad_keys[i].triggerR			= padstatus[i].triggerR;
+			__pad_keys[i].analogA			= padstatus[i].analogA;
+			__pad_keys[i].analogB			= padstatus[i].analogB;
 
 			if(!PAD_IsBarrel(i)) {
 				if(padstatus[i].stickX<(INT8_MIN/2))	state |= PADEX_STICK_LEFT;
@@ -920,12 +928,12 @@ u32 PAD_ScanPads(void)
 			}
 
 			state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
-
-			oldstate				= __pad_keys[i].state;
-			__pad_keys[i].up		= ~state & oldstate;
-			__pad_keys[i].down		= state & ~oldstate;
-			__pad_keys[i].state		= state;
-			__pad_keys[i].chan		= i;
+ready:
+			oldstate			= __pad_keys[i].state;
+			__pad_keys[i].up	= ~state & oldstate;
+			__pad_keys[i].down	= state & ~oldstate;
+			__pad_keys[i].state	= state;
+			__pad_keys[i].chan	= i;
 
 			connected |= (1<<i);
 			break;
@@ -957,12 +965,14 @@ u32 PAD_ScanPads(void)
 					if(n64status.stickY<(INT8_MIN/2))		state |= PADEX_STICK_DOWN;
 					if(n64status.stickY>(INT8_MAX/2))		state |= PADEX_STICK_UP;
 
-					__pad_keys[i].stickX	= n64status.stickX;
-					__pad_keys[i].stickY	= n64status.stickY;
-					__pad_keys[i].substickX	= 0;
-					__pad_keys[i].substickY	= 0;
-					__pad_keys[i].triggerL	= 0;
-					__pad_keys[i].triggerR	= 0;
+					__pad_keys[i].stickDeltaX	= n64status.stickX - __pad_keys[i].stickX;
+					__pad_keys[i].stickDeltaY	= n64status.stickY - __pad_keys[i].stickY;
+					__pad_keys[i].stickX		= n64status.stickX;
+					__pad_keys[i].stickY		= n64status.stickY;
+					__pad_keys[i].substickX		= 0;
+					__pad_keys[i].substickY		= 0;
+					__pad_keys[i].triggerL		= 0;
+					__pad_keys[i].triggerR		= 0;
 
 					if(state&PADEX_SUBSTICK_LEFT)	__pad_keys[i].substickX -= INT8_MAX;
 					if(state&PADEX_SUBSTICK_RIGHT)	__pad_keys[i].substickX += INT8_MAX;
@@ -971,13 +981,7 @@ u32 PAD_ScanPads(void)
 					if(state&PADEX_TRIGGER_R)		__pad_keys[i].triggerR += UINT8_MAX;
 					if(state&PADEX_TRIGGER_L)		__pad_keys[i].triggerL += UINT8_MAX;
 
-					oldstate				= __pad_keys[i].state;
-					__pad_keys[i].up		= ~state & oldstate;
-					__pad_keys[i].down		= state & ~oldstate;
-					__pad_keys[i].state		= state;
-					__pad_keys[i].chan		= i;
-
-					connected |= (1<<i);
+					goto ready;
 					break;
 
 				case N64_ERR_NO_CONTROLLER:
@@ -997,12 +1001,13 @@ u32 PAD_ScanPads(void)
 
 				switch(steering.err) {
 				case SI_STEERING_ERR_READY:
-					state					= steering.button & SI_STEERING_BUTTON_ALL;
-					__pad_keys[i].stickX	= steering.steering;
-					__pad_keys[i].triggerL	= steering.left;
-					__pad_keys[i].triggerR	= steering.right;
-					__pad_keys[i].analogA	= steering.gas;
-					__pad_keys[i].analogB	= steering.brake;
+					state						= steering.button & SI_STEERING_BUTTON_ALL;
+					__pad_keys[i].stickDeltaX	= steering.steering - __pad_keys[i].stickX;
+					__pad_keys[i].stickX		= steering.steering;
+					__pad_keys[i].triggerL		= steering.left;
+					__pad_keys[i].triggerR		= steering.right;
+					__pad_keys[i].analogA		= steering.gas;
+					__pad_keys[i].analogB		= steering.brake;
 
 					if(steering.steering<(INT8_MIN/4))	state |= PADEX_STEERING_LEFT;
 					if(steering.steering>(INT8_MAX/4))	state |= PADEX_STEERING_RIGHT;
@@ -1012,14 +1017,7 @@ u32 PAD_ScanPads(void)
 					if(steering.brake>(UINT8_MAX/2))	state |= PADEX_PEDAL_BRAKE;
 
 					state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
-
-					oldstate				= __pad_keys[i].state;
-					__pad_keys[i].up		= ~state & oldstate;
-					__pad_keys[i].down		= state & ~oldstate;
-					__pad_keys[i].state		= state;
-					__pad_keys[i].chan		= i;
-
-					connected |= (1<<i);
+					goto ready;
 					break;
 
 				case SI_STEERING_ERR_NO_CONTROLLER:
@@ -1046,6 +1044,8 @@ no_controller:
 not_ready:
 		default:
 			__pad_keys[i].up = __pad_keys[i].down = 0;
+			__pad_keys[i].stickDeltaX = __pad_keys[i].stickDeltaY = 0;
+			__pad_keys[i].substickDeltaX = __pad_keys[i].substickDeltaY = 0;
 			if(__pad_keys[i].chan!=-1) connected |= (1<<i);
 			break;
 		}
@@ -1075,6 +1075,30 @@ u32 PAD_ButtonsHeld(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].state;
+}
+
+s16 PAD_StickDeltaX(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].stickDeltaX;
+}
+
+s16 PAD_StickDeltaY(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].stickDeltaY;
+}
+
+s16 PAD_SubStickDeltaX(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].substickDeltaX;
+}
+
+s16 PAD_SubStickDeltaY(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].substickDeltaY;
 }
 
 s8 PAD_StickX(s32 chan)
