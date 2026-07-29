@@ -941,6 +941,8 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].button&PAD_BUTTON_ORANGE_DOWN)		state |= PADEX_BUTTON_ORANGE_DOWN;
 				if(padstatus[i].button&PAD_BUTTON_ORANGE_UP)		state |= PADEX_BUTTON_ORANGE_UP;
 			} else {
+				if(padstatus[i].button&(PAD_BUTTON_A|PAD_BUTTON_X))	state |= PADEX_BARREL_RIGHT;
+				if(padstatus[i].button&(PAD_BUTTON_B|PAD_BUTTON_Y))	state |= PADEX_BARREL_LEFT;
 				if((padstatus[i].triggerR-padstatus[i].triggerL)>(UINT8_MAX/8)) {
 					state |= PADEX_BARREL_MIC;
 				}
