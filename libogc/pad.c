@@ -926,6 +926,20 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].triggerL>(UINT8_MAX/2))	state |= PADEX_TRIGGER_L;
 				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= PADEX_ANALOG_A;
 				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= PADEX_ANALOG_B;
+			} else if((PAD_GetAnalogMode()==3
+				|| (padstatus[i].analogA&padstatus[i].analogB)>=0xf0)
+				&& !(padstatus[i].triggerL|padstatus[i].triggerR)) {
+				state = 0;
+				if(padstatus[i].button&PAD_BUTTON_BLUE_LEFT)		state |= PADEX_BUTTON_BLUE_LEFT;
+				if(padstatus[i].button&PAD_BUTTON_BLUE_SQUARE)		state |= PADEX_BUTTON_BLUE_SQUARE;
+				if(padstatus[i].button&PAD_BUTTON_BLUE_DOWN)		state |= PADEX_BUTTON_BLUE_DOWN;
+				if(padstatus[i].button&PAD_BUTTON_BLUE_UP)			state |= PADEX_BUTTON_BLUE_UP;
+				if(padstatus[i].button&PAD_BUTTON_BLUE_MINUS)		state |= PADEX_BUTTON_BLUE_MINUS;
+				if(padstatus[i].button&PAD_BUTTON_ORANGE_PLUS)		state |= PADEX_BUTTON_ORANGE_PLUS;
+				if(padstatus[i].button&PAD_BUTTON_ORANGE_SQUARE)	state |= PADEX_BUTTON_ORANGE_SQUARE;
+				if(padstatus[i].button&PAD_BUTTON_ORANGE_RIGHT)		state |= PADEX_BUTTON_ORANGE_RIGHT;
+				if(padstatus[i].button&PAD_BUTTON_ORANGE_DOWN)		state |= PADEX_BUTTON_ORANGE_DOWN;
+				if(padstatus[i].button&PAD_BUTTON_ORANGE_UP)		state |= PADEX_BUTTON_ORANGE_UP;
 			} else {
 				if((padstatus[i].triggerR-padstatus[i].triggerL)>(UINT8_MAX/8)) {
 					state |= PADEX_BARREL_MIC;
