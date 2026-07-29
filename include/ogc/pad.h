@@ -108,6 +108,7 @@ void PAD_SetAnalogMode(u32 mode);
 void PAD_SetSamplingRate(u32 samplingrate);
 void PAD_SetSpec(u32 spec);
 void PAD_GetOrigin(PADStatus *origin);
+u32 PAD_GetAnalogMode(void);
 u32 PAD_GetSpec(void);
 u32 PAD_GetType(s32 chan,u32 *type);
 u32 PAD_IsBarrel(s32 chan);

@@ -38,11 +38,11 @@ typedef struct _keyinput {
 	u8 analogB;
 } keyinput;
 
-typedef void (*SPECCallback)(u32 chan,u32 *data,PADStatus *status);
+typedef void (*SPECCallback)(s32 chan,PADStatus *status,u32 *data);
 
-static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status);
-static void SPEC1_MakeStatus(u32 chan,u32 *data,PADStatus *status);
-static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status);
+static void SPEC0_MakeStatus(s32 chan,PADStatus *status,u32 *data);
+static void SPEC1_MakeStatus(s32 chan,PADStatus *status,u32 *data);
+static void SPEC2_MakeStatus(s32 chan,PADStatus *status,u32 *data);
 
 static SPECCallback __pad_makestatus = SPEC2_MakeStatus;
 static sampling_callback __pad_samplingcallback = NULL;
@@ -102,7 +102,7 @@ static s32 __pad_onreset(s32 final)
 	return 1;
 }
 
-static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status)
+static void SPEC0_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 {
 	status->button = 0;
 
@@ -130,7 +130,7 @@ static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	status->substickY -= 128;
 }
 
-static void SPEC1_MakeStatus(u32 chan,u32 *data,PADStatus *status)
+static void SPEC1_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 {
 	status->button = 0;
 
@@ -186,7 +186,7 @@ static u8 __pad_clampU8(u8 var,u8 org)
 	return (var-org);
 }
 
-static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
+static void SPEC2_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 {
 	u32 mode,type;
 
@@ -197,7 +197,7 @@ static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 #ifdef _PAD_DEBUG
 	printf("SPEC2_MakeStatus(%d,%p,%p)",chan,data,status);
 #endif
-	mode = __pad_analogmode&0x0700;
+	mode = __pad_analogmode&0x700;
 	if(mode==0x100) {
 		status->substickX = (s8)((data[1]>>24)&0xf0);
 		status->substickY = (s8)((data[1]>>20)&0xf0);
@@ -317,7 +317,7 @@ static void __pad_updateorigin(s32 chan)
 	u32 mode,mask,type;
 
 	mask = PAD_CHAN_BIT(chan);
-	mode = __pad_analogmode&0x0700;
+	mode = __pad_analogmode&0x700;
 	if(mode==0x100) {
 		__pad_origin[chan].substickX &= ~0x0f;
 		__pad_origin[chan].substickY &= ~0x0f;
@@ -623,7 +623,7 @@ u32 PAD_Read(PADStatus *status)
 #ifdef _PAD_DEBUG
 						printf("PAD_Read(%08x %08x)\n",buf[0],buf[1]);
 #endif
-						__pad_makestatus(chan,buf,&status[chan]);
+						__pad_makestatus(chan,&status[chan],buf);
 #ifdef _PAD_DEBUG
 						printf("PAD_Read(%08x)\n",status[chan].button);
 #endif
@@ -744,12 +744,17 @@ void PAD_SetAnalogMode(u32 mode)
 
 	_CPU_ISR_Disable(level);
 	en_bits = __pad_enabledbits;
-	__pad_analogmode = mode<<8;
+	__pad_analogmode = _SHIFTL(mode,8,3);
 	__pad_enabledbits &= ~en_bits;
 	__pad_waitingbits &= ~en_bits;
 	__pad_checkingbits &= ~en_bits;
 	SI_DisablePolling(en_bits);
 	_CPU_ISR_Restore(level);
+}
+
+u32 PAD_GetAnalogMode(void)
+{
+	return _SHIFTR(__pad_analogmode,8,3);
 }
 
 void PAD_SetSpec(u32 spec)
