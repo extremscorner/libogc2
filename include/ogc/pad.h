@@ -161,7 +161,7 @@ u8 PAD_TriggerR(s32 chan);
 u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
 
-u8 PAD_BarrelMic(s32 chan);
+s16 PAD_BarrelMic(s32 chan);
 
 #define PAD_MouseX					PAD_StickDeltaX
 #define PAD_MouseY					PAD_StickDeltaY

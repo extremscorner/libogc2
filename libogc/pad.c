@@ -36,6 +36,8 @@ typedef struct _keyinput {
 	u8 triggerR;
 	u8 analogA;
 	u8 analogB;
+	s16 barrelMic;
+	u8 barrelMicPrev[2];
 } keyinput;
 
 typedef void (*SPECCallback)(s32 chan,PADStatus *status,u32 *data);
@@ -941,11 +943,14 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].button&PAD_BUTTON_ORANGE_DOWN)		state |= PADEX_BUTTON_ORANGE_DOWN;
 				if(padstatus[i].button&PAD_BUTTON_ORANGE_UP)		state |= PADEX_BUTTON_ORANGE_UP;
 			} else {
-				if(padstatus[i].button&(PAD_BUTTON_A|PAD_BUTTON_X))	state |= PADEX_BARREL_RIGHT;
-				if(padstatus[i].button&(PAD_BUTTON_B|PAD_BUTTON_Y))	state |= PADEX_BARREL_LEFT;
-				if((padstatus[i].triggerR-padstatus[i].triggerL)>(UINT8_MAX/8)) {
-					state |= PADEX_BARREL_MIC;
-				}
+				u8 barrelMicRaw					= __pad_clampU8(__pad_keys[i].triggerR,__pad_keys[i].triggerL);
+				__pad_keys[i].barrelMic			= barrelMicRaw - __pad_keys[i].barrelMicPrev[1];
+				__pad_keys[i].barrelMicPrev[1]	= __pad_keys[i].barrelMicPrev[0];
+				__pad_keys[i].barrelMicPrev[0]	= barrelMicRaw;
+
+				if(state&(PAD_BUTTON_A|PAD_BUTTON_X))		state |= PADEX_BARREL_RIGHT;
+				if(state&(PAD_BUTTON_B|PAD_BUTTON_Y))		state |= PADEX_BARREL_LEFT;
+				if(__pad_keys[i].barrelMic>(UINT8_MAX/5))	state |= PADEX_BARREL_MIC;
 			}
 
 			state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
@@ -1194,8 +1199,8 @@ u8 PAD_AnalogB(s32 chan)
 	return __pad_clampU8(__pad_keys[chan].analogB,0);
 }
 
-u8 PAD_BarrelMic(s32 chan)
+s16 PAD_BarrelMic(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
-	return __pad_clampU8(__pad_keys[chan].triggerR,__pad_keys[chan].triggerL);
+	return __pad_keys[chan].barrelMic;
 }
