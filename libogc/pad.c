@@ -926,8 +926,8 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].substickY>(INT8_MAX/2))	state |= PADEX_SUBSTICK_UP;
 				if(padstatus[i].triggerR>(UINT8_MAX/2))	state |= PADEX_TRIGGER_R;
 				if(padstatus[i].triggerL>(UINT8_MAX/2))	state |= PADEX_TRIGGER_L;
-				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= PADEX_ANALOG_A;
-				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= PADEX_ANALOG_B;
+				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= (state & PAD_BUTTON_A) << (cntlzw(PAD_BUTTON_A) - cntlzw(PADEX_ANALOG_A));
+				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= (state & PAD_BUTTON_B) << (cntlzw(PAD_BUTTON_B) - cntlzw(PADEX_ANALOG_B));
 			} else if((PAD_GetAnalogMode()==3
 				|| (padstatus[i].analogA&padstatus[i].analogB)>=0xf0)
 				&& !(padstatus[i].triggerL|padstatus[i].triggerR)) {
@@ -1066,7 +1066,10 @@ ready:
 					if(steering.gas>(UINT8_MAX/2))		state |= PADEX_PEDAL_GAS;
 					if(steering.brake>(UINT8_MAX/2))	state |= PADEX_PEDAL_BRAKE;
 
-					state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_TRIGGER_R | PADEX_TRIGGER_L));
+					if(!(steering.status&SI_STEERING_STATUS_PEDAL)) {
+						state |= (state & (PAD_BUTTON_A | PAD_BUTTON_B)) << (cntlzw(PAD_BUTTON_A | PAD_BUTTON_B) - cntlzw(PADEX_PEDAL_GAS | PADEX_PEDAL_BRAKE));
+					}
+					state |= (state & (PAD_TRIGGER_R | PAD_TRIGGER_L)) << (cntlzw(PAD_TRIGGER_R | PAD_TRIGGER_L) - cntlzw(PADEX_PADDLE_RIGHT | PADEX_PADDLE_LEFT));
 					goto ready;
 					break;
 
