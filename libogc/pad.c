@@ -118,8 +118,8 @@ static void SPEC0_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 	status->stickY = (s8)(data[1]>>24);
 	status->substickX = (s8)data[1];
 	status->substickY = (s8)(data[1]>>8);
-	status->triggerL = (u8)_SHIFTR(data[0],8,8);
-	status->triggerR = (u8)(data[0]&0xff);
+	status->triggerL = (u8)(data[0]>>8);
+	status->triggerR = (u8)data[0];
 	status->analogA = 0;
 	status->analogB = 0;
 
@@ -146,8 +146,8 @@ static void SPEC1_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 	status->stickY = (s8)(data[1]>>24);
 	status->substickX = (s8)data[1];
 	status->substickY = (s8)(data[1]>>8);
-	status->triggerL = (u8)_SHIFTR(data[0],8,8);
-	status->triggerR = (u8)data[0]&0xff;
+	status->triggerL = (u8)(data[0]>>8);
+	status->triggerR = (u8)data[0];
 	status->analogA = 0;
 	status->analogB = 0;
 
@@ -188,6 +188,11 @@ static u8 __pad_clampU8(u8 var,u8 org)
 	return (var-org);
 }
 
+static u8 __pad_truncU4(u8 var)
+{
+	return (var&~0x0f)|_SHIFTR(var,4,4);
+}
+
 static void SPEC2_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 {
 	u32 mode,type;
@@ -201,24 +206,24 @@ static void SPEC2_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 #endif
 	mode = __pad_analogmode&0x700;
 	if(mode==0x100) {
-		status->substickX = (s8)((data[1]>>24)&0xf0);
-		status->substickY = (s8)((data[1]>>20)&0xf0);
+		status->substickX = (s8)(((data[1]>>28)&0x0f)*0x11);
+		status->substickY = (s8)(((data[1]>>24)&0x0f)*0x11);
 		status->triggerL = (u8)((data[1]>>16)&0xff);
 		status->triggerR = (u8)((data[1]>>8)&0xff);
-		status->analogA = (u8)(data[1]&0xf0);
-		status->analogB = (u8)((data[1]<<4)&0xf0);
+		status->analogA = (u8)(((data[1]>>4)&0x0f)*0x11);
+		status->analogB = (u8)((data[1]&0x0f)*0x11);
 	} else if(mode==0x200) {
-		status->substickX = (s8)((data[1]>>24)&0xf0);
-		status->substickY = (s8)((data[1]>>20)&0xf0);
-		status->triggerL = (u8)((data[1]>>16)&0xf0);
-		status->triggerR = (u8)((data[1]>>12)&0xf0);
+		status->substickX = (s8)(((data[1]>>28)&0x0f)*0x11);
+		status->substickY = (s8)(((data[1]>>24)&0x0f)*0x11);
+		status->triggerL = (u8)(((data[1]>>20)&0x0f)*0x11);
+		status->triggerR = (u8)(((data[1]>>16)&0x0f)*0x11);
 		status->analogA = (u8)((data[1]>>8)&0xff);
-		status->analogB = (s8)data[1]&0xff;
+		status->analogB = (u8)(data[1]&0xff);
 	} else if(mode==0x300) {
 		status->substickX = (s8)((data[1]>>24)&0xff);
 		status->substickY = (s8)((data[1]>>16)&0xff);
 		status->triggerL = (u8)((data[1]>>8)&0xff);
-		status->triggerR = (u8)data[1]&0xff;
+		status->triggerR = (u8)(data[1]&0xff);
 		status->analogA = 0;
 		status->analogB = 0;
 	} else if(mode==0x400) {
@@ -227,14 +232,14 @@ static void SPEC2_MakeStatus(s32 chan,PADStatus *status,u32 *data)
 		status->triggerL = 0;
 		status->triggerR = 0;
 		status->analogA = (u8)((data[1]>>8)&0xff);
-		status->analogB = (u8)data[1]&0xff;
+		status->analogB = (u8)(data[1]&0xff);
 	} else if(!mode || mode==0x500 || mode==0x600 || mode==0x700) {
 		status->substickX = (s8)((data[1]>>24)&0xff);
 		status->substickY = (s8)((data[1]>>16)&0xff);
-		status->triggerL = (u8)((data[1]>>8)&0xf0);
-		status->triggerR = (u8)((data[1]>>4)&0xf0);
-		status->analogA = (u8)(data[1]&0xf0);
-		status->analogB = (u8)((data[1]<<4)&0xf0);
+		status->triggerL = (u8)(((data[1]>>12)&0x0f)*0x11);
+		status->triggerR = (u8)(((data[1]>>8)&0x0f)*0x11);
+		status->analogA = (u8)(((data[1]>>4)&0x0f)*0x11);
+		status->analogB = (u8)((data[1]&0x0f)*0x11);
 	}
 
 	status->stickX -= 128;
@@ -321,20 +326,20 @@ static void __pad_updateorigin(s32 chan)
 	mask = PAD_CHAN_BIT(chan);
 	mode = __pad_analogmode&0x700;
 	if(mode==0x100) {
-		__pad_origin[chan].substickX &= ~0x0f;
-		__pad_origin[chan].substickY &= ~0x0f;
-		__pad_origin[chan].analogA &= ~0x0f;
-		__pad_origin[chan].analogB &= ~0x0f;
+		__pad_origin[chan].substickX = __pad_truncU4(__pad_origin[chan].substickX);
+		__pad_origin[chan].substickY = __pad_truncU4(__pad_origin[chan].substickY);
+		__pad_origin[chan].analogA = __pad_truncU4(__pad_origin[chan].analogA);
+		__pad_origin[chan].analogB = __pad_truncU4(__pad_origin[chan].analogB);
 	} else if(mode==0x200) {
-		__pad_origin[chan].substickX &= ~0x0f;
-		__pad_origin[chan].substickY &= ~0x0f;
-		__pad_origin[chan].triggerL &= ~0x0f;
-		__pad_origin[chan].triggerR &= ~0x0f;
+		__pad_origin[chan].substickX = __pad_truncU4(__pad_origin[chan].substickX);
+		__pad_origin[chan].substickY = __pad_truncU4(__pad_origin[chan].substickY);
+		__pad_origin[chan].triggerL = __pad_truncU4(__pad_origin[chan].triggerL);
+		__pad_origin[chan].triggerR = __pad_truncU4(__pad_origin[chan].triggerR);
 	} else if(!mode || mode==0x500 || mode==0x600 || mode==0x700) {
-		__pad_origin[chan].triggerL &= ~0x0f;
-		__pad_origin[chan].triggerR &= ~0x0f;
-		__pad_origin[chan].analogA &= ~0x0f;
-		__pad_origin[chan].analogB &= ~0x0f;
+		__pad_origin[chan].triggerL = __pad_truncU4(__pad_origin[chan].triggerL);
+		__pad_origin[chan].triggerR = __pad_truncU4(__pad_origin[chan].triggerR);
+		__pad_origin[chan].analogA = __pad_truncU4(__pad_origin[chan].analogA);
+		__pad_origin[chan].analogB = __pad_truncU4(__pad_origin[chan].analogB);
 	}
 
 	__pad_origin[chan].stickX -= 128;
@@ -929,9 +934,9 @@ u32 PAD_ScanPads(void)
 				if(padstatus[i].analogA>(UINT8_MAX/2))	state |= (state & PAD_BUTTON_A) << (cntlzw(PAD_BUTTON_A) - cntlzw(PADEX_ANALOG_A));
 				if(padstatus[i].analogB>(UINT8_MAX/2))	state |= (state & PAD_BUTTON_B) << (cntlzw(PAD_BUTTON_B) - cntlzw(PADEX_ANALOG_B));
 			} else if((PAD_GetAnalogMode()==3
-				|| (padstatus[i].analogA&padstatus[i].analogB)>=0xf0)
+				|| (padstatus[i].analogA&padstatus[i].analogB)==UINT8_MAX)
 				&& !(padstatus[i].triggerL|padstatus[i].triggerR)) {
-				state = 0;
+																	state  = 0;
 				if(padstatus[i].button&PAD_BUTTON_BLUE_LEFT)		state |= PADEX_BUTTON_BLUE_LEFT;
 				if(padstatus[i].button&PAD_BUTTON_BLUE_SQUARE)		state |= PADEX_BUTTON_BLUE_SQUARE;
 				if(padstatus[i].button&PAD_BUTTON_BLUE_DOWN)		state |= PADEX_BUTTON_BLUE_DOWN;
@@ -995,7 +1000,7 @@ ready:
 
 				switch(n64status.err) {
 				case N64_ERR_READY:
-					state = 0;
+															state  = 0;
 					if(n64status.button&N64_BUTTON_LEFT)	state |= PAD_BUTTON_LEFT;
 					if(n64status.button&N64_BUTTON_RIGHT)	state |= PAD_BUTTON_RIGHT;
 					if(n64status.button&N64_BUTTON_DOWN)	state |= PAD_BUTTON_DOWN;
