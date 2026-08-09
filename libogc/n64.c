@@ -50,6 +50,7 @@ typedef struct {
 
 static N64ControlBlock __N64[SI_MAX_CHAN];
 static N64Status __N64Status[SI_MAX_CHAN];
+static N64SamplingCallback SamplingCallback;
 static u32 EnabledBits;
 static u32 PollingBits;
 static u32 ResponseBits;
@@ -333,15 +334,18 @@ static void N64_RefreshPositionInterrupt(void)
 	VIDEO_DisablePositionInterrupt();
 }
 
-static void PollingCallback(s32 chan, s32 result)
+static void SamplingHandler(s32 chan, s32 result)
 {
 	u32 mask = SI_CHAN_BIT(chan);
 
 	if (result == N64_ERR_NO_CONTROLLER)
 		EnabledBits &= ~mask;
-
 	PollingBits &= ~mask;
 	ResponseBits |= mask;
+
+	if (SamplingCallback)
+		SamplingCallback(chan);
+
 	N64_RefreshPositionInterrupt();
 }
 
@@ -368,7 +372,7 @@ static void PositionCallback(s16 posX, s16 posY)
 
 		if ((EnabledBits & mask) &&
 			!((ResponseBits & mask) && (SI_GetType(chan) & SI_N64_MOUSE)) &&
-			N64_ReadAsync(chan, &__N64Status[chan], PollingCallback) == N64_ERR_READY)
+			N64_ReadAsync(chan, &__N64Status[chan], SamplingHandler) == N64_ERR_READY)
 			PollingBits |= mask;
 	}
 
@@ -391,7 +395,7 @@ bool N64_GetResponse(s32 chan, N64Status *status)
 	} else if (EnabledBits & mask) {
 		memset(status, 0, sizeof(N64Status));
 		status->err = N64_ERR_TRANSFER;
-		N64_ReadAsync(chan, &__N64Status[chan], PollingCallback);
+		N64_ReadAsync(chan, &__N64Status[chan], SamplingHandler);
 	} else {
 		memset(status, 0, sizeof(N64Status));
 		status->err = N64_ERR_NO_CONTROLLER;
@@ -399,4 +403,14 @@ bool N64_GetResponse(s32 chan, N64Status *status)
 
 	IRQ_Restore(level);
 	return false;
+}
+
+N64SamplingCallback N64_SetSamplingCallback(N64SamplingCallback callback)
+{
+	N64SamplingCallback old;
+
+	old = SamplingCallback;
+	SamplingCallback = callback;
+
+	return old;
 }

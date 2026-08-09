@@ -60,6 +60,7 @@ extern "C" {
 #endif
 
 typedef void (*N64Callback)(s32 chan, s32 result);
+typedef void (*N64SamplingCallback)(s32 chan);
 
 typedef struct N64Status {
 	u16 button;
@@ -77,6 +78,7 @@ s32 N64_ReadAsync(s32 chan, N64Status *status, N64Callback callback);
 void N64_EnablePolling(u32 mask);
 void N64_DisablePolling(u32 mask);
 bool N64_GetResponse(s32 chan, N64Status *status);
+N64SamplingCallback N64_SetSamplingCallback(N64SamplingCallback callback);
 
 #ifdef __cplusplus
 }
