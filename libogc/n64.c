@@ -340,11 +340,14 @@ static void SamplingHandler(s32 chan, s32 result)
 
 	if (result == N64_ERR_NO_CONTROLLER)
 		EnabledBits &= ~mask;
-	PollingBits &= ~mask;
 	ResponseBits |= mask;
 
-	if (SamplingCallback)
-		SamplingCallback(chan);
+	if (PollingBits & mask) {
+		PollingBits &= ~mask;
+
+		if (SamplingCallback)
+			SamplingCallback(chan);
+	}
 
 	N64_RefreshPositionInterrupt();
 }
