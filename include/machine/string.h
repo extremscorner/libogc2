@@ -25,24 +25,17 @@ distribution.
 
 -------------------------------------------------------------*/
 
-#ifndef __SYS_STRING_H__
-#define __SYS_STRING_H__
+#ifndef __MACHINE_STRING_H__
+#define __MACHINE_STRING_H__
 
-#include <stddef.h>
+#if defined(HW_RVL)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+char *mem1_strdup(const char *str);
+char *mem1_strndup(const char *str, size_t n);
 
-typedef void *mspace;
+char *mem2_strdup(const char *str);
+char *mem2_strndup(const char *str, size_t n);
 
-char *mspace_strdup(mspace msp, const char *str);
-char *mspace_strndup(mspace msp, const char *str, size_t n);
-
-#include <machine/string.h>
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

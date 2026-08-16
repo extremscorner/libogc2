@@ -584,6 +584,8 @@ void mspace_inspect_all(mspace msp,
                         void(*handler)(void *, void *, size_t, void*),
                         void* arg);
 
+#include <machine/malloc.h>
+
 #ifdef __cplusplus
 };  /* end of extern "C" */
 #endif
