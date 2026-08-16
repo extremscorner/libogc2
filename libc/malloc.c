@@ -5510,11 +5510,41 @@ mspace create_mspace(size_t capacity, int locked) {
   if (capacity < (size_t) -(msize + TOP_FOOT_SIZE + mparams.page_size)) {
     size_t rs = ((capacity == 0)? mparams.granularity :
                  (capacity + TOP_FOOT_SIZE + msize));
-    size_t tsize = granularity_align(rs);
-    char* tbase = (char*)(CALL_MMAP(tsize));
+    char* tbase = CMFAIL;
+    size_t tsize = 0;
+    flag_t mmap_flag = 0;
+    size_t asize = granularity_align(rs);
+
+    if (HAVE_MMAP && tbase == CMFAIL) {
+      char* mp = (char*)(CALL_MMAP(asize));
+      if (mp != CMFAIL) {
+        tbase = mp;
+        tsize = asize;
+        mmap_flag = USE_MMAP_BIT;
+      }
+    }
+
+    if (HAVE_MORECORE && tbase == CMFAIL) {
+      if (asize < HALF_MAX_SIZE_T) {
+        char* br = CMFAIL;
+        char* end = CMFAIL;
+        (void)ACQUIRE_MALLOC_GLOBAL_LOCK();
+        br = (char*)(CALL_MORECORE(asize));
+        end = (char*)(CALL_MORECORE(0));
+        RELEASE_MALLOC_GLOBAL_LOCK();
+        if (br != CMFAIL && end != CMFAIL && br < end) {
+          size_t ssize = end - br;
+          if (ssize > msize + TOP_FOOT_SIZE) {
+            tbase = br;
+            tsize = ssize;
+          }
+        }
+      }
+    }
+
     if (tbase != CMFAIL) {
       m = init_user_mstate(tbase, tsize);
-      m->seg.sflags = USE_MMAP_BIT;
+      m->seg.sflags = mmap_flag;
       set_lock(m, locked);
     }
   }
