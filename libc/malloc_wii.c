@@ -101,6 +101,14 @@ void *__attribute__((weak)) memalign(size_t alignment, size_t bytes)
 		return dlmemalign(alignment, bytes);
 }
 
+int __attribute__((weak)) posix_memalign(void **pp, size_t alignment, size_t bytes)
+{
+	if (msp)
+		return mspace_posix_memalign(msp, pp, alignment, bytes);
+	else
+		return dlposix_memalign(pp, alignment, bytes);
+}
+
 void *__attribute__((weak)) valloc(size_t bytes)
 {
 	if (msp)
@@ -133,12 +141,12 @@ void **__attribute__((weak)) independent_comalloc(size_t n_elements, size_t size
 		return dlindependent_comalloc(n_elements, sizes, chunks);
 }
 
-size_t __attribute__((weak)) bulk_free(void *array[], size_t nelem)
+size_t __attribute__((weak)) bulk_free(void *array[], size_t n_elements)
 {
 	if (msp)
-		return mspace_bulk_free(msp, array, nelem);
+		return mspace_bulk_free(msp, array, n_elements);
 	else
-		return dlbulk_free(array, nelem);
+		return dlbulk_free(array, n_elements);
 }
 
 void __attribute__((weak)) malloc_inspect_all(void (*handler)(void *, void *, size_t, void *), void *arg)
@@ -246,6 +254,11 @@ void *__attribute__((weak)) mem##n##_memalign(size_t alignment, size_t bytes) \
 	return mspace_memalign(mem##n##_mspace, alignment, bytes); \
 } \
  \
+int __attribute__((weak)) mem##n##_posix_memalign(void **pp, size_t alignment, size_t bytes) \
+{ \
+	return mspace_posix_memalign(mem##n##_mspace, pp, alignment, bytes); \
+} \
+ \
 void *__attribute__((weak)) mem##n##_valloc(size_t bytes) \
 { \
 	return mspace_valloc(mem##n##_mspace, bytes); \
@@ -266,9 +279,9 @@ void **__attribute__((weak)) mem##n##_independent_comalloc(size_t n_elements, si
 	return mspace_independent_comalloc(mem##n##_mspace, n_elements, sizes, chunks); \
 } \
  \
-size_t __attribute__((weak)) mem##n##_bulk_free(void *array[], size_t nelem) \
+size_t __attribute__((weak)) mem##n##_bulk_free(void *array[], size_t n_elements) \
 { \
-	return mspace_bulk_free(mem##n##_mspace, array, nelem); \
+	return mspace_bulk_free(mem##n##_mspace, array, n_elements); \
 } \
  \
 void __attribute__((weak)) mem##n##_malloc_inspect_all(void (*handler)(void *, void *, size_t, void *), void *arg) \

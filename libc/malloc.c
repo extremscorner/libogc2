@@ -1410,6 +1410,12 @@ DLMALLOC_EXPORT void* mspace_calloc(mspace msp, size_t n_elements, size_t elem_s
 DLMALLOC_EXPORT void* mspace_memalign(mspace msp, size_t alignment, size_t bytes);
 
 /*
+  mspace_posix_memalign behaves as posix_memalign, but operates within
+  the given space.
+*/
+DLMALLOC_EXPORT int mspace_posix_memalign(mspace msp, void** pp, size_t alignment, size_t bytes);
+
+/*
   mspace_valloc behaves as valloc, but operates within
   the given space.
 */
@@ -5931,6 +5937,34 @@ void* mspace_memalign(mspace msp, size_t alignment, size_t bytes) {
   if (alignment <= MALLOC_ALIGNMENT)
     return mspace_malloc(msp, bytes);
   return internal_memalign(ms, alignment, bytes);
+}
+
+int mspace_posix_memalign(mspace msp, void** pp, size_t alignment, size_t bytes) {
+  void* mem = 0;
+  mstate ms = (mstate)msp;
+  if (!ok_magic(ms)) {
+    USAGE_ERROR_ACTION(ms,ms);
+    return EINVAL;
+  }
+  if (alignment == MALLOC_ALIGNMENT)
+    mem = mspace_malloc(msp, bytes);
+  else {
+    size_t d = alignment / sizeof(void*);
+    size_t r = alignment % sizeof(void*);
+    if (r != 0 || d == 0 || (d & (d-SIZE_T_ONE)) != 0)
+      return EINVAL;
+    else if (bytes <= MAX_REQUEST - alignment) {
+      if (alignment <  MIN_CHUNK_SIZE)
+        alignment = MIN_CHUNK_SIZE;
+      mem = internal_memalign(ms, alignment, bytes);
+    }
+  }
+  if (mem == 0)
+    return ENOMEM;
+  else {
+    *pp = mem;
+    return 0;
+  }
 }
 
 void* mspace_valloc(mspace msp, size_t bytes) {
