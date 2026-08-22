@@ -77,12 +77,12 @@ extern void __reload(void);
 extern void __SYS_DoHotReset(u32 reset_code) __attribute__((noreturn));
 #endif
 
-extern s8 exceptionhandler_start[],exceptionhandler_end[],exceptionhandler_patch[];
-extern s8 systemcallhandler_start[],systemcallhandler_end[];
+extern const u8 exceptionhandler_start[],exceptionhandler_end[],exceptionhandler_patch[];
+extern const u8 systemcallhandler_start[],systemcallhandler_end[];
 
 void (*_exceptionhandlertable[NUM_EXCEPTIONS])(frame_context*);
 
-static u32 exception_location[NUM_EXCEPTIONS] = {
+static const u32 exception_location[NUM_EXCEPTIONS] = {
 		0x00000100, 0x00000200, 0x00000300, 0x00000400,
 		0x00000500, 0x00000600, 0x00000700, 0x00000800,
 		0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
@@ -94,7 +94,7 @@ static const char *exception_name[NUM_EXCEPTIONS] = {
 		"Decrementer", "System Call", "Trace", "Performance",
 		"IABR", "Reserved", "Thermal"};
 
-void __exception_load(u32 nExcept,void *data,u32 len,void *patch)
+void __exception_load(u32 nExcept,const void *data,u32 len,const void *patch)
 {
 	void *pAddr = (void*)(0x80000000|exception_location[nExcept]);
 	memcpy(pAddr,data,len);
