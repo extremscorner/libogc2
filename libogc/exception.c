@@ -129,6 +129,8 @@ void __exception_init(void)
 	__exception_sethandler(EX_DEC,dec_exceptionhandler);
 
 	mtmsr(mfmsr()|MSR_RI);
+
+	mtspr(IABR,0x80001800|0x3);
 }
 
 void __exception_close(u32 nExcept)
