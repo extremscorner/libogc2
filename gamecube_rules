@@ -4,9 +4,9 @@ endif
 
 include $(DEVKITPPC)/base_rules
 
-PORTLIBS	:=	$(DEVKITPRO)/libogc2/gamecube $(PORTLIBS_PATH)/gamecube $(PORTLIBS_PATH)/ppc
+PORTLIBS	:=	$(DEVKITPRO)/libogc2/gamecube $(PORTLIBS_PATH)/ppc
 
-export PATH	:=	$(DEVKITPRO)/libogc2/gamecube/bin:$(PORTLIBS_PATH)/gamecube/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
+export PATH	:=	$(DEVKITPRO)/libogc2/gamecube/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
 
 export	LIBOGC_INC	:=	$(DEVKITPRO)/libogc2/gamecube/include
 export	LIBOGC_LIB	:=	$(DEVKITPRO)/libogc2/gamecube/lib

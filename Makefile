@@ -82,14 +82,12 @@ MACHDEP		:= -DGEKKO -mcpu=750 -meabi -msdata=sysv -mhard-float -ffunction-sectio
 
 
 ifeq ($(PLATFORM),wii)
-INCLUDES	+=	-I$(BUILD)/wii \
-				-I$(PORTLIBS_PATH)/wii/include
+INCLUDES	+=	-I$(BUILD)/wii
 MACHDEP		+=	-DHW_RVL -Wa,-mbroadway
 endif
 
 ifeq ($(PLATFORM),cube)
-INCLUDES	+=	-I$(BUILD)/cube \
-				-I$(PORTLIBS_PATH)/gamecube/include
+INCLUDES	+=	-I$(BUILD)/cube
 MACHDEP		+=	-DHW_DOL -Wa,-mgekko
 endif
 
