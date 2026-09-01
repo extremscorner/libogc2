@@ -1050,13 +1050,12 @@ static void __GX_SetDirtyState(void)
 
 static u32 __GX_GetNumXfbLines(u16 efbHeight,u32 yscale)
 {
-	u32 tmp,tmp1;
+	u32 tmp;
 
 	tmp = (((efbHeight-1)<<8)/yscale)+1;
 	if(yscale>128 && yscale<256) {
-		while(yscale&0x01) yscale >>= 1;
-		tmp1 = yscale*(efbHeight/yscale);
-		if(!(efbHeight-tmp1)) tmp++;
+		while(!(yscale&0x01)) yscale >>= 1;
+		if(!(efbHeight%yscale)) tmp++;
 	}
 	if(tmp>1024) tmp = 1024;
 
@@ -1940,7 +1939,9 @@ u32 GX_SetDispCopyYScale(f32 yscale)
 	yScale = ((u32)(256.0f/yscale))&0x1ff;
 	GX_LOAD_BP_REG(0x4e000000|yScale);
 
-	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~0x400)|(_SHIFTL(((256-yScale)>0),10,1));
+	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~0x400);
+	if(yScale&0xff) __gx->dispCopyCntrl |= 0x400;
+
 	ht = _SHIFTR(__gx->dispCopyWH,10,10)+1;
 	return __GX_GetNumXfbLines(ht,yScale);
 }
@@ -5250,24 +5251,20 @@ u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale)
 
 f32 GX_GetYScaleFactor(u16 efbHeight,u16 xfbHeight)
 {
-	u32 yScale,xfblines,cnt;
+	u32 xfblines,cnt;
 	f32 yscale;
 
-	yscale = (f32)efbHeight/(f32)xfbHeight;
-	yScale = (u32)((f32)256.0/yscale)&0x1ff;
+	yscale = (f32)xfbHeight/(f32)efbHeight;
+	xfblines = GX_GetNumXfbLines(efbHeight,yscale);
 
 	cnt = xfbHeight;
-	xfblines = __GX_GetNumXfbLines(efbHeight,yScale);
-	while(xfblines>=xfbHeight) {
+	while(xfblines>xfbHeight) {
 		yscale = (f32)(cnt--)/(f32)efbHeight;
-		yScale = (u32)((f32)256.0/yscale)&0x1ff;
-		xfblines = __GX_GetNumXfbLines(efbHeight,yScale);
+		xfblines = GX_GetNumXfbLines(efbHeight,yscale);
 	}
-
 	while(xfblines<xfbHeight) {
 		yscale = (f32)(cnt++)/(f32)efbHeight;
-		yScale = (u32)((f32)256.0/yscale)&0x1ff;
-		xfblines = __GX_GetNumXfbLines(efbHeight,yScale);
+		xfblines = GX_GetNumXfbLines(efbHeight,yscale);
 	}
 	return yscale;
 }
