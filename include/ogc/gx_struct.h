@@ -2,7 +2,7 @@
 
 gx_struct.h -- support header
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -69,6 +69,7 @@ typedef struct _gx_rmodeobj {
 	u8  aa;
 	u8  sample_pattern[12][2];
 	u8  vfilter[7];
+	u8  copy_interlaced;
 } GXRModeObj;
 
 #ifdef __cplusplus

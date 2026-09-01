@@ -709,7 +709,7 @@ static void __GX_InitGX(void)
 	GX_SetFieldMask(GX_ENABLE,GX_ENABLE);
 
 	flag = GX_DISABLE;
-	if(rmode->viHeight==(rmode->xfbHeight<<1)) flag = GX_ENABLE;
+	if(rmode->viHeight==(rmode->efbHeight<<1)) flag = GX_ENABLE;
 	GX_SetFieldMode(rmode->field_rendering,flag);
 
 	GX_SetDispCopySrc(0,0,rmode->fbWidth,rmode->efbHeight);
@@ -718,7 +718,7 @@ static void __GX_InitGX(void)
 	GX_SetCopyClamp(GX_CLAMP_TOP|GX_CLAMP_BOTTOM);
 	GX_SetCopyFilter(rmode->aa,rmode->sample_pattern,GX_TRUE,rmode->vfilter);
 	GX_SetDispCopyGamma(GX_GM_1_0);
-	GX_SetDispCopyFrame2Field(GX_COPY_PROGRESSIVE);
+	GX_SetDispCopyFrame2Field(rmode->copy_interlaced);
 	GX_ClearBoundingBox();
 
 	GX_PokeColorUpdate(GX_TRUE);
@@ -5254,6 +5254,7 @@ f32 GX_GetYScaleFactor(u16 efbHeight,u16 xfbHeight)
 	u32 xfblines,cnt;
 	f32 yscale;
 
+	if(efbHeight>xfbHeight) xfbHeight <<= 1;
 	yscale = (f32)xfbHeight/(f32)efbHeight;
 	xfblines = GX_GetNumXfbLines(efbHeight,yscale);
 

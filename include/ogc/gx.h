@@ -990,6 +990,7 @@
 #define GX_COPY_NONE					1
 #define GX_COPY_INTLC_EVEN				2
 #define GX_COPY_INTLC_ODD				3
+#define GX_COPY_INTERLACED				3			/*!< XOR with VIDEO_GetNextField(). */
 /*! @} */
 
 /*! \addtogroup alphareadmode Alpha read mode
