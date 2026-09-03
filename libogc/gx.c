@@ -1934,15 +1934,13 @@ void GX_SetDispCopyFrame2Field(u8 mode)
 
 u32 GX_SetDispCopyYScale(f32 yscale)
 {
-	u32 ht,yScale = 0;
+	u32 ht,yScale;
 
-	yScale = ((u32)(256.0f/yscale))&0xff;
-	if(!yScale) yScale = 0x100;
+	yScale = (s32)(256.0f/yscale);
+	if((yScale-1)&~0xff) yScale = 0x100;
 
+	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~0x400)|(_SHIFTL((yScale!=0x100),10,1));
 	GX_LOAD_BP_REG(0x4e000000|yScale);
-
-	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~0x400);
-	if(yScale&0xff) __gx->dispCopyCntrl |= 0x400;
 
 	ht = _SHIFTR(__gx->dispCopyWH,10,10)+1;
 	ht = __GX_GetNumXfbLines(ht,yScale);
@@ -5258,8 +5256,8 @@ u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale)
 {
 	u32 yScale;
 
-	yScale = ((u32)(256.0f/yscale))&0xff;
-	if(!yScale) return efbHeight;
+	yScale = (s32)(256.0f/yscale);
+	if((yScale-1)&~0xff) yScale = 0x100;
 
 	return __GX_GetNumXfbLines(efbHeight,yScale);
 }
