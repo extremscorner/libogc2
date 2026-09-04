@@ -92,6 +92,8 @@ sudo (dkp-)pacman -S libogc2-cmake
 +    container: ghcr.io/extremscorner/libogc2:latest
 ```
 
+See [installed packages in container](https://libogc2.org/wiki/Installed-packages-in-container).
+
 ## Building
 
 ### Pacman
