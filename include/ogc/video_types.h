@@ -155,6 +155,7 @@ distribution.
  */
 
 extern GXRModeObj TVNtsc240Ds;				/*!< Video and render mode configuration for 240 lines,singlefield NTSC mode */
+extern GXRModeObj TVNtsc240DsVf;			/*!< Video and render mode configuration for 240 lines,singlefield,downsampled NTSC mode */
 extern GXRModeObj TVNtsc240DsAa;			/*!< Video and render mode configuration for 240 lines,singlefield,antialiased NTSC mode */
 extern GXRModeObj TVNtsc240Int;				/*!< Video and render mode configuration for 240 lines,interlaced NTSC mode */
 extern GXRModeObj TVNtsc240IntDf;			/*!< Video and render mode configuration for 240 lines,interlaced,deflickered NTSC mode */
@@ -166,6 +167,7 @@ extern GXRModeObj TVNtsc480Prog;			/*!< Video and render mode configuration for 
 extern GXRModeObj TVNtsc480ProgSoft;
 extern GXRModeObj TVNtsc480ProgAa;
 extern GXRModeObj TVMpal240Ds;
+extern GXRModeObj TVMpal240DsVf;
 extern GXRModeObj TVMpal240DsAa;
 extern GXRModeObj TVMpal240Int;
 extern GXRModeObj TVMpal240IntDf;
@@ -177,7 +179,11 @@ extern GXRModeObj TVMpal480Prog;
 extern GXRModeObj TVMpal480ProgSoft;
 extern GXRModeObj TVMpal480ProgAa;
 extern GXRModeObj TVPal264Ds;				/*!< Video and render mode configuration for 264 lines,singlefield PAL mode */
+extern GXRModeObj TVPal264DsVf;				/*!< Video and render mode configuration for 264 lines,singlefield,downsampled PAL mode */
 extern GXRModeObj TVPal264DsAa;				/*!< Video and render mode configuration for 264 lines,singlefield,antialiased PAL mode */
+extern GXRModeObj TVPal288DsScale;
+extern GXRModeObj TVPal288DsVfScale;
+extern GXRModeObj TVPal288DsAaScale;
 extern GXRModeObj TVPal264Int;				/*!< Video and render mode configuration for 264 lines,interlaced PAL mode */
 extern GXRModeObj TVPal264IntDf;			/*!< Video and render mode configuration for 264 lines,interlaced,deflickered PAL mode */
 extern GXRModeObj TVPal264IntAa;			/*!< Video and render mode configuration for 264 lines,interlaced,antialiased PAL mode */
@@ -194,6 +200,7 @@ extern GXRModeObj TVPal524ProgAa;
 extern GXRModeObj TVPal576ProgScale;
 extern GXRModeObj TVPal576ProgSoftScale;
 extern GXRModeObj TVEurgb60Hz240Ds;
+extern GXRModeObj TVEurgb60Hz240DsVf;
 extern GXRModeObj TVEurgb60Hz240DsAa;
 extern GXRModeObj TVEurgb60Hz240Int;
 extern GXRModeObj TVEurgb60Hz240IntDf;

@@ -127,6 +127,40 @@ GXRModeObj TVNtsc240Ds =
     GX_COPY_PROGRESSIVE     // copy_interlaced
 };
 
+GXRModeObj TVNtsc240DsVf =
+{
+    VI_TVMODE_NTSC_DS,      // viTVMode
+    640,            // fbWidth
+    480,            // efbHeight
+    240,            // xfbHeight
+    (VI_MAX_WIDTH_NTSC - 640)/2,        // viXOrigin
+    (VI_MAX_HEIGHT_NTSC/2 - 480/2)/2,   // viYOrigin
+    640,            // viWidth
+    480,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_FALSE,       // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {6,6},{6,6},{6,6},  // pix 1
+        {6,6},{6,6},{6,6},  // pix 2
+        {6,6},{6,6},{6,6}   // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+         0,         // line n
+        16,         // line n
+        16,         // line n
+        16,         // line n+1
+        16          // line n+1
+    },
+    GX_COPY_INTLC_EVEN      // copy_interlaced
+};
+
 GXRModeObj TVNtsc240DsAa =
 {
     VI_TVMODE_NTSC_DS,      // viTVMode
@@ -499,6 +533,40 @@ GXRModeObj TVMpal240Ds =
          0          // line n+1
     },
     GX_COPY_PROGRESSIVE     // copy_interlaced
+};
+
+GXRModeObj TVMpal240DsVf =
+{
+    VI_TVMODE_MPAL_DS,      // viTVMode
+    640,            // fbWidth
+    480,            // efbHeight
+    240,            // xfbHeight
+    (VI_MAX_WIDTH_MPAL - 640)/2,        // viXOrigin
+    (VI_MAX_HEIGHT_MPAL/2 - 480/2)/2,   // viYOrigin
+    640,            // viWidth
+    480,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_FALSE,       // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {6,6},{6,6},{6,6},  // pix 1
+        {6,6},{6,6},{6,6},  // pix 2
+        {6,6},{6,6},{6,6}   // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+         0,         // line n
+        16,         // line n
+        16,         // line n
+        16,         // line n+1
+        16          // line n+1
+    },
+    GX_COPY_INTLC_EVEN      // copy_interlaced
 };
 
 GXRModeObj TVMpal240DsAa =
@@ -875,6 +943,40 @@ GXRModeObj TVPal264Ds =
     GX_COPY_PROGRESSIVE     // copy_interlaced
 };
 
+GXRModeObj TVPal264DsVf =
+{
+    VI_TVMODE_PAL_DS,       // viTVMode
+    640,            // fbWidth
+    528,            // efbHeight
+    264,            // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL/2 - 528/2)/2,    // viYOrigin
+    640,            // viWidth
+    528,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_FALSE,       // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {6,6},{6,6},{6,6},  // pix 1
+        {6,6},{6,6},{6,6},  // pix 2
+        {6,6},{6,6},{6,6}   // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+         0,         // line n
+        16,         // line n
+        16,         // line n
+        16,         // line n+1
+        16          // line n+1
+    },
+    GX_COPY_INTLC_EVEN      // copy_interlaced
+};
+
 GXRModeObj TVPal264DsAa =
 {
     VI_TVMODE_PAL_DS,       // viTVMode
@@ -885,6 +987,108 @@ GXRModeObj TVPal264DsAa =
     (VI_MAX_HEIGHT_PAL/2 - 528/2)/2,    // viYOrigin
     640,            // viWidth
     528,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_TRUE,        // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {3,2},{9,6},{3,10}, // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {3,2},{9,6},{3,10}, // pix 1
+        {9,2},{3,6},{9,10}, // pix 2
+        {9,2},{3,6},{9,10}  // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+        21,         // line n
+        22,         // line n
+        21,         // line n
+         0,         // line n+1
+         0          // line n+1
+    },
+    GX_COPY_PROGRESSIVE     // copy_interlaced
+};
+
+GXRModeObj TVPal288DsScale =
+{
+    VI_TVMODE_PAL_DS,       // viTVMode
+    640,            // fbWidth
+    240,            // efbHeight
+    288,            // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL/2 - 576/2)/2,    // viYOrigin
+    640,            // viWidth
+    576,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_FALSE,       // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {6,6},{6,6},{6,6},  // pix 1
+        {6,6},{6,6},{6,6},  // pix 2
+        {6,6},{6,6},{6,6}   // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+        21,         // line n
+        22,         // line n
+        21,         // line n
+         0,         // line n+1
+         0          // line n+1
+    },
+    GX_COPY_PROGRESSIVE     // copy_interlaced
+};
+
+GXRModeObj TVPal288DsVfScale =
+{
+    VI_TVMODE_PAL_DS,       // viTVMode
+    640,            // fbWidth
+    480,            // efbHeight
+    288,            // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL/2 - 576/2)/2,    // viYOrigin
+    640,            // viWidth
+    576,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_FALSE,       // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {6,6},{6,6},{6,6},  // pix 1
+        {6,6},{6,6},{6,6},  // pix 2
+        {6,6},{6,6},{6,6}   // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+         0,         // line n
+        16,         // line n
+        16,         // line n
+        16,         // line n+1
+        16          // line n+1
+    },
+    GX_COPY_INTLC_EVEN      // copy_interlaced
+};
+
+GXRModeObj TVPal288DsAaScale =
+{
+    VI_TVMODE_PAL_DS,       // viTVMode
+    640,            // fbWidth
+    240,            // efbHeight
+    288,            // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL/2 - 576/2)/2,    // viYOrigin
+    640,            // viWidth
+    576,            // viHeight
     VI_XFBMODE_SF,  // xfbMode
     GX_FALSE,       // field_rendering
     GX_TRUE,        // aa
@@ -1451,6 +1655,40 @@ GXRModeObj TVEurgb60Hz240Ds =
          0          // line n+1
     },
     GX_COPY_PROGRESSIVE     // copy_interlaced
+};
+
+GXRModeObj TVEurgb60Hz240DsVf =
+{
+    VI_TVMODE_EURGB60_DS,   // viTVMode
+    640,            // fbWidth
+    480,            // efbHeight
+    240,            // xfbHeight
+    (VI_MAX_WIDTH_EURGB60 - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_EURGB60/2 - 480/2)/2,    // viYOrigin
+    640,            // viWidth
+    480,            // viHeight
+    VI_XFBMODE_SF,  // xfbMode
+    GX_FALSE,       // field_rendering
+    GX_FALSE,       // aa
+
+    // sample points arranged in increasing Y order
+    {
+        {6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+        {6,6},{6,6},{6,6},  // pix 1
+        {6,6},{6,6},{6,6},  // pix 2
+        {6,6},{6,6},{6,6}   // pix 3
+    },
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+         0,         // line n-1
+         0,         // line n-1
+         0,         // line n
+        16,         // line n
+        16,         // line n
+        16,         // line n+1
+        16          // line n+1
+    },
+    GX_COPY_INTLC_EVEN      // copy_interlaced
 };
 
 GXRModeObj TVEurgb60Hz240DsAa =
