@@ -987,7 +987,8 @@
  * @{
  */
 #define GX_COPY_PROGRESSIVE				0
-#define GX_COPY_NONE					1
+#define GX_COPY_MIPMAP					1			/*!< Only for texture copies. */
+#define GX_COPY_NONE					1			/*!< Only for display copies. */
 #define GX_COPY_INTLC_EVEN				2
 #define GX_COPY_INTLC_ODD				3
 #define GX_COPY_INTERLACED				3			/*!< XOR with VIDEO_GetNextField(). */
@@ -3755,9 +3756,7 @@ void GX_SetCopyFilter(u8 aa,const u8 sample_pattern[12][2],u8 vf,const u8 vfilte
  *
  * \details Specifically, it determines whether all lines, no lines, only even lines, or only odd lines are read.
  *
- * \note The opposite function, which determines whether all lines, only even lines or only odd lines are <i>written</i> to the EFB, is GX_SetFieldMask().<br><br>
- *
- * \note Only applies to display copies, GX_CopyTex() always uses the <tt>GX_COPY_PROGRESSIVE</tt> mode.
+ * \note The opposite function, which determines whether all lines, no lines, only even lines, or only odd lines are <i>written</i> to the EFB, is GX_SetFieldMask().<br><br>
  *
  * \param[in] mode \ref copymode to determine which field to copy (or both)
  *
@@ -3813,13 +3812,13 @@ void GX_CopyDisp(void *dest,u8 clear);
 void GX_SetTexCopySrc(u16 left,u16 top,u16 wd,u16 ht);
 
 /*!
- * \fn void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mipmap)
+ * \fn void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mode)
  * \brief This function sets the width and height of the destination texture buffer in texels.
  *
  * \details This function sets the width (\a wd) and height (\a ht) of the destination texture buffer in texels. The application may render an image into
  * the EFB and then copy it into a texture buffer in main memory. \a wd specifies the number of texels between adjacent lines in the texture buffer and can
  * be different than the width of the source image. This function also sets the texture format (\a fmt) to be created during the copy operation. An
- * optional box filter can be enabled using \a mipmap. This flag will scale the source image by 1/2.
+ * optional box filter can be enabled by setting \a mode to <tt>GX_COPY_MIPMAP</tt>. This flag will scale the source image by 1/2.
  *
  * Normally, the width of the EFB and destination \a wd are the same. When rendering smaller images that get copied and composited into a larger texture
  * buffer, however, the EFB width and texture buffer \a wd are not necessarily the same.
@@ -3832,11 +3831,11 @@ void GX_SetTexCopySrc(u16 left,u16 top,u16 wd,u16 ht);
  * \param[in] wd distance between successive lines in the texture buffer, in texels; must be a multiple of the texture tile width, which depends on \a fmt.
  * \param[in] ht height of the texture buffer
  * \param[in] fmt \ref texfmt
- * \param[in] mipmap flag that indicates framebuffer should be cleared if <tt>GX_TRUE</tt>.
+ * \param[in] mode \ref copymode to determine which field to copy (or both)
  *
  * \return none
  */
-void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mipmap);
+void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mode);
 
 /*!
  * \fn void GX_CopyTex(void *dest,u8 clear)

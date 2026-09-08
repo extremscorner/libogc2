@@ -2066,7 +2066,7 @@ void GX_SetTexCopySrc(u16 left,u16 top,u16 wd,u16 ht)
 	__gx->texCopyWH = (__gx->texCopyWH&~0xff000000)|(_SHIFTL(0x4a,24,8));
 }
 
-void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mipmap)
+void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mode)
 {
 	u8 lfmt = fmt&0xf;
 	u32 xtiles,ytiles,zplanes;
@@ -2079,7 +2079,8 @@ void GX_SetTexCopyDst(u16 wd,u16 ht,u32 fmt,u8 mipmap)
 	else __gx->texCopyCntrl = (__gx->texCopyCntrl&~0x18000)|0x10000;
 
 	__gx->texCopyCntrl = (__gx->texCopyCntrl&~0x8)|(lfmt&0x8);
-	__gx->texCopyCntrl = (__gx->texCopyCntrl&~0x200)|(_SHIFTL(mipmap,9,1));
+	__gx->texCopyCntrl = (__gx->texCopyCntrl&~0x3000)|(_SHIFTL(mode,12,2));
+	__gx->texCopyCntrl = (__gx->texCopyCntrl&~0x200)|(_SHIFTL((mode==GX_COPY_MIPMAP),9,1));
 	__gx->texCopyCntrl = (__gx->texCopyCntrl&~0x70)|(_SHIFTL(lfmt,4,3));
 
 	__gx->texCopyDst = (__gx->texCopyDst&~0xff000000)|(_SHIFTL(0x4d,24,8));
