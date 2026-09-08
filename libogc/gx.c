@@ -709,7 +709,7 @@ static void __GX_InitGX(void)
 	GX_SetFieldMask(GX_ENABLE,GX_ENABLE);
 
 	flag = GX_DISABLE;
-	if(rmode->viHeight==(rmode->efbHeight<<1)) flag = GX_ENABLE;
+	if(rmode->viHeight/rmode->efbHeight==2) flag = GX_ENABLE;
 	GX_SetFieldMode(rmode->field_rendering,flag);
 
 	GX_SetDispCopySrc(0,0,rmode->fbWidth,rmode->efbHeight);
