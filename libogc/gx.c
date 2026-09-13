@@ -1959,6 +1959,7 @@ u32 GX_SetDispCopyYScale(f32 yscale)
 
 void GX_SetDispCopyDst(u16 wd,u16 ht)
 {
+	wd = VIDEO_PadFramebufferWidth(wd);
 	__gx->dispCopyDst = (__gx->dispCopyDst&~0x3ff)|(_SHIFTR(wd,4,10));
 	__gx->dispCopyDst = (__gx->dispCopyDst&~0xff000000)|(_SHIFTL(0x4d,24,8));
 }
