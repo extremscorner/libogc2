@@ -297,6 +297,15 @@ ifeq ($(PLATFORM),wii)
 LIBRARIES	+=	$(BTELIB).a $(WIIUSELIB).a $(DILIB).a $(WIIKEYBLIB).a
 endif
 
+# base_rules' generic archive recipe leaves $@ unquoted. Keep the archive
+# target safe when the checkout or output directory contains spaces.
+$(LIBRARIES):
+#---------------------------------------------------------------------------------
+	$(SILENTMSG) $(notdir $@)
+	$(ADD_COMPILE_COMMAND) end
+	$(SILENTCMD)rm -f "$@"
+	$(SILENTCMD)$(AR) -rc "$@" $^
+
 #---------------------------------------------------------------------------------
 libs: $(LIBRARIES)
 #---------------------------------------------------------------------------------
