@@ -3570,38 +3570,58 @@ GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode)
 			}
 		} else if (tvMode == VI_PAL && SYS_GetEuRGB60()) tvMode = VI_EURGB60;
 #endif
-		if (scanMode == VI_PROGRESSIVE) {
-			switch (tvMode) {
-				case VI_PAL:
-				case VI_DEBUG_PAL:
-					rmode = &TVPal576ProgScale;
-					break;
-				case VI_EURGB60:
-					rmode = &TVEurgb60Hz480Prog;
-					break;
-				case VI_MPAL:
-					rmode = &TVMpal480Prog;
-					break;
-				default:
-					rmode = &TVNtsc480Prog;
-					break;
-			}
-		} else {
-			switch (tvMode) {
-				case VI_PAL:
-				case VI_DEBUG_PAL:
-					rmode = &TVPal576IntDfScale;
-					break;
-				case VI_EURGB60:
-					rmode = &TVEurgb60Hz480IntDf;
-					break;
-				case VI_MPAL:
-					rmode = &TVMpal480IntDf;
-					break;
-				default:
-					rmode = &TVNtsc480IntDf;
-					break;
-			}
+		switch (scanMode) {
+			case VI_INTERLACE:
+				switch (tvMode) {
+					case VI_PAL:
+					case VI_DEBUG_PAL:
+						rmode = &TVPal576IntDfScale;
+						break;
+					case VI_EURGB60:
+						rmode = &TVEurgb60Hz480IntDf;
+						break;
+					case VI_MPAL:
+						rmode = &TVMpal480IntDf;
+						break;
+					default:
+						rmode = &TVNtsc480IntDf;
+						break;
+				}
+				break;
+			case VI_NON_INTERLACE:
+				switch (tvMode) {
+					case VI_PAL:
+					case VI_DEBUG_PAL:
+						rmode = &TVPal288DsVfScale;
+						break;
+					case VI_EURGB60:
+						rmode = &TVEurgb60Hz240DsVf;
+						break;
+					case VI_MPAL:
+						rmode = &TVMpal240DsVf;
+						break;
+					default:
+						rmode = &TVNtsc240DsVf;
+						break;
+				}
+				break;
+			case VI_PROGRESSIVE:
+				switch (tvMode) {
+					case VI_PAL:
+					case VI_DEBUG_PAL:
+						rmode = &TVPal576ProgScale;
+						break;
+					case VI_EURGB60:
+						rmode = &TVEurgb60Hz480Prog;
+						break;
+					case VI_MPAL:
+						rmode = &TVMpal480Prog;
+						break;
+					default:
+						rmode = &TVNtsc480Prog;
+						break;
+				}
+				break;
 		}
 	}
 
