@@ -318,6 +318,9 @@ static s32 __cycle(usbstorage_handle *dev, u8 lun, u8 *buffer, u32 len, u8 *cb, 
 			u32 thisLen = _len > max_size ? max_size : _len;
 
 			if (!SYS_IsDMAAddress(_buffer, 32) || !SYS_IsDMAAddress(_buffer + thisLen, 1)) {
+				if (thisLen > dev->buffer_size)
+					thisLen = dev->buffer_size;
+
 				if (write) memcpy(dev->buffer, _buffer, thisLen);
 				retval = __USB_BlkMsgTimeout(dev, ep, thisLen, dev->buffer, usbtimeout);
 				if (!write && retval > 0)
@@ -535,8 +538,11 @@ found:
 	//USB_ClearHalt(dev->usb_fd, dev->ep_in);
 	//USB_ClearHalt(dev->usb_fd, dev->ep_out);
 
+	if(!dev->buffer_size)
+		dev->buffer_size = MAX_TRANSFER_SIZE_V0;
+
 	if(!dev->buffer)
-		dev->buffer = __lwp_heap_allocate(&__heap, MAX_TRANSFER_SIZE_V5);
+		dev->buffer = __lwp_heap_allocate(&__heap, dev->buffer_size);
 
 	if(!dev->buffer) {
 		retval = IPC_ENOMEM;

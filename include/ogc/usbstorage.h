@@ -2,7 +2,7 @@
 
 usbstorage.h -- Bulk-only USB mass storage support
 
-Copyright (C) 2008 - 2025
+Copyright (C) 2008 - 2026
 Sven Peter (svpe) <svpe@gmx.net>
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
@@ -81,6 +81,7 @@ typedef struct
 	u8 suspended;
 
 	u8 *buffer;
+	u32 buffer_size;
 } usbstorage_handle;
 
 #define B_RAW_DEVICE_DATA_IN 0x01
