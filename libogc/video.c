@@ -2408,7 +2408,7 @@ static inline void __setPicConfig(u16 fbSizeX,u32 xfbMode,u16 panPosX,u16 panSiz
 {
 	*wordPerLine = (fbSizeX+15)/16;
 	*std = *wordPerLine;
-	if(xfbMode!=VI_XFBMODE_SF) *std <<= 1;
+	if(xfbMode>=VI_XFBMODE_DF) *std <<= 1;
 
 	*xof = panPosX%16;
 	*wpl = (*xof+(panSizeX+15))/16;
@@ -2451,7 +2451,11 @@ static inline void __calcFbbs(u32 bufAddr,u16 panPosX,u16 panPosY,u8 wordperline
 	bytesPerLine = (wordperline<<5)&0x1fe0;
 	*tfbb = bufAddr+((panPosX*VI_DISPLAY_PIX_SZ)+(panPosY*bytesPerLine));
 	*bfbb = *tfbb;
-	if(xfbMode!=VI_XFBMODE_SF) *bfbb = *tfbb+bytesPerLine;
+
+	if(xfbMode>=VI_XFBMODE_DF) {
+		if(xfbMode!=VI_XFBMODE_DF_ABOVE) *bfbb = *tfbb+bytesPerLine;
+		if(xfbMode==VI_XFBMODE_DF_BELOW) *tfbb = *bfbb;
+	}
 
 	if(dispPosY%2) {
 		tmp = *tfbb;
@@ -3423,7 +3427,7 @@ f32 VIDEO_GetRetraceRate(void)
 
 	rate /= currTiming->hlw;
 	rate /= currTiming->nhlines;
-	if(HorVer.fbMode==VI_XFBMODE_PSF) rate /= 2.0f;
+	if(HorVer.fbMode>=VI_XFBMODE_PSF) rate /= 2.0f;
 	_CPU_ISR_Restore(level);
 
 	return rate;
@@ -3434,7 +3438,7 @@ u32 VIDEO_GetNextField(void)
 	u32 level,field;
 
 	_CPU_ISR_Disable(level);
-	if(HorVer.fbMode==VI_XFBMODE_PSF) field = VI_FRAME;
+	if(HorVer.fbMode>=VI_XFBMODE_PSF) field = VI_FRAME;
 	else {
 		field = __getCurrentFieldEvenOdd();
 		field ^= (HorVer.adjustedDispPosY&1)^1;

@@ -80,7 +80,9 @@ distribution.
 
 #define VI_XFBMODE_SF				0
 #define VI_XFBMODE_DF				1
-#define VI_XFBMODE_PSF				2
+#define VI_XFBMODE_DF_ABOVE			2
+#define VI_XFBMODE_DF_BELOW			3
+#define VI_XFBMODE_PSF				4		/*!< Progressive segmented frame mode */
 
 
 /*!
