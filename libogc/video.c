@@ -2393,7 +2393,7 @@ static inline void __setInterruptRegs(const struct _timing *tm)
 
 	hl = 0;
 	hlw = 0;
-	if(HorVer.fbMode<VI_XFBMODE_PSF) {
+	if(HorVer.fbMode<VI_XFBMODE_AF) {
 		hl = tm->nhlines/2;
 		if(tm->nhlines%2) hlw = tm->hlw;
 	}
@@ -2408,7 +2408,7 @@ static inline void __setPicConfig(u16 fbSizeX,u32 xfbMode,u16 panPosX,u16 panSiz
 {
 	*wordPerLine = (fbSizeX+15)/16;
 	*std = *wordPerLine;
-	if(xfbMode>=VI_XFBMODE_DF) *std <<= 1;
+	if((xfbMode&0x3)!=VI_XFBMODE_SF) *std <<= 1;
 
 	*xof = panPosX%16;
 	*wpl = (*xof+(panSizeX+15))/16;
@@ -2443,19 +2443,20 @@ static void __setScalingRegs(u16 panSizeX,u16 dispSizeX,s32 threeD)
 	}
 }
 
-static inline void __calcFbbs(u32 bufAddr,u16 panPosX,u16 panPosY,u8 wordperline,u32 xfbMode,u16 dispPosY,u32 *tfbb,u32 *bfbb)
+static inline void __calcFbbs(u32 bufAddr,u32 rbufAddr,u16 panPosX,u16 panPosY,u8 wordperline,u32 xfbMode,u16 dispPosY,u32 *tfbb,u32 *bfbb)
 {
 	u32 bytesPerLine,tmp;
 
 	panPosX &= 0xfff0;
 	bytesPerLine = (wordperline<<5)&0x1fe0;
 	*tfbb = bufAddr+((panPosX*VI_DISPLAY_PIX_SZ)+(panPosY*bytesPerLine));
-	*bfbb = *tfbb;
+	*bfbb = rbufAddr+((panPosX*VI_DISPLAY_PIX_SZ)+(panPosY*bytesPerLine));
 
-	if(xfbMode>=VI_XFBMODE_DF) {
+	if((xfbMode&0x3)!=VI_XFBMODE_SF) {
+		*bfbb = *tfbb;
 		if(xfbMode!=VI_XFBMODE_DF_ABOVE) *bfbb = *tfbb+bytesPerLine;
 		if(xfbMode==VI_XFBMODE_DF_BELOW) *tfbb = *bfbb;
-	}
+	} else if(xfbMode==VI_XFBMODE_SF) *bfbb = *tfbb;
 
 	if(dispPosY%2) {
 		tmp = *tfbb;
@@ -2470,8 +2471,10 @@ static inline void __calcFbbs(u32 bufAddr,u16 panPosX,u16 panPosY,u8 wordperline
 static inline void __setFbbRegs(struct _horVer *horVer,u32 *tfbb,u32 *bfbb,u32 *rtfbb,u32 *rbfbb)
 {
 	u32 flag;
-	__calcFbbs((u32)horVer->bufAddr,horVer->panPosX,horVer->adjustedPanPosY,horVer->wordPerLine,horVer->fbMode,horVer->adjustedDispPosY,tfbb,bfbb);
-	if(horVer->threeD) __calcFbbs((u32)horVer->rbufAddr,horVer->panPosX,horVer->adjustedPanPosY,horVer->wordPerLine,horVer->fbMode,horVer->adjustedDispPosY,rtfbb,rbfbb);
+	if(horVer->threeD) {
+		__calcFbbs((u32)horVer->bufAddr,(u32)horVer->bufAddr,horVer->panPosX,horVer->adjustedPanPosY,horVer->wordPerLine,horVer->fbMode,horVer->adjustedDispPosY,tfbb,bfbb);
+		__calcFbbs((u32)horVer->rbufAddr,(u32)horVer->rbufAddr,horVer->panPosX,horVer->adjustedPanPosY,horVer->wordPerLine,horVer->fbMode,horVer->adjustedDispPosY,rtfbb,rbfbb);
+	} else __calcFbbs((u32)horVer->bufAddr,(u32)horVer->rbufAddr,horVer->panPosX,horVer->adjustedPanPosY,horVer->wordPerLine,horVer->fbMode,horVer->adjustedDispPosY,tfbb,bfbb);
 
 	flag = 1;
 	if((*tfbb)<0x01000000 && (*bfbb)<0x01000000
@@ -2589,7 +2592,7 @@ static inline void __adjustPosition(u16 acv)
 	} else HorVer.adjustedDispPosX = (720-HorVer.dispSizeX);
 
 	fact = 1;
-	if(HorVer.fbMode==VI_XFBMODE_SF) fact = 2;
+	if((HorVer.fbMode&0x3)==VI_XFBMODE_SF) fact = 2;
 
 	dispPosY = HorVer.dispPosY+displayOffsetV;
 	field = dispPosY&1;
@@ -3187,7 +3190,7 @@ void VIDEO_Configure(const GXRModeObj *rmode)
 		&& (rmode->xfbHeight<<1)!=rmode->viHeight) printf("VIDEO_Configure(): xfbHeight(%d) is not as twice as viHeight(%d) when SF XFB mode is specified\n",rmode->xfbHeight,rmode->viHeight);
 #endif
 	_CPU_ISR_Disable(level);
-	nonint = (rmode->viTVMode&0x0003);
+	nonint = (rmode->viTVMode&0x3);
 	if(nonint!=HorVer.nonInter) {
 		changeMode = 1;
 		HorVer.nonInter = nonint;
@@ -3263,10 +3266,10 @@ void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height)
 	HorVer.panSizeY = height;
 
 	if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) {
-		if(HorVer.fbMode!=VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY>>1;
+		if((HorVer.fbMode&0x3)!=VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY>>1;
 		else HorVer.dispSizeY = HorVer.panSizeY;
 	} else {
-		if(HorVer.fbMode==VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY<<1;
+		if((HorVer.fbMode&0x3)==VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY<<1;
 		else HorVer.dispSizeY = HorVer.panSizeY&~1;
 	}
 
@@ -3430,7 +3433,7 @@ f32 VIDEO_GetRetraceRate(void)
 
 	rate /= currTiming->hlw;
 	rate /= currTiming->nhlines;
-	if(HorVer.fbMode>=VI_XFBMODE_PSF) rate /= 2.0f;
+	if(HorVer.fbMode>=VI_XFBMODE_AF) rate /= 2.0f;
 	_CPU_ISR_Restore(level);
 
 	return rate;
@@ -3441,7 +3444,7 @@ u32 VIDEO_GetNextField(void)
 	u32 level,field;
 
 	_CPU_ISR_Disable(level);
-	if(HorVer.fbMode>=VI_XFBMODE_PSF) field = VI_FRAME;
+	if(HorVer.fbMode>=VI_XFBMODE_AF) field = VI_FRAME;
 	else {
 		field = __getCurrentFieldEvenOdd();
 		field ^= (HorVer.adjustedDispPosY&1)^1;
