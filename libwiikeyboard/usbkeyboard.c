@@ -390,11 +390,13 @@ void USBKeyboard_Close(void)
 		return;
 
 	if(_kbd->fd != -1)
+	{
+		USB_ClearHalt( _kbd->fd, _kbd->ep );
 		USB_CloseDevice(&_kbd->fd);
+	}
 
 	free(_kbd);
 	_kbd = NULL;
-
 	return;
 }
 
@@ -461,7 +463,6 @@ s32 USBKeyboard_Scan(void)
 	}
 
 	_kbd->sc_odata = _kbd->sc_ndata;
-
 	return 0;
 }
 
@@ -495,4 +496,3 @@ s32 USBKeyboard_ToggleLed(const USBKeyboard_led led)
 
 	return 1;
 }
-
