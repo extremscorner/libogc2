@@ -3198,6 +3198,9 @@ void VIDEO_Configure(const GXRModeObj *rmode)
 	if(HorVer.nonInter==VI_NON_INTERLACE) HorVer.dispPosY = HorVer.dispPosY<<1;
 
 	HorVer.dispSizeX = rmode->viWidth;
+	HorVer.dispSizeY = rmode->viHeight;
+	if(HorVer.nonInter==VI_INTERLACE || HorVer.nonInter==VI_NON_INTERLACE) HorVer.dispSizeY = HorVer.dispSizeY&~1;
+
 	HorVer.fbSizeX = rmode->fbWidth;
 	HorVer.fbSizeY = rmode->xfbHeight;
 	HorVer.fbMode = rmode->xfbMode;
@@ -3205,10 +3208,6 @@ void VIDEO_Configure(const GXRModeObj *rmode)
 	HorVer.panSizeY = HorVer.fbSizeY;
 	HorVer.panPosX = 0;
 	HorVer.panPosY = 0;
-
-	if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) HorVer.dispSizeY = HorVer.panSizeY;
-	else if(HorVer.fbMode==VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY<<1;
-	else HorVer.dispSizeY = HorVer.panSizeY;
 
 	if(HorVer.nonInter==VI_3D) HorVer.threeD = 1;
 	else HorVer.threeD = 0;
@@ -3263,9 +3262,13 @@ void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height)
 	HorVer.panSizeX = width;
 	HorVer.panSizeY = height;
 
-	if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) HorVer.dispSizeY = HorVer.panSizeY;
-	else if(HorVer.fbMode==VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY<<1;
-	else HorVer.dispSizeY = HorVer.panSizeY;
+	if(HorVer.nonInter==VI_PROGRESSIVE || HorVer.nonInter==VI_3D) {
+		if(HorVer.fbMode!=VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY>>1;
+		else HorVer.dispSizeY = HorVer.panSizeY;
+	} else {
+		if(HorVer.fbMode==VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY<<1;
+		else HorVer.dispSizeY = HorVer.panSizeY&~1;
+	}
 
 	curtiming = HorVer.timing;
 	__adjustPosition(curtiming->acv);
