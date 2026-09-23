@@ -7,7 +7,7 @@ jobs:
     name: Build libogc2
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        os: [ubuntu-26.04, ubuntu-26.04-arm]
     runs-on: ${{ matrix.os }}
     container: ghcr.io/extremscorner/libogc2:latest
 
@@ -43,7 +43,7 @@ jobs:
       working-directory: libntfs
 
     - name: Upload artifacts
-      if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+      if: ${{ matrix.os == 'ubuntu-26.04-arm' }}
       uses: actions/upload-artifact@main
       with:
         name: libogc2
@@ -70,14 +70,14 @@ jobs:
       working-directory: wii-examples
 
     - name: Upload gamecube-examples
-      if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+      if: ${{ matrix.os == 'ubuntu-26.04-arm' }}
       uses: actions/upload-artifact@main
       with:
         name: gamecube-examples
         path: gamecube-examples/bin
 
     - name: Upload wii-examples
-      if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+      if: ${{ matrix.os == 'ubuntu-26.04-arm' }}
       uses: actions/upload-artifact@main
       with:
         name: wii-examples
