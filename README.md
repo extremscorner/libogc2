@@ -2,7 +2,7 @@
 
 [![libogc2 build](https://github.com/extremscorner/libogc2/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/extremscorner/libogc2/actions/workflows/continuous-integration-workflow.yml) [![Extrems' Corner.org Discord](https://discordapp.com/api/guilds/243509579961466881/widget.png)](https://discord.extremscorner.org/)
 
-**libogc2** contains wide-ranging fixes and additions to most subsystems of libogc, provides hardware enablement for most new (and old) Nintendo GameCube accessories on the market or in prototype stage, and enables greater interoperability with [Swiss](https://github.com/emukidid/swiss-gc).
+**libogc2** contains wide-ranging fixes and additions to most subsystems of libogc, provides hardware enablement for most new (and old) Nintendo GameCube accessories on the market or in prototype stage, and enables greater interoperability with [Swiss](https://libogc2.org/wiki/Interactions-with-Swiss).
 
 It is largely API compatible with libogc 2.1.0 and earlier.
 
