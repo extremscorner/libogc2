@@ -311,6 +311,12 @@ static void __dsp_resumecallback(dsptask_t *task)
 
 static void __dsp_requestcallback(dsptask_t *task)
 {
+	if(__aesnddsptask.flags&DSPTASK_CANCEL) {
+		DSP_SendMailTo(0xfacedead);
+		while(DSP_CheckMailTo());
+		return;
+	}
+
 	DCInvalidateRange(&__aesndcommand,PB_STRUCT_SIZE);
 
 	if(__aesndcommand.flags&VOICE_FINISHED) {
@@ -467,10 +473,13 @@ void AESND_Reset(void)
 	if(__aesndinit) {
 		AUDIO_StopDMA();
 		AUDIO_RegisterDMACallback(NULL);
+		DSP_CancelTask(&__aesnddsptask);
 
-		DSP_SendMailTo(0xfacedead);
-		while(DSP_CheckMailTo());
-		
+		if(__aesnddspcomplete) {
+			DSP_SendMailTo(0xfacedead);
+			while(DSP_CheckMailTo());
+		}
+
 		do {
 			_CPU_ISR_Flash(level);
 		} while(__aesnddspinit);
