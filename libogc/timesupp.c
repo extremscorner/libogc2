@@ -89,7 +89,7 @@ int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp)
 			tp->tv_nsec = tick_nanosecs(now);
 			return 0;
 		case CLOCK_MONOTONIC:
-			now = __SYS_GetSystemTime();
+			now = SYS_GetSystemTime();
 			tp->tv_sec = ticks_to_secs(now);
 			tp->tv_nsec = tick_nanosecs(now);
 			return 0;

@@ -119,7 +119,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 	DCInvalidateRange(&sound_data_dma, sizeof(t_sound_data));
 
 	if(snd_chan>=MAX_VOICES) {
-		if(!dsp_complete) time_of_process = (gettime() - dsp_task_starttime);
+		if(!dsp_complete) time_of_process = (SYS_GetSystemTime() - dsp_task_starttime);
 		if(!global_pause) global_counter++;
 
 		dsp_complete = 1;
@@ -302,7 +302,7 @@ static void audio_dma_callback(void)
 	sound_data_dma=sound_data[snd_chan];
 	DCFlushRange(&sound_data_dma, sizeof(t_sound_data));
 
-	dsp_task_starttime = gettime();
+	dsp_task_starttime = SYS_GetSystemTime();
 	DSP_SendMailTo(0x111); // send the first voice and clear the buffer
 	while(DSP_CheckMailTo());
 
