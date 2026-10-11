@@ -155,7 +155,7 @@ static s32 __sd0_initialized = 0;
 static s32 __sd0_sdhc = 0;
 static u8 __sd0_csd[16];
 static u8 __sd0_cid[16];
-static u8 __sd0_functions[64] ATTRIBUTE_ALIGN(32);
+static u8 __sd0_functions[64] ATTRIBUTE_ALIGN(64);
 
 static bool __sdio_initialized = false;
 
