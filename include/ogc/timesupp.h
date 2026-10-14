@@ -45,6 +45,8 @@
 
 #define diff_ticks(tick0,tick1)		(((u64)(tick1)<(u64)(tick0))?((u64)-1-(u64)(tick0)+(u64)(tick1)):((u64)(tick1)-(u64)(tick0)))
 
+#define DIFF_SEC_1970_2000			946684800u
+
 #ifdef __cplusplus
 extern "C" {
 #endif

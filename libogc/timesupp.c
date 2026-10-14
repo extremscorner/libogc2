@@ -85,7 +85,7 @@ int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp)
 	switch (clock_id) {
 		case CLOCK_REALTIME:
 			now = gettime();
-			tp->tv_sec = ticks_to_secs(now) + 946684800;
+			tp->tv_sec = ticks_to_secs(now) + DIFF_SEC_1970_2000;
 			tp->tv_nsec = tick_nanosecs(now);
 			return 0;
 		case CLOCK_MONOTONIC:
@@ -104,7 +104,7 @@ int __syscall_clock_settime(clockid_t clock_id, const struct timespec *tp)
 	u64 now;
 	switch (clock_id) {
 		case CLOCK_REALTIME:
-			now = secs_to_ticks(tp->tv_sec - 946684800);
+			now = secs_to_ticks(tp->tv_sec - DIFF_SEC_1970_2000);
 			now += nanosecs_to_ticks(tp->tv_nsec);
 			__SYS_SetTime(now);
 			return 0;
@@ -171,7 +171,7 @@ int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *
 	u64 now;
 	if (tp != NULL) {
 		now = gettime();
-		tp->tv_sec = ticks_to_secs(now) + 946684800;
+		tp->tv_sec = ticks_to_secs(now) + DIFF_SEC_1970_2000;
 		tp->tv_usec = tick_microsecs(now);
 	}
 	if (tz != NULL) {
@@ -180,4 +180,18 @@ int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *
 		tz->tz_dsttime = _daylight;
 	}
 	return 0;
+}
+
+int timespec_get(struct timespec *ts, int base)
+{
+	u64 now;
+	switch (base) {
+		case TIME_UTC:
+			now = gettime();
+			ts->tv_sec = ticks_to_secs(now) + DIFF_SEC_1970_2000;
+			ts->tv_nsec = tick_nanosecs(now);
+			return base;
+		default:
+			return 0;
+	}
 }
