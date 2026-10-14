@@ -27,6 +27,7 @@ distribution.
 
 #if defined(HW_RVL)
 
+#include <errno.h>
 #define USE_DL_PREFIX
 #include <malloc.h>
 #include <ogc/system.h>
@@ -216,112 +217,172 @@ void __attribute__((weak)) malloc_stats(void)
 #define MALLOC_MEM(n) \
 char *__attribute__((weak)) mem##n##_strdup(const char *oldmem) \
 { \
-	return mspace_strdup(mem##n##_mspace, oldmem); \
+	if (mem##n##_mspace) \
+		return mspace_strdup(mem##n##_mspace, oldmem); \
+	else \
+		return NULL; \
 } \
  \
 char *__attribute__((weak)) mem##n##_strndup(const char *oldmem, size_t bytes) \
 { \
-	return mspace_strndup(mem##n##_mspace, oldmem, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_strndup(mem##n##_mspace, oldmem, bytes); \
+	else \
+		return NULL; \
 } \
  \
 void *__attribute__((weak)) mem##n##_malloc(size_t bytes) \
 { \
-	return mspace_malloc(mem##n##_mspace, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_malloc(mem##n##_mspace, bytes); \
+	else \
+		return NULL; \
 } \
  \
 void __attribute__((weak)) mem##n##_free(void *mem) \
 { \
-	mspace_free(mem##n##_mspace, mem); \
+	if (mem##n##_mspace) \
+		mspace_free(mem##n##_mspace, mem); \
 } \
  \
 void *__attribute__((weak)) mem##n##_calloc(size_t n_elements, size_t elem_size) \
 { \
-	return mspace_calloc(mem##n##_mspace, n_elements, elem_size); \
+	if (mem##n##_mspace) \
+		return mspace_calloc(mem##n##_mspace, n_elements, elem_size); \
+	else \
+		return NULL; \
 } \
  \
 void *__attribute__((weak)) mem##n##_realloc(void *oldmem, size_t bytes) \
 { \
-	return mspace_realloc(mem##n##_mspace, oldmem, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_realloc(mem##n##_mspace, oldmem, bytes); \
+	else \
+		return NULL; \
 } \
  \
 void *__attribute__((weak)) mem##n##_realloc_in_place(void *oldmem, size_t bytes) \
 { \
-	return mspace_realloc_in_place(mem##n##_mspace, oldmem, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_realloc_in_place(mem##n##_mspace, oldmem, bytes); \
+	else \
+		return NULL; \
 } \
  \
 void *__attribute__((weak)) mem##n##_memalign(size_t alignment, size_t bytes) \
 { \
-	return mspace_memalign(mem##n##_mspace, alignment, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_memalign(mem##n##_mspace, alignment, bytes); \
+	else \
+		return NULL; \
 } \
  \
 int __attribute__((weak)) mem##n##_posix_memalign(void **pp, size_t alignment, size_t bytes) \
 { \
-	return mspace_posix_memalign(mem##n##_mspace, pp, alignment, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_posix_memalign(mem##n##_mspace, pp, alignment, bytes); \
+	else \
+		return ENOMEM; \
 } \
  \
 void *__attribute__((weak)) mem##n##_valloc(size_t bytes) \
 { \
-	return mspace_valloc(mem##n##_mspace, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_valloc(mem##n##_mspace, bytes); \
+	else \
+		return NULL; \
 } \
  \
 void *__attribute__((weak)) mem##n##_pvalloc(size_t bytes) \
 { \
-	return mspace_pvalloc(mem##n##_mspace, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_pvalloc(mem##n##_mspace, bytes); \
+	else \
+		return NULL; \
 } \
  \
 void **__attribute__((weak)) mem##n##_independent_calloc(size_t n_elements, size_t elem_size, void *chunks[]) \
 { \
-	return mspace_independent_calloc(mem##n##_mspace, n_elements, elem_size, chunks); \
+	if (mem##n##_mspace) \
+		return mspace_independent_calloc(mem##n##_mspace, n_elements, elem_size, chunks); \
+	else \
+		return NULL; \
 } \
  \
 void **__attribute__((weak)) mem##n##_independent_comalloc(size_t n_elements, size_t sizes[], void *chunks[]) \
 { \
-	return mspace_independent_comalloc(mem##n##_mspace, n_elements, sizes, chunks); \
+	if (mem##n##_mspace) \
+		return mspace_independent_comalloc(mem##n##_mspace, n_elements, sizes, chunks); \
+	else \
+		return NULL; \
 } \
  \
 size_t __attribute__((weak)) mem##n##_bulk_free(void *array[], size_t n_elements) \
 { \
-	return mspace_bulk_free(mem##n##_mspace, array, n_elements); \
+	if (mem##n##_mspace) \
+		return mspace_bulk_free(mem##n##_mspace, array, n_elements); \
+	else \
+		return 0; \
 } \
  \
 void __attribute__((weak)) mem##n##_malloc_inspect_all(void (*handler)(void *, void *, size_t, void *), void *arg) \
 { \
-	mspace_inspect_all(mem##n##_mspace, handler, arg); \
+	if (mem##n##_mspace) \
+		mspace_inspect_all(mem##n##_mspace, handler, arg); \
 } \
  \
 int __attribute__((weak)) mem##n##_malloc_trim(size_t pad) \
 { \
-	return mspace_trim(mem##n##_mspace, pad); \
+	if (mem##n##_mspace) \
+		return mspace_trim(mem##n##_mspace, pad); \
+	else \
+		return 0; \
 } \
  \
 size_t __attribute__((weak)) mem##n##_malloc_footprint(void) \
 { \
-	return mspace_footprint(mem##n##_mspace); \
+	if (mem##n##_mspace) \
+		return mspace_footprint(mem##n##_mspace); \
+	else \
+		return 0; \
 } \
  \
 size_t __attribute__((weak)) mem##n##_malloc_max_footprint(void) \
 { \
-	return mspace_max_footprint(mem##n##_mspace); \
+	if (mem##n##_mspace) \
+		return mspace_max_footprint(mem##n##_mspace); \
+	else \
+		return 0; \
 } \
  \
 size_t __attribute__((weak)) mem##n##_malloc_footprint_limit(void) \
 { \
-	return mspace_footprint_limit(mem##n##_mspace); \
+	if (mem##n##_mspace) \
+		return mspace_footprint_limit(mem##n##_mspace); \
+	else \
+		return 0; \
 } \
  \
 size_t __attribute__((weak)) mem##n##_malloc_set_footprint_limit(size_t bytes) \
 { \
-	return mspace_set_footprint_limit(mem##n##_mspace, bytes); \
+	if (mem##n##_mspace) \
+		return mspace_set_footprint_limit(mem##n##_mspace, bytes); \
+	else \
+		return 0; \
 } \
  \
 struct mallinfo __attribute__((weak)) mem##n##_mallinfo(void) \
 { \
-	return mspace_mallinfo(mem##n##_mspace); \
+	if (mem##n##_mspace) \
+		return mspace_mallinfo(mem##n##_mspace); \
+	else \
+		return (struct mallinfo){}; \
 } \
  \
 void __attribute__((weak)) mem##n##_malloc_stats(void) \
 { \
-	mspace_malloc_stats(mem##n##_mspace); \
+	if (mem##n##_mspace) \
+		mspace_malloc_stats(mem##n##_mspace); \
 } \
 
 MALLOC_MEM(1)
