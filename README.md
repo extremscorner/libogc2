@@ -47,7 +47,19 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 
 ### Subprojects
 
-[BtEmbedded](https://github.com/extremscorner/bt-embedded), [cubeboot-tools](https://github.com/extremscorner/cubeboot-tools), [Embedded Game Controller](https://github.com/extremscorner/embedded-game-controller), [gamecube-examples](https://github.com/extremscorner/gamecube-examples), [gamecube-tools](https://github.com/extremscorner/gamecube-tools), [GRRLIB](https://github.com/extremscorner/GRRLIB), [libansnd](https://github.com/extremscorner/libansnd), [libdvm](https://github.com/extremscorner/libdvm), [libfat](https://github.com/extremscorner/libfat), [libntfs](https://github.com/extremscorner/libntfs), [OpenGX](https://github.com/extremscorner/opengx), [SDL](https://github.com/extremscorner/SDL), [wii-examples](https://github.com/extremscorner/wii-examples)
+- [BtEmbedded](https://github.com/extremscorner/bt-embedded) - `libogc2-bt-embedded`, `libogc2-bt-embedded-obex`
+- [cubeboot-tools](https://github.com/extremscorner/cubeboot-tools)
+- [Embedded Game Controller](https://github.com/extremscorner/embedded-game-controller) - `libogc2-embedded-game-controller`
+- [gamecube-examples](https://github.com/extremscorner/gamecube-examples) - `libogc2-examples`
+- [gamecube-tools](https://github.com/extremscorner/gamecube-tools) - `gamecube-tools-git`
+- [GRRLIB](https://github.com/extremscorner/GRRLIB) - `libogc2-grrlib`, `libogc2-grrlib-docs`, `libogc2-grrlib-examples`
+- [libansnd](https://github.com/extremscorner/libansnd) - `libogc2-libansnd`, `libogc2-libansnd-examples`
+- [libdvm](https://github.com/extremscorner/libdvm) - `libogc2-libdvm`
+- [libfat](https://github.com/extremscorner/libfat) - `libogc2-libfat`
+- [libntfs](https://github.com/extremscorner/libntfs) - `libogc2-libntfs`
+- [OpenGX](https://github.com/extremscorner/opengx) - `libogc2-opengx`
+- [SDL](https://github.com/extremscorner/SDL) - `libogc2-sdl`, `libogc2-sdl2`
+- [wii-examples](https://github.com/extremscorner/wii-examples) - `libogc2-examples`
 
 ## Installing
 
