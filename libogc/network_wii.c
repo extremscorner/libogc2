@@ -2,7 +2,7 @@
 
 network_wii.c -- Wii network subsystem
 
-Copyright (C) 2008 - 2025
+Copyright (C) 2008 - 2026
 bushing
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
@@ -58,7 +58,6 @@ distribution.
 #include "processor.h"
 #include "network.h"
 #include "ogcsys.h"
-#include "lwp_heap.h"
 
 #define NET_HEAP_SIZE				64*1024
 
@@ -241,9 +240,8 @@ static volatile bool _init_busy = false;
 static volatile bool _init_abort = false;
 static vs32 _last_init_result = -ENETDOWN;
 static s32 net_ip_top_fd = -1;
-static u8 __net_heap_inited = 0;
-static s32 __net_hid=-1;
-static heap_cntrl __net_heap;
+static s32 __net_hid = -1;
+static mspace __net_heap;
 
 static char __manage_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/ncd/manage";
 static char __iptop_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/ip/top";
@@ -256,7 +254,7 @@ static s32 NetCreateHeap(void)
 
 	_CPU_ISR_Disable(level);
 
-	if(__net_heap_inited)
+	if(__net_heap)
 	{
 		_CPU_ISR_Restore(level);
 		return IPC_OK;
@@ -268,20 +266,20 @@ static s32 NetCreateHeap(void)
 		_CPU_ISR_Restore(level);
 		return IPC_ENOMEM;
 	}
-	__lwp_heap_init(&__net_heap, net_heap_ptr, NET_HEAP_SIZE, 32);
-	__net_heap_inited=1;
+	__net_heap = create_mspace_with_base(net_heap_ptr, NET_HEAP_SIZE, 1);
+
 	_CPU_ISR_Restore(level);
 	return IPC_OK;
 }
 
-static void* net_malloc(u32 size)
+static void *net_malloc(u32 size)
 {
-	return __lwp_heap_allocate(&__net_heap, size);
+	return mspace_malloc(__net_heap, size);
 }
 
-static BOOL net_free(void *ptr)
+static void net_free(void *ptr)
 {
-	return __lwp_heap_free(&__net_heap, ptr);
+	mspace_free(__net_heap, ptr);
 }
 
 static s32 _net_convert_error(s32 ios_retval)
@@ -884,7 +882,7 @@ s32 net_send(s32 s, const void *data, size_t size, u32 flags)
 s32 net_sendto(s32 s, const void *data, size_t len, u32 flags, struct sockaddr *to, socklen_t tolen)
 {
 	s32 ret;
-	u8 * message_buf = NULL;
+	u8 *message_buf = NULL;
 	STACK_ALIGN(struct sendto_params,params,1,32);
 
 	if (net_ip_top_fd < 0) return -ENXIO;
@@ -930,7 +928,7 @@ s32 net_recv(s32 s, void *mem, size_t len, u32 flags)
 s32 net_recvfrom(s32 s, void *mem, size_t len, u32 flags, struct sockaddr *from, socklen_t *fromlen)
 {
 	s32 ret;
-	u8* message_buf = NULL;
+	u8 *message_buf = NULL;
 	STACK_ALIGN(u32, params, 2, 32);
 
 	if (net_ip_top_fd < 0) return -ENXIO;
@@ -943,7 +941,7 @@ s32 net_recvfrom(s32 s, void *mem, size_t len, u32 flags, struct sockaddr *from,
 
 	message_buf = net_malloc(len);
 	if (message_buf == NULL) {
-    	debug_printf("SORecv: failed to alloc %d bytes\n", len);
+		debug_printf("net_recv: failed to alloc %d bytes\n", len);
 		return IPC_ENOMEM;
 	}
 
@@ -953,7 +951,7 @@ s32 net_recvfrom(s32 s, void *mem, size_t len, u32 flags, struct sockaddr *from,
 	params[0] = s;
 	params[1] = flags;
 
-	ret = _net_convert_error(IOS_IoctlvFormat(__net_hid, net_ip_top_fd, IOCTLV_SO_RECVFROM,	"d:dd", params, 8, message_buf, len, from, (fromlen?*fromlen:0)));
+	ret = _net_convert_error(IOS_IoctlvFormat(__net_hid, net_ip_top_fd, IOCTLV_SO_RECVFROM, "d:dd", params, 8, message_buf, len, from, (fromlen?*fromlen:0)));
 	debug_printf("net_recvfrom returned %d\n", ret);
 
 	if (ret > 0) {
