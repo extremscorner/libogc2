@@ -59,7 +59,12 @@ distribution.
 #include "network.h"
 #include "ogcsys.h"
 
-#define NET_HEAP_SIZE				64*1024
+#define NET_HEAP_SIZE				(64*1024)
+
+/* IOS copies the whole payload of a send/recv through the net heap, so a
+ * single call can only move a fraction of it (half, so a second thread can
+ * still allocate). Stream transfers larger than this are done in blocks. */
+#define NET_MAX_TRANSFER			(NET_HEAP_SIZE / 2)
 
 #define IOS_O_NONBLOCK				0x04			//(O_NONBLOCK >> 16) - it's in octal representation, so this shift leads to 0 and hence nonblocking sockets didn't work. changed it to the right value.
 
@@ -882,41 +887,65 @@ s32 net_send(s32 s, const void *data, size_t size, u32 flags)
 s32 net_sendto(s32 s, const void *data, size_t len, u32 flags, struct sockaddr *to, socklen_t tolen)
 {
 	s32 ret;
+	size_t done = 0;
+	size_t blocksize;
 	u8 *message_buf = NULL;
 	STACK_ALIGN(struct sendto_params,params,1,32);
 
 	if (net_ip_top_fd < 0) return -ENXIO;
 	if (tolen > 28) return -EOVERFLOW;
 
-	message_buf = net_malloc(len);
+	// A datagram with an explicit destination must go out in one piece.
+	// Everything else is stream-like and may be sent in blocks.
+	blocksize = (to || len <= NET_MAX_TRANSFER) ? len : NET_MAX_TRANSFER;
+
+	message_buf = net_malloc(blocksize);
 	if (message_buf == NULL) {
-		debug_printf("net_send: failed to alloc %d bytes\n", len);
+		debug_printf("net_send: failed to alloc %d bytes\n", blocksize);
 		return IPC_ENOMEM;
 	}
-
-	debug_printf("net_sendto(%d, %p, %d, %d, %p, %d)\n", s, data, len, flags, to, tolen);
 
 	if (to && to->sa_len != tolen) {
 		debug_printf("warning: to->sa_len was %d, setting to %d\n",	to->sa_len, tolen);
 		to->sa_len = tolen;
 	}
 
-	memset(params, 0, sizeof(struct sendto_params));
-	memcpy(message_buf, data, len);   // ensure message buf is aligned
+	do {
+		size_t chunk = len - done;
+		if (chunk > blocksize) chunk = blocksize;
 
-	params->socket = s;
-	params->flags = flags;
-	if (to) {
-		params->has_destaddr = 1;
-		memcpy(params->destaddr, to, to->sa_len);
-	} else {
-		params->has_destaddr = 0;
-	}
+		debug_printf("net_sendto(%d, %p, %d, %d, %p, %d)\n", s, (const u8 *)data + done, chunk, flags, to, tolen);
 
-	ret = _net_convert_error(IOS_IoctlvFormat(__net_hid, net_ip_top_fd, IOCTLV_SO_SENDTO, "dd:", message_buf, len, params, sizeof(struct sendto_params)));
-	debug_printf("net_send retuned %d\n", ret);
+		memset(params, 0, sizeof(struct sendto_params));
+		memcpy(message_buf, (const u8 *)data + done, chunk);   // ensure message buf is aligned
 
-	if(message_buf!=NULL) net_free(message_buf);
+		params->socket = s;
+		params->flags = flags;
+		if (to) {
+			params->has_destaddr = 1;
+			memcpy(params->destaddr, to, to->sa_len);
+		} else {
+			params->has_destaddr = 0;
+		}
+
+		ret = _net_convert_error(IOS_IoctlvFormat(__net_hid, net_ip_top_fd, IOCTLV_SO_SENDTO, "dd:", message_buf, chunk, params, sizeof(struct sendto_params)));
+		debug_printf("net_send retuned %d\n", ret);
+
+		// error, or a short send: report what we have and let the caller retry
+		if (ret <= 0 || (size_t)ret < chunk) {
+			if (ret > 0) done += ret;
+			break;
+		}
+
+		done += ret;
+	} while (done < len);
+
+	// Bytes that were already handed to IOS must be reported, even if the
+	// following block failed (e.g. EAGAIN on a non-blocking socket);
+	// otherwise the caller would resend them and corrupt the stream.
+	if (done > 0) ret = done;
+
+	net_free(message_buf);
 	return ret;
 }
 
@@ -938,6 +967,12 @@ s32 net_recvfrom(s32 s, void *mem, size_t len, u32 flags, struct sockaddr *from,
 		debug_printf("warning: from->sa_len was %d, setting to %d\n",from->sa_len, *fromlen);
 		from->sa_len = *fromlen;
 	}
+
+	// A short read is always valid for a stream, so limit a single call to
+	// what the net heap can carry. Do not loop for more: on a blocking socket
+	// that would wait for data that may never come, and on a non-blocking one
+	// a later EAGAIN would discard the data already read.
+	if (!from && len > NET_MAX_TRANSFER) len = NET_MAX_TRANSFER;
 
 	message_buf = net_malloc(len);
 	if (message_buf == NULL) {
