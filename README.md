@@ -57,6 +57,7 @@ It is largely API compatible with libogc 2.1.0 and earlier.
 - [libdvm](https://github.com/extremscorner/libdvm) - `libogc2-libdvm`
 - [libfat](https://github.com/extremscorner/libfat) - `libogc2-libfat`
 - [libntfs](https://github.com/extremscorner/libntfs) - `libogc2-libntfs`
+- [libwiisocket](https://github.com/extremscorner/libwiisocket) - `libogc2-libwiisocket`
 - [OpenGX](https://github.com/extremscorner/opengx) - `libogc2-opengx`
 - [SDL](https://github.com/extremscorner/SDL) - `libogc2-sdl`, `libogc2-sdl2`
 - [wii-examples](https://github.com/extremscorner/wii-examples) - `libogc2-examples`
