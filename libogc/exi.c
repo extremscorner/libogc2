@@ -276,6 +276,8 @@ s32 EXI_LockEx(s32 nChn,s32 nDev)
 	u32 level;
 	exibus_priv *exi = &eximap[nChn];
 
+	if(EXI_Lock(nChn,nDev,NULL)) return 1;
+
 	_CPU_ISR_Disable(level);
 	if(exi->unlockqueue==LWP_TQUEUE_NULL) {
 		if(LWP_InitQueue(&exi->unlockqueue)!=0) {
@@ -732,7 +734,7 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 	else lck = 0;
 
 	if(lck) ret = EXI_Lock(nChn,nDev,__unlocked_handler);
-	else ret = EXI_Lock(nChn,nDev,NULL);
+	else ret = EXI_LockEx(nChn,nDev);
 
 	if(ret) {
 		id = 0xffffffff;
