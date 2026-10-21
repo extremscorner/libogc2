@@ -650,7 +650,7 @@ static u32 __unlocksram(u32 write,u32 loc)
 		}
 		if(loc<sramcntrl.offset) sramcntrl.offset = loc;
 
-		sramcntrl.sync = __sram_write(sramcntrl.srambuf+sramcntrl.offset,sramcntrl.offset,(64-sramcntrl.offset));
+		if(sramcntrl.sync) sramcntrl.sync = __sram_write(sramcntrl.srambuf+sramcntrl.offset,sramcntrl.offset,(64-sramcntrl.offset));
 		if(sramcntrl.sync) sramcntrl.offset = 64;
 	}
 	sramcntrl.locked = 0;
