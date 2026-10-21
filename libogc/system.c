@@ -915,32 +915,6 @@ u32 __SYS_SetRTC(u32 gctime)
 	return 1;
 }
 
-void __SYS_SetTime(s64 time)
-{
-	u32 level;
-	s64 now;
-	s64 *pBootTime = (s64*)0x800030d8;
-
-	_CPU_ISR_Disable(level);
-	now = gettime();
-	*pBootTime += (now-time);
-	settime(time);
-	_CPU_ISR_Restore(level);
-}
-
-s64 __SYS_GetSystemTime(void)
-{
-	u32 level;
-	s64 now;
-	s64 *pBootTime = (s64*)0x800030d8;
-
-	_CPU_ISR_Disable(level);
-	now = gettime();
-	now += *pBootTime;
-	_CPU_ISR_Restore(level);
-	return now;
-}
-
 void __SYS_InitTime(void)
 {
 	u32 gctime;

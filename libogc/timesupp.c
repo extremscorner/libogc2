@@ -11,32 +11,18 @@
 
 u64 gettime(void)
 {
-	u32 tmp;
-	union uulc {
-		u64 ull;
-		u32 ul[2];
-	} v;
-
-	__asm__ __volatile__(
-		"1:	mftbu	%0\n\
-		    mftb	%1\n\
-		    mftbu	%2\n\
-			cmpw	%0,%2\n\
-			bne		1b\n"
-		: "=r" (v.ul[0]), "=r" (v.ul[1]), "=&r" (tmp)
-	);
-	return v.ull;
+	return __builtin_ppc_get_timebase();
 }
 
-void settime(u64 t)
+void settime(u64 time)
 {
 	u32 tmp;
-	union uulc {
+	union ullc {
 		u64 ull;
 		u32 ul[2];
 	} v;
 
-	v.ull = t;
+	v.ull = time;
 	__asm__ __volatile__ (
 		"li		%0,0\n\
 		 mttbl  %0\n\
@@ -45,6 +31,32 @@ void settime(u64 t)
 		 : "=&r" (tmp)
 		 : "r" (v.ul[0]), "r" (v.ul[1])
 	);
+}
+
+void __attribute__((noinline)) __SYS_SetTime(s64 time)
+{
+	u32 level;
+	s64 now;
+	s64 *pBootTime = (s64*)0x800030d8;
+
+	_CPU_ISR_Disable(level);
+	now = gettime();
+	*pBootTime += (now-time);
+	settime(time);
+	_CPU_ISR_Restore(level);
+}
+
+s64 __attribute__((noinline)) __SYS_GetSystemTime(void)
+{
+	u32 level;
+	s64 now;
+	s64 *pBootTime = (s64*)0x800030d8;
+
+	_CPU_ISR_Disable(level);
+	now = gettime();
+	now += *pBootTime;
+	_CPU_ISR_Restore(level);
+	return now;
 }
 
 u32 diff_sec(u64 start,u64 end)
@@ -77,6 +89,19 @@ u32 diff_nsec(u64 start,u64 end)
 
 	diff = diff_ticks(start,end);
 	return ticks_to_nanosecs(diff);
+}
+
+// this function spins till timeout is reached
+void udelay(u32 usec)
+{
+	u64 start, end;
+	start = gettime();
+	while (1)
+	{
+		end = gettime();
+		if (diff_usec(start,end) >= usec)
+			break;
+	}
 }
 
 int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp)
@@ -125,19 +150,6 @@ int __syscall_clock_getres(clockid_t clock_id, struct timespec *res)
 		default:
 			errno = EINVAL;
 			return -1;
-	}
-}
-
-// this function spins till timeout is reached
-void udelay(u32 usec)
-{
-	u64 start, end;
-	start = gettime();
-	while (1)
-	{
-		end = gettime();
-		if (diff_usec(start,end) >= usec)
-			break;
 	}
 }
 
