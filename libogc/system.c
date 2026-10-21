@@ -941,7 +941,7 @@ s64 __SYS_GetSystemTime(void)
 	return now;
 }
 
-void __SYS_SetBootTime(void)
+void __SYS_InitTime(void)
 {
 	u32 gctime;
 #if defined(HW_RVL)
@@ -951,7 +951,7 @@ void __SYS_SetBootTime(void)
 	if(__SYS_GetRTC(&gctime)==1) {
 		if(getenv("TZ")==NULL) {
 #if defined(HW_RVL)
-			if(CONF_GetCounterBias(&bias)==0) gctime += bias;
+			if(CONF_GetCounterBias(&bias)==CONF_ERR_OK) gctime += bias;
 #else
 			gctime += SYS_GetCounterBias();
 #endif
@@ -1056,7 +1056,7 @@ void SYS_Init(void)
 void SYS_PreMain(void)
 {
 #if defined(HW_DOL)
-	__SYS_SetBootTime();
+	__SYS_InitTime();
 #elif defined(HW_RVL)
 	u32 i;
 
@@ -1067,7 +1067,7 @@ void SYS_PreMain(void)
 	__IOS_InitializeSubsystems();
 	STM_RegisterEventHandler(__STMEventHandler);
 	CONF_Init();
-	__SYS_SetBootTime();
+	__SYS_InitTime();
 	WII_Initialize();
 #endif
 }
