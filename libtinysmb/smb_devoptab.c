@@ -211,7 +211,7 @@ static void *process_cache_thread(void *ptr)
 			{
 				if (SMBEnv[i].SMBWriteCache.used > 0)
 				{
-					if (ticks_to_millisecs(gettime())-ticks_to_millisecs(SMBEnv[i].SMBWriteCache.used) > 500)
+					if (diff_msec(SMBEnv[i].SMBWriteCache.used, SYS_GetSystemTime()) > 500)
 					{
 						_SMB_lock(i);
 						FlushWriteSMBCache(SMBEnv[i].name);
@@ -318,7 +318,7 @@ continue_read:
 			{
 				//we hit the page
 				//copy as much as we can
-				SMBEnv[j].SMBReadAheadCache[i].last_used = gettime();
+				SMBEnv[j].SMBReadAheadCache[i].last_used = SYS_GetSystemTime();
 
 				off_t buffer_used = (SMBEnv[j].SMBReadAheadCache[i].offset + SMB_READ_BUFFERSIZE) - new_offset;
 				if (buffer_used > rest) buffer_used = rest;
@@ -383,7 +383,7 @@ continue_read:
 		}
 		read += readed;
 	}
-	SMBEnv[j].SMBReadAheadCache[leastUsed].last_used = gettime();
+	SMBEnv[j].SMBReadAheadCache[leastUsed].last_used = SYS_GetSystemTime();
 
 	SMBEnv[j].SMBReadAheadCache[leastUsed].offset = cache_offset;
 	SMBEnv[j].SMBReadAheadCache[leastUsed].file = file;
@@ -436,14 +436,14 @@ static int WriteSMBUsingCache(const char *buf, size_t len, SMBFILESTRUCT *file)
 
 			buf += rest;
 			len -= rest;
-			SMBEnv[j].SMBWriteCache.used = gettime();
+			SMBEnv[j].SMBWriteCache.used = SYS_GetSystemTime();
 			SMBEnv[j].SMBWriteCache.len = 0;
 		}
 		else
 		{
 			memcpy(SMBEnv[j].SMBWriteCache.ptr + SMBEnv[j].SMBWriteCache.len, buf, len);
 			SMBEnv[j].SMBWriteCache.len += len;
-			SMBEnv[j].SMBWriteCache.used = gettime();
+			SMBEnv[j].SMBWriteCache.used = SYS_GetSystemTime();
 			break;
 		}
 	}

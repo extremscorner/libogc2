@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -73,7 +73,7 @@ static void __lwp_wd_settimer(wd_cntrl *wd)
 {
 	u64 now;
 	s64 diff;
-	union uulc {
+	union ullc {
 		u64 ull;
 		u32 ul[2];
 	} v;

@@ -924,13 +924,13 @@ static bool diio_Startup(DISC_INTERFACE *disc)
 
 	DI_Mount();
 
-	t1=ticks_to_millisecs(gettime());
+	t1=SYS_GetSystemTime();
 
 	while(state & DVD_INIT)
 	{
 		usleep(500);
-		t2=ticks_to_millisecs(gettime());
-		if( (t2 - t1) > MOUNT_TIMEOUT)
+		t2=SYS_GetSystemTime();
+		if(diff_msec(t1, t2) > MOUNT_TIMEOUT)
 			return false; // timeout
 	}
 

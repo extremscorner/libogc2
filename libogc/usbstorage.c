@@ -766,7 +766,7 @@ s32 USBStorage_Read(usbstorage_handle *dev, u8 lun, u64 sector, u32 n_sectors, u
 		return IPC_EINVAL;
 
 	// more than 60s since last use - make sure drive is awake
-	if(ticks_to_secs(gettime() - usb_last_used) > 60)
+	if(diff_sec(usb_last_used, SYS_GetSystemTime()) > 60)
 	{
 		usbtimeout = 10;
 		USBStorage_MountLUN(dev, lun);
@@ -798,7 +798,7 @@ s32 USBStorage_Read(usbstorage_handle *dev, u8 lun, u64 sector, u32 n_sectors, u
 	if(retval > 0 && status != 0)
 		retval = USBSTORAGE_ESTATUS;
 
-	usb_last_used = gettime();
+	usb_last_used = SYS_GetSystemTime();
 	usbtimeout = USBSTORAGE_TIMEOUT;
 
 	return retval;
@@ -813,7 +813,7 @@ s32 USBStorage_Write(usbstorage_handle *dev, u8 lun, u64 sector, u32 n_sectors, 
 		return IPC_EINVAL;
 
 	// more than 60s since last use - make sure drive is awake
-	if(ticks_to_secs(gettime() - usb_last_used) > 60)
+	if(diff_sec(usb_last_used, SYS_GetSystemTime()) > 60)
 	{
 		usbtimeout = 10;
 		USBStorage_MountLUN(dev, lun);
@@ -845,7 +845,7 @@ s32 USBStorage_Write(usbstorage_handle *dev, u8 lun, u64 sector, u32 n_sectors, 
 	if(retval > 0 && status != 0)
 		retval = USBSTORAGE_ESTATUS;
 
-	usb_last_used = gettime();
+	usb_last_used = SYS_GetSystemTime();
 	usbtimeout = USBSTORAGE_TIMEOUT;
 
 	return retval;
@@ -963,7 +963,7 @@ static bool __usbstorage_IsInserted(DISC_INTERFACE *disc)
 			__lun = j;
 			__vid = vid;
 			__pid = pid;
-			usb_last_used = gettime()-secs_to_ticks(100);
+			usb_last_used = SYS_GetSystemTime()-secs_to_ticks(100);
 			usleep(10000);
 			break;
 		}

@@ -485,7 +485,7 @@ static inline s32 smb_send(s32 s,const void *data,s32 size)
 	u64 t1,t2;
 	s32 ret, len = size, nextsend;
 
-	t1=ticks_to_millisecs(gettime());
+	t1=SYS_GetSystemTime();
 	while(len>0)
 	{
 		nextsend=len;
@@ -496,8 +496,8 @@ static inline s32 smb_send(s32 s,const void *data,s32 size)
 		ret=net_send(s,data,nextsend,0);
 		if(ret==-EAGAIN)
 		{
-			t2=ticks_to_millisecs(gettime());
-			if( (t2 - t1) > RECV_TIMEOUT)
+			t2=SYS_GetSystemTime();
+			if(diff_msec(t1, t2) > RECV_TIMEOUT)
 			{
 				return -1; // timeout
 			}
@@ -513,7 +513,7 @@ static inline s32 smb_send(s32 s,const void *data,s32 size)
 			data+=ret;
 			len-=ret;
 			if(len==0) return size;
-			t1=ticks_to_millisecs(gettime());
+			t1=SYS_GetSystemTime();
 		}
 		usleep(100);
 	}
@@ -533,7 +533,7 @@ static s32 smb_recv(s32 s,void *mem,s32 len)
 	s32 ret,read,readtotal=0;
 	u64 t1,t2;
 
-	t1=ticks_to_millisecs(gettime());
+	t1=SYS_GetSystemTime();
 	while(len > 0)
 	{
 		read=len;
@@ -550,8 +550,8 @@ static s32 smb_recv(s32 s,void *mem,s32 len)
 		else
 		{
 			if(ret!=-EAGAIN) return ret;
-			t2=ticks_to_millisecs(gettime());
-			if( (t2 - t1) > RECV_TIMEOUT) return -1;
+			t2=SYS_GetSystemTime();
+			if(diff_msec(t1, t2) > RECV_TIMEOUT) return -1;
 		}
 		usleep(1000);
 	}
@@ -562,13 +562,13 @@ static void clear_network(s32 s,u8 *ptr)
 {
 	u64 t1,t2;
 
-	t1=ticks_to_millisecs(gettime());
+	t1=SYS_GetSystemTime();
 	while(true)
 	{
 		net_recv(s,ptr,SMB_MAX_NET_READ_SIZE,0);
 
-		t2=ticks_to_millisecs(gettime());
-		if( (t2 - t1) > 600) return;
+		t2=SYS_GetSystemTime();
+		if(diff_msec(t1, t2) > 600) return;
 		usleep(100);
 	}
 }
@@ -593,7 +593,7 @@ static s32 SMBCheck(u8 command,SMBHANDLE *handle)
 
 	memset(nbt,0xFF,sizeof(NBTSMB)); //NBT_SESSISON_MSG is 0x00 so fill mem with 0xFF
 
-	t1=ticks_to_millisecs(gettime());
+	t1=SYS_GetSystemTime();
 
 	/*keep going till we get a NBT session message*/
 	do{
@@ -605,12 +605,12 @@ static s32 SMBCheck(u8 command,SMBHANDLE *handle)
 			readlen=(u32)((nbt->length_high<<16)|nbt->length);
 			if(readlen>0)
 			{
-				t1=ticks_to_millisecs(gettime());
+				t1=SYS_GetSystemTime();
 				smb_recv(handle->sck_server, ptr, readlen); //clear unexpected NBT message
 			}
 		}
-		t2=ticks_to_millisecs(gettime());
-		if( (t2 - t1) > RECV_TIMEOUT * 2) goto failed;
+		t2=SYS_GetSystemTime();
+		if(diff_msec(t1, t2) > RECV_TIMEOUT * 2) goto failed;
 
 	} while(nbt->msg!=NBT_SESSISON_MSG);
 
@@ -1013,14 +1013,14 @@ static s32 do_netconnect(SMBHANDLE *handle)
 	}
 
 #ifdef HW_RVL
-	t1=ticks_to_millisecs(gettime());
+	t1=SYS_GetSystemTime();
 	while(1)
 	{
 		ret = net_connect(sock,(struct sockaddr*)&handle->server_addr,sizeof(handle->server_addr));
 		if(ret==-EISCONN) break;
-		t2=ticks_to_millisecs(gettime());
+		t2=SYS_GetSystemTime();
 		usleep(1000);
-		if((t2-t1) > CONN_TIMEOUT) break; // usually not more than 90ms
+		if(diff_msec(t1, t2) > CONN_TIMEOUT) break; // usually not more than 90ms
 	}
 	if(ret!=-EISCONN)
 #else
