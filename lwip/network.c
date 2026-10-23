@@ -92,7 +92,8 @@ static const s32 err_to_errno_table[] = {
   EHOSTUNREACH,  /* ERR_RTE        -9      Routing problem.         */
   EADDRINUSE,    /* ERR_USE        -10     Address in use.          */
   ENXIO,         /* ERR_IF         -11     Low-level netif error    */
-  EISCONN        /* ERR_ISCONN     -12     Already connected.       */
+  EISCONN,       /* ERR_ISCONN     -12     Already connected.       */
+  EWOULDBLOCK    /* ERR_TIMEOUT    -13     Timeout                  */
 };
 
 #define ERR_TO_ERRNO_TABLE_SIZE \
@@ -323,6 +324,7 @@ static struct netconn* netconn_new_with_proto_and_callback(enum netconn_type t,u
 	conn->recvmbox = SYS_MBOX_NULL;
 	conn->state = NETCONN_NONE;
 	conn->socket = 0;
+	conn->recvtimeout = 0;
 	conn->callback = cb;
 	conn->recvavail = 0;
 	
@@ -509,8 +511,9 @@ static struct netbuf* netconn_recv(struct netconn *conn)
 {
 	u32 dummy;
 	struct api_msg *msg;
-	struct netbuf *buf;
+	struct netbuf *buf = NULL;
 	struct pbuf *p;
+	struct timespec tb;
 	u16 len;
 
 	if(conn==NULL) return NULL;
@@ -570,10 +573,18 @@ static struct netbuf* netconn_recv(struct netconn *conn)
 		MQ_Receive(conn->mbox,(mqmsg_t)&dummy,MQ_MSG_BLOCK);
 		memp_free(MEMP_API_MSG,msg);
 	} else {
-		MQ_Receive(conn->recvmbox,(mqmsg_t)&buf,MQ_MSG_BLOCK);
-		conn->recvavail -= buf->p->tot_len;
-		if(conn->callback)
-			(*conn->callback)(conn,NETCONN_EVTRCVMINUS,buf->p->tot_len);
+		if(conn->recvtimeout>0) {
+			tb.tv_sec = conn->recvtimeout/TB_MSPERSEC;
+			tb.tv_nsec = (conn->recvtimeout%TB_MSPERSEC)*TB_NSPERMS;
+			MQ_TimedReceive(conn->recvmbox,(mqmsg_t)&buf,&tb);
+		} else
+			MQ_Receive(conn->recvmbox,(mqmsg_t)&buf,MQ_MSG_BLOCK);
+
+		if(buf!=NULL) {
+			conn->recvavail -= buf->p->tot_len;
+			if(conn->callback)
+				(*conn->callback)(conn,NETCONN_EVTRCVMINUS,buf->p->tot_len);
+		}
 	}
 	
 	LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_recv: received %p (err %d)\n", (void *)buf, conn->err));
@@ -1819,7 +1830,7 @@ s32 net_recvfrom(s32 s,void *mem,size_t len,u32 flags,struct sockaddr *from,sock
 		buf = netconn_recv(sock->conn);
 		if(!buf) {
 		    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d): buf == NULL!\n", s));
-			return 0;
+			return (sock->conn->type!=NETCONN_TCP)?-EWOULDBLOCK:0;
 		}
 	}
 	
@@ -2232,6 +2243,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 				case SO_BROADCAST:
 				case SO_ERROR:
 				case SO_KEEPALIVE:
+				case SO_RCVTIMEO:
 				case SO_REUSEADDR:
 				case SO_REUSEPORT:
 				case SO_TYPE:
@@ -2325,6 +2337,9 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 					*(u32*)optval = err_to_errno(sock->conn->err);
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, SOL_SOCKET, SO_ERROR) = %d\n", s, *(u32*)optval));
 					break;
+				case SO_RCVTIMEO:
+					*(u32*)optval = sock->conn->recvtimeout;
+					break;
 				case SO_NO_CHECK:
 					*(u32*)optval = (sock->conn->pcb.udp->flags&UDP_FLAGS_NOCHKSUM)?1:0;
 					break;
@@ -2379,6 +2394,7 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 			switch(optname) {
 				case SO_BROADCAST:
 				case SO_KEEPALIVE:
+				case SO_RCVTIMEO:
 				case SO_REUSEADDR:
 				case SO_REUSEPORT:
 					if(optlen<sizeof(u32)) err = EINVAL;
@@ -2449,6 +2465,9 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 					else
 						sock->conn->pcb.tcp->so_options &= ~optname;
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_setsockopt(%d, SOL_SOCKET, optname=0x%x, ..) -> %s\n", s, optname, (*(u32*)optval?"on":"off")));
+					break;
+				case SO_RCVTIMEO:
+					sock->conn->recvtimeout = (u32)(*(u32*)optval);
 					break;
 				case SO_NO_CHECK:
 					if(*(u32*)optval)

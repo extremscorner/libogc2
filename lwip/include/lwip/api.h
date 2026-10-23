@@ -87,12 +87,13 @@ struct netconn {
 		struct raw_pcb *raw;
 	} pcb;
 	err_t err;
-	sys_sem sem;
 	sys_mbox mbox;
 	sys_mbox recvmbox;
 	sys_mbox acceptmbox;
-	u16 recvavail;
+	sys_sem sem;
 	s32 socket;
+	u32 recvtimeout;
+	u16 recvavail;
 	void (*callback)(struct netconn *,enum netconn_evt,u32);
 };
 

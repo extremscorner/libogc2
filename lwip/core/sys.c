@@ -46,7 +46,7 @@ struct sswt_cb
 
 
 void
-sys_mbox_fetch(sys_mbox_t mbox, void **msg)
+sys_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t timeout)
 {
   u32_t time;
   struct sys_timeouts *timeouts;
@@ -59,7 +59,7 @@ sys_mbox_fetch(sys_mbox_t mbox, void **msg)
   timeouts = sys_arch_timeouts();
 
   if (!timeouts || !timeouts->next) {
-    sys_arch_mbox_fetch(mbox, msg, 0);
+    sys_arch_mbox_fetch(mbox, msg, timeout);
   } else {
     if (timeouts->next->time > 0) {
       time = sys_arch_mbox_fetch(mbox, msg, timeouts->next->time);
