@@ -29,6 +29,8 @@ distribution.
 #include <ogc/exi.h>
 #include <ogc/irq.h>
 #include <ogc/lwp.h>
+#include <ogc/machine/asm.h>
+#include <ogc/machine/processor.h>
 #include <string.h>
 #include "lwip/debug.h"
 #include "lwip/err.h"
