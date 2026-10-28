@@ -2,7 +2,7 @@
 
 dsp.c -- DSP subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -218,8 +218,9 @@ static void __dsp_def_taskcb(void)
 #ifdef _DSP_DEBUG
 	printf("__dsp_def_taskcb()\n");
 #endif
-	while(!DSP_CheckMailFrom());
+	if(!__dsp_currtask) return;
 
+	while(!DSP_CheckMailFrom());
 	mail = DSP_ReadMailFrom();
 #ifdef _DSP_DEBUG
 	printf("__dsp_def_taskcb(mail = 0x%08x)\n",mail);
@@ -246,6 +247,7 @@ static void __dsp_def_taskcb(void)
 					__dsp_rudetask = NULL;
 					__dsp_rudetask_pend = FALSE;
 					if(__dsp_currtask->res_cb) __dsp_currtask->res_cb(__dsp_currtask);
+					break;
 				} else {
 					DSP_SendMailTo(0xCDD10001);
 					while(DSP_CheckMailTo());
@@ -255,8 +257,10 @@ static void __dsp_def_taskcb(void)
 					__dsp_currtask = __dsp_rudetask;
 					__dsp_rudetask = NULL;
 					__dsp_rudetask_pend = FALSE;
+					break;
 				}
-			} else if(__dsp_currtask->next==NULL) {
+			}
+			if(__dsp_currtask->next==NULL) {
 				if(__dsp_firsttask==__dsp_currtask) {
 					DSP_SendMailTo(0xCDD10003);
 					while(DSP_CheckMailTo());
@@ -281,19 +285,27 @@ static void __dsp_def_taskcb(void)
 			break;
 		case 0xDCD10003:
 			if(__dsp_rudetask_pend==TRUE) {
-				if(__dsp_currtask->done_cb) __dsp_currtask->done_cb(__dsp_currtask);
-				DSP_SendMailTo(0xCDD10001);
-				while(DSP_CheckMailTo());
+				if(__dsp_rudetask==__dsp_currtask) {
+					__dsp_rudetask = NULL;
+					__dsp_rudetask_pend = FALSE;
+				} else {
+					if(__dsp_currtask->done_cb) __dsp_currtask->done_cb(__dsp_currtask);
 
-				__dsp_exectask(NULL,__dsp_rudetask);
-				__dsp_removetask(__dsp_currtask);
+					DSP_SendMailTo(0xCDD10001);
+					while(DSP_CheckMailTo());
 
-				__dsp_currtask = __dsp_rudetask;
-				__dsp_rudetask_pend = FALSE;
-				__dsp_rudetask = NULL;
-			} else if(__dsp_currtask->next==NULL) {
+					__dsp_exectask(NULL,__dsp_rudetask);
+					__dsp_removetask(__dsp_currtask);
+					__dsp_currtask = __dsp_rudetask;
+					__dsp_rudetask = NULL;
+					__dsp_rudetask_pend = FALSE;
+					break;
+				}
+			}
+			if(__dsp_currtask->next==NULL) {
 				if(__dsp_firsttask==__dsp_currtask) {
 					if(__dsp_currtask->done_cb) __dsp_currtask->done_cb(__dsp_currtask);
+
 					DSP_SendMailTo(0xCDD10002);
 					while(DSP_CheckMailTo());
 
@@ -301,6 +313,7 @@ static void __dsp_def_taskcb(void)
 					__dsp_removetask(__dsp_currtask);
 				} else {
 					if(__dsp_currtask->done_cb) __dsp_currtask->done_cb(__dsp_currtask);
+
 					DSP_SendMailTo(0xCDD10001);
 					while(DSP_CheckMailTo());
 
@@ -325,7 +338,6 @@ static void __dsp_def_taskcb(void)
 			if(__dsp_currtask->req_cb) __dsp_currtask->req_cb(__dsp_currtask);
 			break;
 	}
-
 }
 
 static void __dsp_inthandler(u32 nIrq,frame_context *pCtx)
@@ -342,7 +354,7 @@ void DSP_Init(void)
 #endif
 	_CPU_ISR_Disable(level);
 	if(__dsp_inited==FALSE) {
-		__dsp_intcb= __dsp_def_taskcb;
+		__dsp_intcb = __dsp_def_taskcb;
 
 		IRQ_Request(IRQ_DSP_DSP,__dsp_inthandler);
 		__UnmaskIrq(IRQMASK(IRQ_DSP_DSP));
@@ -517,9 +529,7 @@ dsptask_t* DSP_AssertTask(dsptask_t *task)
 		if(task->prio<__dsp_currtask->prio) {
 			__dsp_rudetask = task;
 			__dsp_rudetask_pend = TRUE;
-			if(__dsp_currtask->state==DSPTASK_RUN)
-				_dspReg[5] = ((_dspReg[5]&~(DSPCR_DSPINT|DSPCR_ARINT|DSPCR_AIINT))|DSPCR_PIINT);
-
+			if(__dsp_currtask->state==DSPTASK_RUN) DSP_AssertInt();
 			ret = task;
 		}
 	}
