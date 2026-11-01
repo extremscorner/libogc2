@@ -516,7 +516,7 @@ static u32 __read_rom(void *buf,u32 len,u32 offset)
 	return 1;
 }
 
-static u32 __getrtc(u32 *gctime)
+static u32 __getrtc(u32 *rtc)
 {
 	u32 ret;
 	u32 cmd;
@@ -530,7 +530,7 @@ static u32 __getrtc(u32 *gctime)
 	ret = 0;
 	cmd = 0x20000000;
 	if(EXI_ImmEx(EXI_CHANNEL_0,&cmd,4,EXI_WRITE)==0) ret |= 0x01;
-	if(EXI_ImmEx(EXI_CHANNEL_0,gctime,4,EXI_READ)==0) ret |= 0x02;
+	if(EXI_ImmEx(EXI_CHANNEL_0,rtc,4,EXI_READ)==0) ret |= 0x02;
 	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
 	EXI_Unlock(EXI_CHANNEL_0);
 
@@ -872,7 +872,7 @@ void __SYS_ReadROM(void *buf,u32 len,u32 offset)
 	}
 }
 
-u32 __SYS_GetRTC(u32 *gctime)
+u32 __SYS_GetRTC(u32 *rtc)
 {
 	u32 cnt,ret;
 	u32 time1,time2;
@@ -886,7 +886,7 @@ u32 __SYS_GetRTC(u32 *gctime)
 		if(time1==0xffffffff) return 0;
 		if(time2==0xffffffff) return 0;
 		if(time1==time2) {
-			*gctime = time1;
+			*rtc = time1;
 			return 1;
 		}
 		cnt++;
@@ -894,7 +894,7 @@ u32 __SYS_GetRTC(u32 *gctime)
 	return 0;
 }
 
-u32 __SYS_SetRTC(u32 gctime)
+u32 __SYS_SetRTC(u32 rtc)
 {
 	u32 cmd,ret;
 
@@ -907,7 +907,7 @@ u32 __SYS_SetRTC(u32 gctime)
 	ret = 0;
 	cmd = 0xa0000000;
 	if(EXI_ImmEx(EXI_CHANNEL_0,&cmd,4,EXI_WRITE)==0) ret |= 0x01;
-	if(EXI_ImmEx(EXI_CHANNEL_0,&gctime,4,EXI_WRITE)==0) ret |= 0x02;
+	if(EXI_ImmEx(EXI_CHANNEL_0,&rtc,4,EXI_WRITE)==0) ret |= 0x02;
 	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x04;
 	EXI_Unlock(EXI_CHANNEL_0);
 
@@ -917,20 +917,22 @@ u32 __SYS_SetRTC(u32 gctime)
 
 void __SYS_InitTime(void)
 {
-	u32 gctime;
+	u32 localtime,time;
 #if defined(HW_RVL)
 	u32 bias;
 #endif
 
-	if(__SYS_GetRTC(&gctime)==1) {
-		if(getenv("TZ")==NULL) {
-#if defined(HW_RVL)
-			if(CONF_GetCounterBias(&bias)==CONF_ERR_OK) gctime += bias;
-#else
-			gctime += SYS_GetCounterBias();
+	if(__SYS_GetRTC(&time)==1) {
+		localtime = time;
+#if defined(HW_DOL)
+		localtime += SYS_GetCounterBias();
+#elif defined(HW_RVL)
+		if(CONF_GetCounterBias(&bias)==CONF_ERR_OK) localtime += bias;
 #endif
-		}
-		__SYS_SetTime(secs_to_ticks(gctime));
+		if(getenv("TZ")==NULL) time = localtime;
+
+		__SYS_SetPosixTime(secs_to_ticks(time)+secs_to_ticks(DIFF_SEC_1970_2000));
+		__SYS_SetTime(secs_to_ticks(localtime));
 	}
 }
 

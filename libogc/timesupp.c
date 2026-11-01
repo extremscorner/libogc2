@@ -9,6 +9,10 @@
 
 #include <sys/time.h>
 
+/* time variables */
+static s64 *system_timebase = (s64*)0x800030d8;
+static s64 *posix_timebase = (s64*)0x800030f8;
+
 u64 gettime(void)
 {
 	return __builtin_ppc_get_timebase();
@@ -37,24 +41,47 @@ void __attribute__((noinline)) __SYS_SetTime(s64 time)
 {
 	u32 level;
 	s64 now;
-	s64 *pBootTime = (s64*)0x800030d8;
 
 	_CPU_ISR_Disable(level);
 	now = gettime();
-	*pBootTime += (now-time);
+	*system_timebase += (now-time);
 	settime(time);
 	_CPU_ISR_Restore(level);
+}
+
+void __attribute__((noinline)) __SYS_SetPosixTime(s64 time)
+{
+	u32 level;
+	s64 now;
+
+	_CPU_ISR_Disable(level);
+	now = gettime();
+	now += *system_timebase;
+	*posix_timebase = (time-now);
+	_CPU_ISR_Restore(level);
+}
+
+s64 __attribute__((noinline)) __SYS_GetPosixTime(void)
+{
+	u32 level;
+	s64 now;
+
+	_CPU_ISR_Disable(level);
+	now = gettime();
+	now += *system_timebase;
+	now += *posix_timebase;
+	_CPU_ISR_Restore(level);
+	return now;
 }
 
 s64 __attribute__((noinline)) __SYS_GetSystemTime(void)
 {
 	u32 level;
 	s64 now;
-	s64 *pBootTime = (s64*)0x800030d8;
 
 	_CPU_ISR_Disable(level);
 	now = gettime();
-	now += *pBootTime;
+	now += *system_timebase;
 	_CPU_ISR_Restore(level);
 	return now;
 }
@@ -109,12 +136,12 @@ int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp)
 	u64 now;
 	switch (clock_id) {
 		case CLOCK_REALTIME:
-			now = gettime();
-			tp->tv_sec = ticks_to_secs(now) + DIFF_SEC_1970_2000;
+			now = __SYS_GetPosixTime();
+			tp->tv_sec = ticks_to_secs(now);
 			tp->tv_nsec = tick_nanosecs(now);
 			return 0;
 		case CLOCK_MONOTONIC:
-			now = SYS_GetSystemTime();
+			now = __SYS_GetSystemTime();
 			tp->tv_sec = ticks_to_secs(now);
 			tp->tv_nsec = tick_nanosecs(now);
 			return 0;
@@ -129,9 +156,9 @@ int __syscall_clock_settime(clockid_t clock_id, const struct timespec *tp)
 	u64 now;
 	switch (clock_id) {
 		case CLOCK_REALTIME:
-			now = secs_to_ticks(tp->tv_sec - DIFF_SEC_1970_2000);
+			now = secs_to_ticks(tp->tv_sec);
 			now += nanosecs_to_ticks(tp->tv_nsec);
-			__SYS_SetTime(now);
+			__SYS_SetPosixTime(now);
 			return 0;
 		default:
 			errno = EINVAL;
@@ -182,8 +209,8 @@ int __syscall_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *
 {
 	u64 now;
 	if (tp != NULL) {
-		now = gettime();
-		tp->tv_sec = ticks_to_secs(now) + DIFF_SEC_1970_2000;
+		now = __SYS_GetPosixTime();
+		tp->tv_sec = ticks_to_secs(now);
 		tp->tv_usec = tick_microsecs(now);
 	}
 	if (tz != NULL) {
@@ -199,8 +226,8 @@ int timespec_get(struct timespec *ts, int base)
 	u64 now;
 	switch (base) {
 		case TIME_UTC:
-			now = gettime();
-			ts->tv_sec = ticks_to_secs(now) + DIFF_SEC_1970_2000;
+			now = __SYS_GetPosixTime();
+			ts->tv_sec = ticks_to_secs(now);
 			ts->tv_nsec = tick_nanosecs(now);
 			return base;
 		default:
