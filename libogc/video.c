@@ -2558,10 +2558,10 @@ static inline void __setVerticalRegs(u16 dispPosY,u16 dispSizeY,u8 equ,u16 acv,u
 
 	tmp = dispSizeY/div1;
 	if(black) {
-		prbodd += tmp-2;
-		prbeven += tmp-2;
-		psbodd += tmp+2;
-		psbeven += tmp+2;
+		prbodd += tmp;
+		prbeven += tmp;
+		psbodd += tmp;
+		psbeven += tmp;
 		tmp = 0;
 	}
 
