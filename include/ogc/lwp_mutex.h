@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -55,7 +55,7 @@ distribution.
 #define __OGC_LWP_MUTEX_H__
 
 #include <gctypes.h>
-#include <lwp_threadq.h>
+#include "lwp_threadq.h"
 
 #define LWP_MUTEX_LOCKED				0
 #define LWP_MUTEX_UNLOCKED				1

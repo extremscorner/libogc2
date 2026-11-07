@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -55,7 +55,7 @@ distribution.
 #define __OGC_LWP_WKSPACE_H__
 
 #include <gctypes.h>
-#include <lwp_heap.h>
+#include "lwp_heap.h"
 
 #ifdef __cplusplus
 extern "C" {

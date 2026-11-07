@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -55,9 +55,9 @@ distribution.
 #define __OGC_LWP_THREADQ_H__
 
 #include <gctypes.h>
-#include <lwp_tqdata.h>
-#include <lwp_threads.h>
-#include <lwp_watchdog.h>
+#include "lwp_tqdata.h"
+#include "lwp_threads.h"
+#include "lwp_watchdog.h"
 
 #define LWP_THREADQ_NOTIMEOUT		LWP_WD_NOTIMEOUT
 

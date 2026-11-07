@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -55,7 +55,7 @@ distribution.
 #define __OGC_LWP_SEMA_H__
 
 #include <gctypes.h>
-#include <lwp_threadq.h>
+#include "lwp_threadq.h"
 
 #define LWP_SEMA_MODEFIFO				0
 #define LWP_SEMA_MODEPRIORITY			1

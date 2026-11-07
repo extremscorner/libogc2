@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -54,6 +54,10 @@ distribution.
 #ifndef __OGC_LWP_TQDATA_H__
 #define __OGC_LWP_TQDATA_H__
 
+#include <gctypes.h>
+#include "lwp_queue.h"
+#include "lwp_priority.h"
+
 #define LWP_THREADQ_NUM_PRIOHEADERS		4
 #define LWP_THREADQ_PRIOPERHEADER		64
 #define LWP_THREADQ_REVERSESEARCHMASK	0x20
@@ -69,9 +73,6 @@ distribution.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "lwp_queue.h"
-#include "lwp_priority.h"
 
 typedef struct _lwpthrqueue {
 	union {

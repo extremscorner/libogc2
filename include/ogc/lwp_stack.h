@@ -25,7 +25,7 @@
 
 /*-------------------------------------------------------------
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -55,7 +55,7 @@ distribution.
 #define __OGC_LWP_STACK_H__
 
 #include <gctypes.h>
-#include <lwp_threads.h>
+#include "lwp_threads.h"
 
 #define CPU_STACK_ALIGNMENT				8
 #define CPU_MINIMUM_STACK_SIZE			1024*8
