@@ -238,6 +238,11 @@ u32 AR_GetInternalSize(void)
 	return __ARInternalSize;
 }
 
+u32 AR_GetExpansionSize(void)
+{
+	return __ARExpansionSize;
+}
+
 static __inline__ void __ARClearInterrupt(void)
 {
 	u16 cause;

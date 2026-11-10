@@ -252,6 +252,15 @@ u32 AR_GetInternalSize(void);
 
 
 /*! 
+ * \fn u32 AR_GetExpansionSize(void)
+ * \brief Get the size of the expansion ARAM memory
+ *
+ * \return ARAM expansion memory size
+ */
+u32 AR_GetExpansionSize(void);
+
+
+/*! 
  * \def AR_StartDMARead(maddr,araddr,tlen)
  * \brief Wraps the DMA read operation done by AR_StartDMA()
  */
