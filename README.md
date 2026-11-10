@@ -115,6 +115,10 @@ sudo (dkp-)pacman -S libogc2-cmake
 
 See [installed packages in container](https://libogc2.org/wiki/Installed-packages-in-container).
 
+## Porting to libogc2
+
+While a porting guide is not yet available, you can familiarize yourself with the [GameCube](https://github.com/extremscorner/gamecube-examples/compare/v20210525...master) and [Wii](https://github.com/extremscorner/wii-examples/compare/v20210525...master) examples for basic differences with libogc.
+
 ## Building
 
 ### Pacman
