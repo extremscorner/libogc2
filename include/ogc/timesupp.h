@@ -61,6 +61,7 @@ void settime(u64 time);
 
 void __SYS_SetTime(s64 time);
 void __SYS_SetPosixTime(s64 time);
+void __SYS_AdjustPosixTime(s64 diff);
 s64 __SYS_GetPosixTime(void);
 s64 __SYS_GetSystemTime(void);
 s64 SYS_GetSystemTime(void) __asm__("__SYS_GetSystemTime");

@@ -61,6 +61,15 @@ void __attribute__((noinline)) __SYS_SetPosixTime(s64 time)
 	_CPU_ISR_Restore(level);
 }
 
+void __attribute__((noinline)) __SYS_AdjustPosixTime(s64 diff)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	*posix_timebase += diff;
+	_CPU_ISR_Restore(level);
+}
+
 s64 __attribute__((noinline)) __SYS_GetPosixTime(void)
 {
 	u32 level;
