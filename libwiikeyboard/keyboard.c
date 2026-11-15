@@ -370,20 +370,24 @@ static void _kbd_event_cb(USBKeyboard_event kevent)
 	return;
 }
 
-//This function call usb function to check if a new keyboard is connected
+//This function call usb function to check if new keyboards are connected
 static s32 _kbd_scan_for_keyboard(void)
 {
-	s32 ret;
+	s32 ret, i;
 	keyboard_event event;
+	bool first = !USBKeyboard_IsConnected();
 
 	ret = USBKeyboard_Open(&_kbd_event_cb);
 
 	if (ret < 0)
 		return ret;
 
-	_modifiers = 0;
-	_composelen = 0;
-	memset(_held, 0, sizeof(_held));
+	// keys held on a keyboard that is already connected are still held
+	if (first) {
+		_modifiers = 0;
+		_composelen = 0;
+		memset(_held, 0, sizeof(_held));
+	}
 
 	USBKeyboard_SetLed(USBKEYBOARD_LEDNUM, true);
 	USBKeyboard_SetLed(USBKEYBOARD_LEDCAPS, true);
@@ -397,7 +401,9 @@ static s32 _kbd_scan_for_keyboard(void)
 	event.modifiers = 0;
 	event.keycode = 0;
 
-	_kbd_addEvent(&event);
+	// one event for each keyboard that was opened
+	for (i = 0; i < ret; i++)
+		_kbd_addEvent(&event);
 
 	return ret;
 }
@@ -406,10 +412,11 @@ static void * _kbd_thread_func(void *arg) {
 	u32 turns = 0;
 
 	while (!_kbd_thread_quit) {
-		// scan for new attached keyboards
+		// scan for new attached keyboards, also while there is one already:
+		// a second keyboard can be attached, and a device that has a keyboard
+		// interface is not necessarily the keyboard that is going to be used
 		if ((turns % KBD_THREAD_KBD_SCAN_INTERVAL) == 0) {
-			if (!USBKeyboard_IsConnected())
-				_kbd_scan_for_keyboard();
+			_kbd_scan_for_keyboard();
 
 			turns = 0;
 		}

@@ -36,7 +36,9 @@ distribution.
 #include <wiikeyboard/usbkeyboard.h>
 
 #define	HEAP_SIZE					4096
-#define DEVLIST_MAXSIZE				8
+#define DEVLIST_MAXSIZE				16
+#define MAX_KEYBOARDS				4
+#define MAX_SKIPPED					16
 #define KEY_ERROR					0x01
 #define MAXKEYCODE					6
 
@@ -54,17 +56,33 @@ struct ukbd_data {
 	u8	keycode[MAXKEYCODE];
 } ATTRIBUTE_PACKED;
 
+/*
+ * One attached keyboard. Reports are read with one asynchronous transfer per
+ * keyboard, so a keyboard that never sends anything (eg. the keyboard
+ * interface of a wireless receiver with only a mouse paired) cannot hold up
+ * the others, or the search for new ones.
+ *
+ * A slot is never freed or reused while a transfer is still outstanding
+ * (`reading`), as the transfer completes into `buffer`. The buffers are kept
+ * for the lifetime of the module.
+ */
 struct ukbd {
-	bool connected;
+	bool used;				//!< slot holds an open device
+	bool connected;			//!< open and not removed
+	volatile bool removed;	//!< removal notification arrived (set from the USB callback)
+	volatile bool reading;	//!< an interrupt read is outstanding
+	volatile bool ready;	//!< a read completed, see `result`
+	volatile s32 result;
 
 	s32 fd;
+	s32 device_id;
+	u16 vid;
+	u16 pid;
 
 	struct ukbd_data sc_ndata;
 	struct ukbd_data sc_odata;
 
 	u8 leds;
-
-	eventcallback cb;
 
 	u8 configuration;
 	u32 interface;
@@ -72,10 +90,22 @@ struct ukbd {
 
 	u8 ep;
 	u32 ep_size;
+
+	u8 *buffer;				//!< 8 bytes in the IOS heap, the target of the read
+};
+
+//! A HID device that was looked at and is not a keyboard, so it is not opened again
+struct skipped {
+	s32 device_id;
+	u16 vid;
+	u16 pid;
 };
 
 static s32 hId = -1;
-static struct ukbd *_kbd = NULL;
+static struct ukbd _kbds[MAX_KEYBOARDS];
+static struct skipped _skipped[MAX_SKIPPED];
+static int _skippedCount = 0;
+static eventcallback _cb = NULL;
 
 static u8 _ukbd_mod_map[][2] = {
 	{ USB_MOD_CTRL_L, 224 },
@@ -92,42 +122,44 @@ static u8 _ukbd_mod_map[][2] = {
 
 static void _submit(USBKeyboard_eventType type, u8 code)
 {
-	if (!_kbd->cb)
+	if (!_cb)
 		return;
 
 	USBKeyboard_event ev;
 	ev.type = type;
 	ev.keyCode = code;
 
-	_kbd->cb(ev);
+	_cb(ev);
 }
 
-//Callback when the keyboard is disconnected
+//Callback when the keyboard is disconnected (runs in the USB callback context,
+//so it only flags the keyboard: the events are posted from USBKeyboard_Scan)
 static s32 _disconnect(s32 retval, void *data)
 {
-	(void) data;
+	struct ukbd *kbd = (struct ukbd *) data;
 
-	_kbd->connected = false;
+	(void) retval;
 
-	_submit(USBKEYBOARD_DISCONNECTED, 0);
+	if (kbd)
+		kbd->removed = true;
 
 	return 1;
 }
 
 //Get the protocol, 0=boot protocol and 1=report protocol
-static s32 _get_protocol(void)
+static s32 _get_protocol(struct ukbd *kbd)
 {
 	s32 protocol;
 	u8 *buffer = 0;
 
-	if(!_kbd || _kbd->fd==-1) return -1;
+	if(!kbd || kbd->fd==-1) return -1;
 
 	buffer = iosAlloc(hId, 1);
 
 	if (buffer == NULL)
 		return -1;
 
-	USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_INTERFACE_GET, USB_REQ_GETPROTOCOL, 0, _kbd->interface, 1, buffer);
+	USB_WriteCtrlMsg(kbd->fd, USB_REQTYPE_INTERFACE_GET, USB_REQ_GETPROTOCOL, 0, kbd->interface, 1, buffer);
 
 	protocol = *buffer;
 	iosFree(hId, buffer);
@@ -136,45 +168,49 @@ static s32 _get_protocol(void)
 }
 
 //Modify the protocol, 0=boot protocol and 1=report protocol
-static s32 _set_protocol(u8 protocol)
+static s32 _set_protocol(struct ukbd *kbd, u8 protocol)
 {
-	if(!_kbd || _kbd->fd==-1) return -1;
-	return USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_INTERFACE_SET, USB_REQ_SETPROTOCOL, protocol, _kbd->interface, 0, NULL);
+	if(!kbd || kbd->fd==-1) return -1;
+	return USB_WriteCtrlMsg(kbd->fd, USB_REQTYPE_INTERFACE_SET, USB_REQ_SETPROTOCOL, protocol, kbd->interface, 0, NULL);
 }
 
-//Get an input report from interrupt pipe
-static s32 _get_input_report(void)
+//Completion of an interrupt read (runs in the USB callback context)
+static s32 _read_cb(s32 result, void *usrdata)
 {
-	u8 *buffer = 0;
+	struct ukbd *kbd = (struct ukbd *) usrdata;
 
-	if(!_kbd || _kbd->fd==-1) return -1;
-	buffer = iosAlloc(hId, 8);
+	if (result >= 8)
+		memcpy(&kbd->sc_ndata, kbd->buffer, 8);
 
-	if (buffer == NULL)
-		return -1;
+	kbd->result = result;
+	kbd->ready = true;
+	kbd->reading = false;
 
-	s32 ret = USB_ReadIntrMsg(_kbd->fd, _kbd->ep, 8, buffer);
+	return 0;
+}
 
-	memcpy(&_kbd->sc_ndata, buffer, 8);
-	iosFree(hId, buffer);
+//Start a read of an input report from the interrupt pipe
+static void _start_read(struct ukbd *kbd)
+{
+	kbd->ready = false;
+	kbd->reading = true;
 
-	_kbd->sc_ndata.modifiers = (_kbd->sc_ndata.modifiers << 8) | (_kbd->sc_ndata.modifiers >> 8);
-
-	return ret;
+	if (USB_ReadIntrMsgAsync(kbd->fd, kbd->ep, 8, kbd->buffer, &_read_cb, kbd) < 0)
+		kbd->reading = false;	// not started: tried again next scan
 }
 
 #if 0
 //Get an input report from control pipe
-static s32 _get_output_report(u8 *leds)
+static s32 _get_output_report(struct ukbd *kbd, u8 *leds)
 {
 	u8 *buffer = 0;
-	if(!_kbd || _kbd->fd==-1) return -1;
+	if(!kbd || kbd->fd==-1) return -1;
 	buffer = iosAlloc(hId, 1);
 
 	if (buffer == NULL)
 		return -1;
 
-	s32 ret = USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_INTERFACE_GET, USB_REQ_GETREPORT, USB_REPTYPE_OUTPUT << 8, _kbd->interface, 1, buffer);
+	s32 ret = USB_WriteCtrlMsg(kbd->fd, USB_REQTYPE_INTERFACE_GET, USB_REQ_GETREPORT, USB_REPTYPE_OUTPUT << 8, kbd->interface, 1, buffer);
 
 	memcpy(leds, buffer, 1);
 	iosFree(hId, buffer);
@@ -184,21 +220,278 @@ static s32 _get_output_report(u8 *leds)
 #endif
 
 //Set an input report to control pipe
-static s32 _set_output_report(void)
+static s32 _set_output_report(struct ukbd *kbd)
 {
 	u8 *buffer = 0;
-	if(!_kbd || _kbd->fd==-1) return -1;
+	if(!kbd || kbd->fd==-1) return -1;
 	buffer = iosAlloc(hId, 1);
 
 	if (buffer == NULL)
 		return -1;
 
-	memcpy(buffer, &_kbd->leds, 1);
-	s32 ret = USB_WriteCtrlMsg(_kbd->fd, USB_REQTYPE_INTERFACE_SET, USB_REQ_SETREPORT, USB_REPTYPE_OUTPUT << 8, _kbd->interface, 1, buffer);
+	memcpy(buffer, &kbd->leds, 1);
+	s32 ret = USB_WriteCtrlMsg(kbd->fd, USB_REQTYPE_INTERFACE_SET, USB_REQ_SETREPORT, USB_REPTYPE_OUTPUT << 8, kbd->interface, 1, buffer);
 
 	iosFree(hId, buffer);
 
 	return ret;
+}
+
+static bool _is_open(const usb_device_entry *e)
+{
+	int i;
+
+	for (i = 0; i < MAX_KEYBOARDS; i++) {
+		const struct ukbd *kbd = &_kbds[i];
+
+		if (kbd->used && kbd->device_id == e->device_id && kbd->vid == e->vid && kbd->pid == e->pid)
+			return true;
+	}
+
+	return false;
+}
+
+static bool _is_skipped(const usb_device_entry *e)
+{
+	int i;
+
+	for (i = 0; i < _skippedCount; i++) {
+		if (_skipped[i].device_id == e->device_id && _skipped[i].vid == e->vid && _skipped[i].pid == e->pid)
+			return true;
+	}
+
+	return false;
+}
+
+static void _skip(const usb_device_entry *e)
+{
+	if (_skippedCount >= MAX_SKIPPED)
+		return;	// full: the device is looked at again next time
+
+	_skipped[_skippedCount].device_id = e->device_id;
+	_skipped[_skippedCount].vid = e->vid;
+	_skipped[_skippedCount].pid = e->pid;
+	_skippedCount++;
+}
+
+//Forget the skipped devices that are no longer attached, so that a different
+//device that gets the same id later is looked at
+static void _prune_skipped(const usb_device_entry *list, u8 count)
+{
+	int i, j;
+
+	for (i = 0; i < _skippedCount; ) {
+		bool present = false;
+
+		for (j = 0; j < count; j++) {
+			if (list[j].device_id == _skipped[i].device_id && list[j].vid == _skipped[i].vid && list[j].pid == _skipped[i].pid) {
+				present = true;
+				break;
+			}
+		}
+
+		if (present)
+			i++;
+		else
+			_skipped[i] = _skipped[--_skippedCount];
+	}
+}
+
+//Close a keyboard that went away, releasing what it was holding down
+static void _drop(struct ukbd *kbd)
+{
+	int i, j;
+
+	if (kbd->connected) {
+		kbd->connected = false;
+
+		for (i = 0; i < MODMAPSIZE; ++i) {
+			if (kbd->sc_odata.modifiers & _ukbd_mod_map[i][0])
+				_submit(USBKEYBOARD_RELEASED, _ukbd_mod_map[i][1]);
+		}
+
+		for (j = 0; j < MAXKEYCODE; j++) {
+			if (kbd->sc_odata.keycode[j] > 3)
+				_submit(USBKEYBOARD_RELEASED, kbd->sc_odata.keycode[j]);
+		}
+
+		_submit(USBKEYBOARD_DISCONNECTED, 0);
+	}
+
+	if (kbd->fd != -1)
+		USB_CloseDevice(&kbd->fd);
+
+	kbd->fd = -1;
+	kbd->removed = false;
+}
+
+//Open the keyboards that are attached and not open yet. Returns how many were
+//opened, or a negative value if there was none to open.
+//Called regularly: devices that were looked at and are not keyboards are
+//remembered, so only a device that is new gets opened.
+s32 USBKeyboard_Open(const eventcallback cb)
+{
+	usb_device_entry *buffer;
+	u8 device_count, i, conf;
+	u16 vid, pid;
+	s32 opened = 0;
+	u32 iConf, iInterface, iEp;
+	usb_devdesc udd;
+	usb_configurationdesc *ucd;
+	usb_interfacedesc *uid;
+	usb_endpointdesc *ued;
+
+	if (hId < 0)
+		return -1;
+
+	buffer = (usb_device_entry*)iosAlloc(hId, DEVLIST_MAXSIZE * sizeof(usb_device_entry));
+	if(buffer == NULL)
+		return -1;
+
+	memset(buffer, 0, DEVLIST_MAXSIZE * sizeof(usb_device_entry));
+	device_count = 0;
+
+	if (USB_GetDeviceList(buffer, DEVLIST_MAXSIZE, USB_CLASS_HID, &device_count) < 0)
+	{
+		iosFree(hId, buffer);
+		return -2;
+	}
+
+	_cb = cb;
+	_prune_skipped(buffer, device_count);
+
+	for (i = 0; i < device_count; i++)
+	{
+		struct ukbd *kbd = NULL;
+		bool found = false;
+		int k;
+		s32 fd = 0;
+
+		vid = buffer[i].vid;
+		pid = buffer[i].pid;
+
+		if ((vid == 0) || (pid == 0))
+			continue;
+
+		if (_is_open(&buffer[i]) || _is_skipped(&buffer[i]))
+			continue;
+
+		for (k = 0; k < MAX_KEYBOARDS; k++) {
+			if (!_kbds[k].used) {
+				kbd = &_kbds[k];
+				break;
+			}
+		}
+
+		if (!kbd)
+			break;	// every slot is in use
+
+		if (USB_OpenDevice(buffer[i].device_id, vid, pid, &fd) < 0)
+			continue;
+
+		if (USB_GetDescriptors(fd, &udd) < 0) {
+			USB_CloseDevice(&fd);
+			continue;
+		}
+
+		for(iConf = 0; iConf < udd.bNumConfigurations && !found; iConf++)
+		{
+			ucd = &udd.configurations[iConf];
+
+			for(iInterface = 0; iInterface < ucd->bNumInterfaces && !found; iInterface++)
+			{
+				uid = &ucd->interfaces[iInterface];
+
+				if ((uid->bInterfaceClass == USB_CLASS_HID) &&
+					(uid->bInterfaceSubClass == USB_SUBCLASS_BOOT) &&
+					(uid->bInterfaceProtocol== USB_PROTOCOL_KEYBOARD))
+				{
+					for(iEp = 0; iEp < uid->bNumEndpoints; iEp++)
+					{
+						ued = &uid->endpoints[iEp];
+
+						if (ued->bmAttributes != USB_ENDPOINT_INTERRUPT)
+							continue;
+
+						if (!(ued->bEndpointAddress & USB_ENDPOINT_IN))
+							continue;
+
+						kbd->configuration = ucd->bConfigurationValue;
+						kbd->interface = uid->bInterfaceNumber;
+						kbd->altInterface = uid->bAlternateSetting;
+
+						kbd->ep = ued->bEndpointAddress;
+						kbd->ep_size = ued->wMaxPacketSize;
+
+						found = true;
+
+						break;
+					}
+				}
+			}
+		}
+
+		USB_FreeDescriptors(&udd);
+
+		if (!found) {
+			USB_CloseDevice(&fd);
+			_skip(&buffer[i]);
+			continue;
+		}
+
+		kbd->fd = fd;
+		kbd->device_id = buffer[i].device_id;
+		kbd->vid = vid;
+		kbd->pid = pid;
+		kbd->leds = 0;
+		kbd->removed = false;
+		kbd->ready = false;
+		memset(&kbd->sc_ndata, 0, sizeof(kbd->sc_ndata));
+		memset(&kbd->sc_odata, 0, sizeof(kbd->sc_odata));
+
+		if (!kbd->buffer)
+			kbd->buffer = (u8*)iosAlloc(hId, 8);
+
+		if (!kbd->buffer ||
+			USB_GetConfiguration(fd, &conf) < 0 ||
+			(conf != kbd->configuration && USB_SetConfiguration(fd, kbd->configuration) < 0) ||
+			(kbd->altInterface != 0 && USB_SetAlternativeInterface(fd, kbd->interface, kbd->altInterface) < 0) ||
+			(_get_protocol(kbd) != 0 && (_set_protocol(kbd, 0) < 0 || _get_protocol(kbd) == 1)) ||
+			USB_DeviceRemovalNotifyAsync(fd, &_disconnect, kbd) < 0)
+		{
+			USB_CloseDevice(&fd);
+			kbd->fd = -1;
+			continue;	// looked at again next time
+		}
+
+		kbd->connected = true;
+		kbd->used = true;
+		opened++;
+	}
+
+	iosFree(hId, buffer);
+
+	return opened > 0 ? opened : -3;
+}
+
+//Close all the keyboards
+void USBKeyboard_Close(void)
+{
+	int i;
+
+	for (i = 0; i < MAX_KEYBOARDS; i++) {
+		struct ukbd *kbd = &_kbds[i];
+
+		if (kbd->used && kbd->fd != -1)
+			USB_CloseDevice(&kbd->fd);
+
+		kbd->fd = -1;
+		kbd->connected = false;
+		kbd->removed = false;
+		kbd->used = false;
+	}
+
+	_skippedCount = 0;
 }
 
 //init the ioheap
@@ -220,279 +513,143 @@ s32 USBKeyboard_Deinitialize(void)
 	return IPC_OK;
 }
 
-//Search for a keyboard connected to the wii usb port
-//Thanks to Sven Peter usbstorage support
-s32 USBKeyboard_Open(const eventcallback cb)
-{
-	usb_device_entry *buffer;
-	u8 device_count, i, conf;
-	u16 vid, pid;
-	bool found = false;
-	u32 iConf, iInterface, iEp;
-	usb_devdesc udd;
-	usb_configurationdesc *ucd;
-	usb_interfacedesc *uid;
-	usb_endpointdesc *ued;
 
-	buffer = (usb_device_entry*)iosAlloc(hId, DEVLIST_MAXSIZE * sizeof(usb_device_entry));
-	if(buffer == NULL)
-		return -1;
-
-	memset(buffer, 0, DEVLIST_MAXSIZE * sizeof(usb_device_entry));
-
-	if (USB_GetDeviceList(buffer, DEVLIST_MAXSIZE, USB_CLASS_HID, &device_count) < 0)
-	{
-		iosFree(hId, buffer);
-		return -2;
-	}
-
-	if (_kbd) {
-		if (_kbd->fd != -1) USB_CloseDevice(&_kbd->fd);
-	} else {
-		_kbd = (struct ukbd *) malloc(sizeof(struct ukbd));
-
-		if (!_kbd)
-		{
-			iosFree(hId, buffer);
-			return -1;
-		}
-	}
-
-	memset(_kbd, 0, sizeof(struct ukbd));
-	_kbd->fd = -1;
-
-	for (i = 0; i < device_count; i++)
-	{
-		vid = buffer[i].vid;;
-		pid = buffer[i].pid;
-
-		if ((vid == 0) || (pid == 0))
-			continue;
-
-		s32 fd = 0;
-		if (USB_OpenDevice(buffer[i].device_id, vid, pid, &fd) < 0)
-			continue;
-
-		if (USB_GetDescriptors(fd, &udd) < 0) {
-			USB_CloseDevice(&fd);
-			continue;
-		}
-
-		for(iConf = 0; iConf < udd.bNumConfigurations; iConf++)
-		{
-			ucd = &udd.configurations[iConf];
-
-			for(iInterface = 0; iInterface < ucd->bNumInterfaces; iInterface++)
-			{
-				uid = &ucd->interfaces[iInterface];
-
-				if ((uid->bInterfaceClass == USB_CLASS_HID) &&
-					(uid->bInterfaceSubClass == USB_SUBCLASS_BOOT) &&
-					(uid->bInterfaceProtocol== USB_PROTOCOL_KEYBOARD))
-				{
-					for(iEp = 0; iEp < uid->bNumEndpoints; iEp++)
-					{
-						ued = &uid->endpoints[iEp];
-
-						if (ued->bmAttributes != USB_ENDPOINT_INTERRUPT)
-							continue;
-
-						if (!(ued->bEndpointAddress & USB_ENDPOINT_IN))
-							continue;
-
-						_kbd->fd = fd;
-						_kbd->cb = cb;
-
-						_kbd->configuration = ucd->bConfigurationValue;
-						_kbd->interface = uid->bInterfaceNumber;
-						_kbd->altInterface = uid->bAlternateSetting;
-
-						_kbd->ep = ued->bEndpointAddress;
-						_kbd->ep_size = ued->wMaxPacketSize;
-
-						found = true;
-
-						break;
-					}
-				}
-
-				if (found)
-					break;
-			}
-
-			if (found)
-				break;
-		}
-
-		USB_FreeDescriptors(&udd);
-
-		if (found)
-			break;
-		else
-			USB_CloseDevice(&fd);
-	}
-
-	iosFree(hId, buffer);
-
-	if (!found)
-		return -3;
-
-	if (USB_GetConfiguration(_kbd->fd, &conf) < 0)
-	{
-		USBKeyboard_Close();
-		return -4;
-	}
-
-	if (conf != _kbd->configuration &&
-		USB_SetConfiguration(_kbd->fd, _kbd->configuration) < 0)
-	{
-		USBKeyboard_Close();
-		return -5;
-	}
-
-	if (_kbd->altInterface != 0 &&
-		USB_SetAlternativeInterface(_kbd->fd, _kbd->interface, _kbd->altInterface) < 0)
-	{
-		USBKeyboard_Close();
-		return -6;
-	}
-
-	if (_get_protocol() != 0)
-	{
-		if (_set_protocol(0) < 0)
-		{
-			USBKeyboard_Close();
-			return -6;
-		}
-
-		if (_get_protocol() == 1)
-		{
-			USBKeyboard_Close();
-			return -7;
-		}
-	}
-
-	if (USB_DeviceRemovalNotifyAsync(_kbd->fd, &_disconnect, NULL) < 0)
-	{
-		USBKeyboard_Close();
-		return -8;
-	}
-
-	_kbd->connected = true;
-
-	return 1;
-}
-
-//Close the device
-void USBKeyboard_Close(void)
-{
-	if (!_kbd)
-		return;
-
-	if(_kbd->fd != -1)
-		USB_CloseDevice(&_kbd->fd);
-
-	free(_kbd);
-	_kbd = NULL;
-
-	return;
-}
-
+//True while at least one keyboard is attached
 bool USBKeyboard_IsConnected(void) {
-	if (!_kbd)
-		return false;
+	int i;
 
-	return _kbd->connected;
+	for (i = 0; i < MAX_KEYBOARDS; i++) {
+		if (_kbds[i].used && _kbds[i].connected && !_kbds[i].removed)
+			return true;
+	}
+
+	return false;
 }
 
-//Scan for key presses and generate events for the callback function
+//Generate events for the callback function from the reports that have arrived,
+//and start the next read on each keyboard. Never waits for a keyboard.
 s32 USBKeyboard_Scan(void)
 {
-	int i, j, index;
+	int i, j, k, index;
+	bool any = false;
 
-	if (!_kbd)
-		return -1;
+	for (k = 0; k < MAX_KEYBOARDS; k++) {
+		struct ukbd *kbd = &_kbds[k];
 
-	if (_get_input_report() < 0)
-		return -2;
+		if (!kbd->used)
+			continue;
 
-	if (_kbd->sc_ndata.keycode[0] == KEY_ERROR)
-		return 0;
+		if (kbd->connected && kbd->removed)
+			_drop(kbd);
 
-	if (_kbd->sc_ndata.modifiers != _kbd->sc_odata.modifiers) {
-		for (i = 0; i < MODMAPSIZE; ++i) {
-			if ((_kbd->sc_odata.modifiers & _ukbd_mod_map[i][0])
-				&& !(_kbd->sc_ndata.modifiers & _ukbd_mod_map[i][0]))
-				_submit(USBKEYBOARD_RELEASED, _ukbd_mod_map[i][1]);
-			else if ((_kbd->sc_ndata.modifiers & _ukbd_mod_map[i][0])
-				&& !(_kbd->sc_odata.modifiers & _ukbd_mod_map[i][0]))
-				_submit(USBKEYBOARD_PRESSED, _ukbd_mod_map[i][1]);
+		if (!kbd->connected) {
+			// free the slot once the read that was outstanding has completed
+			if (!kbd->reading)
+				kbd->used = false;
+			continue;
 		}
-	}
 
-	for (i = 0; i < MAXKEYCODE; i++) {
-		if (_kbd->sc_odata.keycode[i] > 3) {
-			index = -1;
+		any = true;
 
-			for (j = 0; j < MAXKEYCODE; j++) {
-				if (_kbd->sc_odata.keycode[i] == _kbd->sc_ndata.keycode[j]) {
-					index = j;
-					break;
+		if (kbd->ready) {
+			kbd->ready = false;
+
+			if (kbd->result >= 8) {
+				kbd->sc_ndata.modifiers = (kbd->sc_ndata.modifiers << 8) | (kbd->sc_ndata.modifiers >> 8);
+
+				if (kbd->sc_ndata.keycode[0] != KEY_ERROR) {
+					if (kbd->sc_ndata.modifiers != kbd->sc_odata.modifiers) {
+						for (i = 0; i < MODMAPSIZE; ++i) {
+							if ((kbd->sc_odata.modifiers & _ukbd_mod_map[i][0])
+								&& !(kbd->sc_ndata.modifiers & _ukbd_mod_map[i][0]))
+								_submit(USBKEYBOARD_RELEASED, _ukbd_mod_map[i][1]);
+							else if ((kbd->sc_ndata.modifiers & _ukbd_mod_map[i][0])
+								&& !(kbd->sc_odata.modifiers & _ukbd_mod_map[i][0]))
+								_submit(USBKEYBOARD_PRESSED, _ukbd_mod_map[i][1]);
+						}
+					}
+
+					for (i = 0; i < MAXKEYCODE; i++) {
+						if (kbd->sc_odata.keycode[i] > 3) {
+							index = -1;
+
+							for (j = 0; j < MAXKEYCODE; j++) {
+								if (kbd->sc_odata.keycode[i] == kbd->sc_ndata.keycode[j]) {
+									index = j;
+									break;
+								}
+							}
+
+							if (index == -1)
+								_submit(USBKEYBOARD_RELEASED, kbd->sc_odata.keycode[i]);
+						}
+
+						if (kbd->sc_ndata.keycode[i] > 3) {
+							index = -1;
+
+							for (j = 0; j < MAXKEYCODE; j++) {
+								if (kbd->sc_ndata.keycode[i] == kbd->sc_odata.keycode[j]) {
+									index = j;
+									break;
+								}
+							}
+
+							if (index == -1)
+								_submit(USBKEYBOARD_PRESSED, kbd->sc_ndata.keycode[i]);
+						}
+					}
+
+					kbd->sc_odata = kbd->sc_ndata;
 				}
 			}
-
-			if (index == -1)
-				_submit(USBKEYBOARD_RELEASED, _kbd->sc_odata.keycode[i]);
 		}
 
-		if (_kbd->sc_ndata.keycode[i] > 3) {
-			index = -1;
-
-			for (j = 0; j < MAXKEYCODE; j++) {
-				if (_kbd->sc_ndata.keycode[i] == _kbd->sc_odata.keycode[j]) {
-					index = j;
-					break;
-				}
-			}
-
-			if (index == -1)
-				_submit(USBKEYBOARD_PRESSED, _kbd->sc_ndata.keycode[i]);
-		}
+		if (!kbd->reading && !kbd->removed)
+			_start_read(kbd);
 	}
 
-	_kbd->sc_odata = _kbd->sc_ndata;
-
-	return 0;
+	return any ? 0 : -1;
 }
 
-//Turn on/off a led
+//Turn on/off a led on every keyboard
 s32 USBKeyboard_SetLed(const USBKeyboard_led led, bool on)
 {
-	if (!_kbd)
-		return -1;
+	int i;
+	s32 ret = -1;
 
-	if (on)
-		_kbd->leds = _kbd->leds | (1 << led );
-	else
-		_kbd->leds = _kbd->leds & (255 ^ (1 << led));
+	for (i = 0; i < MAX_KEYBOARDS; i++) {
+		struct ukbd *kbd = &_kbds[i];
 
-	if (_set_output_report() < 0)
-		return -2;
+		if (!kbd->used || !kbd->connected)
+			continue;
 
-	return 1;
+		if (on)
+			kbd->leds = kbd->leds | (1 << led );
+		else
+			kbd->leds = kbd->leds & (255 ^ (1 << led));
+
+		ret = (_set_output_report(kbd) < 0 && ret != 1) ? -2 : 1;
+	}
+
+	return ret;
 }
 
-//Toggle a led
+//Toggle a led on every keyboard
 s32 USBKeyboard_ToggleLed(const USBKeyboard_led led)
 {
-	if (!_kbd)
-		return -1;
+	int i;
+	s32 ret = -1;
 
-	_kbd->leds = _kbd->leds ^ (1 << led);
+	for (i = 0; i < MAX_KEYBOARDS; i++) {
+		struct ukbd *kbd = &_kbds[i];
 
-	if (_set_output_report() < 0)
-		return -2;
+		if (!kbd->used || !kbd->connected)
+			continue;
 
-	return 1;
+		kbd->leds = kbd->leds ^ (1 << led);
+
+		ret = (_set_output_report(kbd) < 0 && ret != 1) ? -2 : 1;
+	}
+
+	return ret;
 }
-
