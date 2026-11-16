@@ -269,6 +269,22 @@ void *__attribute__((weak)) mem##n##_realloc_in_place(void *oldmem, size_t bytes
 		return NULL; \
 } \
  \
+void *__attribute__((weak)) mem##n##_reallocarray(void *oldmem, size_t n_elements, size_t elem_size) \
+{ \
+	if (mem##n##_mspace) \
+		return mspace_reallocarray(mem##n##_mspace, oldmem, n_elements, elem_size); \
+	else \
+		return NULL; \
+} \
+ \
+int __attribute__((weak)) mem##n##_reallocarr(void *pp, size_t n_elements, size_t elem_size) \
+{ \
+	if (mem##n##_mspace) \
+		return mspace_reallocarr(mem##n##_mspace, pp, n_elements, elem_size); \
+	else \
+		return ENOMEM; \
+} \
+ \
 void *__attribute__((weak)) mem##n##_memalign(size_t alignment, size_t bytes) \
 { \
 	if (mem##n##_mspace) \

@@ -147,6 +147,16 @@ void* dlrealloc(void*, size_t);
 void* dlrealloc_in_place(void*, size_t);
 
 /*
+  reallocarray(void* p, size_t n_elements, size_t element_size);
+*/
+void* reallocarray(void*, size_t, size_t);
+
+/*
+  int reallocarr(void* pp, size_t n_elements, size_t element_size);
+*/
+int reallocarr(void*, size_t, size_t);
+
+/*
   memalign(size_t alignment, size_t n);
   Returns a pointer to a newly allocated chunk of n bytes, aligned
   in accord with the alignment argument.
@@ -565,6 +575,9 @@ void mspace_free(mspace msp, void* mem);
 void* mspace_calloc(mspace msp, size_t n_elements, size_t elem_size);
 void* mspace_realloc(mspace msp, void* mem, size_t newsize);
 void* mspace_realloc_in_place(mspace msp, void* mem, size_t newsize);
+void* mspace_reallocarray(mspace msp, void* mem, size_t n_elements,
+                          size_t elem_size);
+int mspace_reallocarr(mspace msp, void*, size_t n_elements, size_t elem_size);
 void* mspace_memalign(mspace msp, size_t alignment, size_t bytes);
 int mspace_posix_memalign(mspace msp, void**, size_t alignment, size_t bytes);
 void* mspace_valloc(mspace msp, size_t bytes);

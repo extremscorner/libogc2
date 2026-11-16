@@ -143,7 +143,7 @@ OGCOBJ		:=	\
 			sbrk.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
 			sdgecko.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
 			texconv.o wiilaunch.o mic.o system_report.o mmce.o n64.o threads_supp.o \
-			malloc_wii.o malloc.o mallocr.o strdup.o strndup.o
+			malloc_wii.o malloc.o mallocr.o reallocarr.o reallocarray.o strdup.o strndup.o
 
 #---------------------------------------------------------------------------------
 MODOBJ		:=	freqtab.o mixer.o modplay.o semitonetab.o gcmodplay.o
